@@ -1,0 +1,25 @@
+.admin-section {
+    display: inline-block;
+    width: 30%;
+    height: 80px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 80px;
+    background-color: #F5F5FF;
+    border: 2px solid #D6D6FF;
+    border-radius: 0.8em;
+    font-size: 1.5em;
+    margin: 1%;
+    -webkit-transition: 0.5s ease-in-out;
+    -moz-transition: 0.5s ease-in-out;
+    -o-transition: 0.5s ease-in-out;
+    transition: 0.5s ease-in-out;
+}
+
+.admin-section:hover {
+    cursor: pointer;
+    -moz-transform: scale(1.2);
+    -ms-transform: scale(1.2);
+    -webkit-transform: scale(1.2);
+    transform: scale(1.2);
+}
