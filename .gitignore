@@ -15,3 +15,8 @@ server.pid
 *.eml
 /dist/
 .cache
+.settings
+.classpath
+.idea/
+.project
+/node_modules/
