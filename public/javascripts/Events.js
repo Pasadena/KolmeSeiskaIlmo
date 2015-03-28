@@ -30,11 +30,21 @@ var EventSection = React.createClass({displayName: "EventSection",
             }.bind(this)
         });
     },
+    deleteListItem: function(event) {
+
+    },
     render: function() {
         return (
-            React.createElement("div", null, 
-                React.createElement(EventForm, {formSubmitHandler: this.submitEventForm}), 
-                React.createElement(EventList, {data: this.state.data})
+            React.createElement("div", {className: "panel panel-default"}, 
+                React.createElement("div", {className: "panel-heading"}, 
+                    React.createElement("h3", {className: "panel-title"}, "Events")
+                ), 
+                React.createElement("div", {style: {padding: '10px'}}, 
+                    React.createElement(EventForm, {formSubmitHandler: this.submitEventForm})
+                ), 
+                React.createElement("div", null, 
+                    React.createElement(EventList, {data: this.state.data, deleteHandler: this.deleteListItem})
+                )
             )
         )
     }
@@ -59,12 +69,14 @@ var EventForm = React.createClass({displayName: "EventForm",
     render: function() {
         return (
             React.createElement("form", {onSubmit: this.submitForm}, 
-                React.createElement(InputComponent, {type: "text", placeholder: "Insert event name", label: "Event name:", id: "nameField", ref: "eventName"}), 
-                React.createElement(TextAreaComponent, {placeholder: "Insert event description", label: "Event description:", id: "descriptionField", ref: "eventDescription"}), 
-                React.createElement(InputComponent, {type: "date", label: "Event date:", id: "dateField", ref: "eventDate"}), 
-                React.createElement(InputComponent, {type: "date", label: "Registration starts:", id: "startField", ref: "regStart"}), 
-                React.createElement(InputComponent, {type: "date", label: "Registration ends:", id: "endField", ref: "regEnd"}), 
-                React.createElement(ButtonComponent, {type: "submit", value: "Save event", class: "btn btn-success"})
+                React.createElement("fieldset", null, 
+                    React.createElement(InputComponent, {type: "text", placeholder: "Insert event name", label: "Event name:", id: "nameField", ref: "eventName"}), 
+                    React.createElement(TextAreaComponent, {placeholder: "Insert event description", label: "Event description:", id: "descriptionField", ref: "eventDescription"}), 
+                    React.createElement(InputComponent, {type: "date", label: "Event date:", id: "dateField", ref: "eventDate"}), 
+                    React.createElement(InputComponent, {type: "date", label: "Registration starts:", id: "startField", ref: "regStart"}), 
+                    React.createElement(InputComponent, {type: "date", label: "Registration ends:", id: "endField", ref: "regEnd"}), 
+                    React.createElement(ButtonComponent, {type: "submit", value: "Save event", class: "btn btn-success"})
+                )
             )
         )
     }
@@ -128,17 +140,23 @@ var EventList = React.createClass({displayName: "EventList",
 
 var EventTable = React.createClass({displayName: "EventTable",
     render: function() {
+        var tableRows = this.props.data.map(function(event) {
+            return (
+                React.createElement(EventTableRow, {event: event, key: event.id, deleteListItem: this.props.deleteListItem})
+            );
+        });
         return (
-            React.createElement("table", {className: "table table-hover"}, 
-                React.createElement("th", null, 
-                    React.createElement("td", null, "Name"), 
-                    React.createElement("td", null, "Date"), 
-                    React.createElement("td", null, "Starts"), 
-                    React.createElement("td", null, "Ends")
+            React.createElement("table", {className: "table table-condensed"}, 
+                React.createElement("thead", null, 
+                    React.createElement("tr", null, 
+                        React.createElement("th", null, "Name"), 
+                        React.createElement("th", null, "Date"), 
+                        React.createElement("th", null, "Starts"), 
+                        React.createElement("th", null, "Ends"), 
+                        React.createElement("th", null)
+                    )
                 ), 
-                "this.props.data.map(function(event) ", 
-                    React.createElement(EventTableRow, {event: event}), 
-                ");"
+                tableRows
             )
         )
     }
@@ -148,10 +166,15 @@ var EventTableRow = React.createClass({displayName: "EventTableRow",
     render: function() {
         return (
             React.createElement("tr", null, 
-                React.createElement("td", null, "this.props.event.name"), 
-                React.createElement("td", null, "this.props.event.eventDate"), 
-                React.createElement("td", null, "this.props.event.registrationStarts"), 
-                React.createElement("td", null, "this.props.event.registrationEnds")
+                React.createElement("td", null, this.props.event.name), 
+                React.createElement("td", null, this.props.event.dateOfEvent), 
+                React.createElement("td", null, this.props.event.registrationStartDate), 
+                React.createElement("td", null, this.props.event.registrationEndDate), 
+                React.createElement("td", null, 
+                    React.createElement("form", {onSubmit: this.props.deleteListItem}, 
+                        React.createElement(ButtonComponent, {type: "submit", value: "Delete event", class: "btn btn-danger"})
+                    )
+                )
             )
         )
     }

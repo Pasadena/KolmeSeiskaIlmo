@@ -66,7 +66,7 @@ object Application extends Controller {
   def javascriptRoutes = Action{ implicit request =>
     Ok(Routes.javascriptRouter("jsRoutes")(
       routes.javascript.EventController.events,
-      routes.javascript.EventController.create
+      routes.javascript.EventController.createEvent
     )).as("text/javascript")
 
   }

@@ -15,7 +15,7 @@ object Event {
   implicit val eventFormat = Json.format[Event]
 }
 
-class Events(tag: Tag) extends Table[Event](tag, "EVENTS") {
+class Events(tag: Tag) extends Table[Event](tag, "EVENT") {
 
   implicit val dateMapper = MappedColumnType.base[Date, Timestamp](
     date => new Timestamp(date.getTime),
@@ -23,7 +23,7 @@ class Events(tag: Tag) extends Table[Event](tag, "EVENTS") {
   )
 
   def id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
-  def name = column[String]("NAME")
+  def name = column[String]("NAME_")
   def description = column[String]("DESCRIPTION")
   def dateOfEvent = column[Date]("DATE_OF_EVENT")
   def registrationStartDate = column[Date]("REGISTRATION_START_DATE")
@@ -42,5 +42,17 @@ object EventDAO {
 
   def create(event: Event)(implicit session: Session): Unit = {
     events returning events.map(_.id) += event
+  }
+
+  def findById(id:Long)(implicit session: Session): Event = {
+    events.filter(event => event.id === id).firstOption match {
+      case Some(event) => event
+      case None => throw new RuntimeException("No matching value for id #id")
+    }
+  }
+
+  def delete(id: Long)(implicit session: Session) = {
+    val toDeleteEvent = events.filter(_.id === id)
+    toDeleteEvent.delete
   }
 }

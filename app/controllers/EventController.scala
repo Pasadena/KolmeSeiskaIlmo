@@ -21,8 +21,7 @@ object EventController extends Controller {
   }
 
   def events = DBAction { implicit rs =>
-    val list = List.empty
-    Ok(Json.toJson(""))
+    Ok(Json.toJson(EventDAO.getAll()))
   }
 
   def createEvent = DBAction(parse json) { implicit rs =>
@@ -35,5 +34,13 @@ object EventController extends Controller {
         case None => BadRequest(Json.obj("status" ->"KO", "message" -> "Unexpected error happened during event saving!"))
       }
     }
+  }
+
+  def deleteEvent(id: Long) = DBAction {  implicit rs =>
+    (EventDAO.delete(id) == 1) match {
+      case true => Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully deleted"))
+      case false => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened during event delete!"))
+    }
+
   }
 }

@@ -30,11 +30,21 @@ var EventSection = React.createClass({
             }.bind(this)
         });
     },
+    deleteListItem: function(event) {
+
+    },
     render: function() {
         return (
-            <div>
-                <EventForm formSubmitHandler={this.submitEventForm} />
-                <EventList data={this.state.data} />
+            <div className="panel panel-default">
+                <div className="panel-heading">
+                    <h3 className="panel-title">Events</h3>
+                </div>
+                <div style={{padding: '10px'}}>
+                    <EventForm formSubmitHandler={this.submitEventForm} />
+                </div>
+                <div>
+                    <EventList data={this.state.data} deleteHandler={this.deleteListItem}/>
+                </div>
             </div>
         )
     }
@@ -59,12 +69,14 @@ var EventForm = React.createClass({
     render: function() {
         return (
             <form onSubmit={this.submitForm}>
-                <InputComponent type="text" placeholder="Insert event name" label="Event name:" id="nameField" ref="eventName"/>
-                <TextAreaComponent placeholder="Insert event description" label="Event description:" id="descriptionField" ref="eventDescription"/>
-                <InputComponent type="date" label="Event date:" id="dateField" ref="eventDate"/>
-                <InputComponent type="date" label="Registration starts:" id="startField" ref="regStart"/>
-                <InputComponent type="date" label="Registration ends:" id="endField" ref="regEnd"/>
-                <ButtonComponent type="submit" value="Save event" class="btn btn-success" />
+                <fieldset>
+                    <InputComponent type="text" placeholder="Insert event name" label="Event name:" id="nameField" ref="eventName"/>
+                    <TextAreaComponent placeholder="Insert event description" label="Event description:" id="descriptionField" ref="eventDescription"/>
+                    <InputComponent type="date" label="Event date:" id="dateField" ref="eventDate"/>
+                    <InputComponent type="date" label="Registration starts:" id="startField" ref="regStart"/>
+                    <InputComponent type="date" label="Registration ends:" id="endField" ref="regEnd"/>
+                    <ButtonComponent type="submit" value="Save event" class="btn btn-success" />
+                </fieldset>
             </form>
         )
     }
@@ -128,17 +140,23 @@ var EventList = React.createClass({
 
 var EventTable = React.createClass({
     render: function() {
+        var tableRows = this.props.data.map(function(event) {
+            return (
+                <EventTableRow event = {event} key={event.id} deleteListItem={this.props.deleteListItem}/>
+            );
+        });
         return (
-            <table className="table table-hover">
-                <th>
-                    <td>Name</td>
-                    <td>Date</td>
-                    <td>Starts</td>
-                    <td>Ends</td>
-                </th>
-                this.props.data.map(function(event) {
-                    <EventTableRow event = {event}/>
-                });
+            <table className="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Starts</th>
+                        <th>Ends</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                {tableRows}
             </table>
         )
     }
@@ -148,10 +166,15 @@ var EventTableRow = React.createClass({
     render: function() {
         return (
             <tr>
-                <td>this.props.event.name</td>
-                <td>this.props.event.eventDate</td>
-                <td>this.props.event.registrationStarts</td>
-                <td>this.props.event.registrationEnds</td>
+                <td>{this.props.event.name}</td>
+                <td>{this.props.event.dateOfEvent}</td>
+                <td>{this.props.event.registrationStartDate}</td>
+                <td>{this.props.event.registrationEndDate}</td>
+                <td>
+                    <form onSubmit={this.props.deleteListItem}>
+                        <ButtonComponent type="submit" value="Delete event" class="btn btn-danger" />
+                    </form>
+                </td>
             </tr>
         )
     }

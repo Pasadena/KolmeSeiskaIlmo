@@ -16,6 +16,7 @@ POST    /:id                            controllers.Application.editCabin(id: Lo
 GET /admin/events                       controllers.EventController.index
 GET /admin/loadEvents                   controllers.EventController.events
 POST /admin/events/                     controllers.EventController.createEvent
+POST /admin/events/:id                  controllers.EventController.deleteEvent
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)
