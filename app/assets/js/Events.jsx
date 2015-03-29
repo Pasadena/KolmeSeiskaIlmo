@@ -1,14 +1,17 @@
 var EventSection = React.createClass({
     getInitialState: function() {
-        return {data: []};
+        return {data: [], message: '', messageClass: ''};
     },
     componentDidMount: function() {
+        this.loadEvents();
+    },
+    loadEvents: function() {
         var eventRoute = '/admin/loadEvents';
         $.ajax({
             url: eventRoute,
             dataType: 'json',
             success: function(data) {
-                this.setState({data: data});
+                this.setState({events: data['events'], cabins: data['cabins']});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(status, err.toString());
@@ -23,27 +26,51 @@ var EventSection = React.createClass({
             type: 'POST',
             data: JSON.stringify(eventData),
             success: function(data) {
-                this.setState({data: data});
+                this.setStatusMessage(data);
+                this.loadEvents();
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(this.props.url, status, err.toString());
             }.bind(this)
         });
     },
-    deleteListItem: function(event) {
-
+    deleteListItem: function(eventData) {
+        var url = '/admin/events/' +eventData.id;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            success: function(data) {
+                this.setStatusMessage(data);
+                this.loadEvents();
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(status, err.toString());
+            }.bind(this)
+        });
+    },
+    setStatusMessage: function(messageData) {
+        if(messageData['status'] == 'Ok') {
+            this.setState({messageClass: 'alert alert-success'});
+        }
+        if(messageData['status'] == 'Error') {
+            this.setState({messageClass: 'alert alert-danger'});
+        }
+        this.setState({message: messageData['message']});
     },
     render: function() {
         return (
             <div className="panel panel-default">
+                <div className={this.state.messageClass} role="alert">
+                    {this.state.message}
+                </div>
                 <div className="panel-heading">
                     <h3 className="panel-title">Events</h3>
                 </div>
                 <div style={{padding: '10px'}}>
-                    <EventForm formSubmitHandler={this.submitEventForm} />
+                    <EventForm formSubmitHandler={this.submitEventForm} cabins={this.state.cabins}/>
                 </div>
                 <div>
-                    <EventList data={this.state.data} deleteHandler={this.deleteListItem}/>
+                    <EventList data={this.state.events} deleteHandler={this.deleteListItem}/>
                 </div>
             </div>
         )
@@ -64,6 +91,12 @@ var EventForm = React.createClass({
             return;
         }
         this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd});
+
+        this.refs.eventName.clear();
+        this.refs.eventDescription.clear();
+        this.refs.eventDate.clear();
+        this.refs.regStart.clear();
+        this.refs.regEnd.clear();
         return
     },
     render: function() {
@@ -75,8 +108,10 @@ var EventForm = React.createClass({
                     <InputComponent type="date" label="Event date:" id="dateField" ref="eventDate"/>
                     <InputComponent type="date" label="Registration starts:" id="startField" ref="regStart"/>
                     <InputComponent type="date" label="Registration ends:" id="endField" ref="regEnd"/>
-                    <ButtonComponent type="submit" value="Save event" class="btn btn-success" />
                 </fieldset>
+                <h3>Event's cabins</h3>
+
+                <ButtonComponent type="submit" value="Save event" class="btn btn-success" />
             </form>
         )
     }
@@ -86,6 +121,9 @@ var EventForm = React.createClass({
 var InputComponent = React.createClass({
     getValue: function() {
         return this.getDOMNode().querySelector('input').value;
+    },
+    clear: function() {
+        this.getDOMNode().querySelector('input').value='';
     },
     render: function() {
         return (
@@ -103,6 +141,9 @@ var InputComponent = React.createClass({
 var TextAreaComponent = React.createClass({
     getValue: function() {
         return this.getDOMNode().querySelector('textarea').value;
+    },
+    clear: function() {
+        this.getDOMNode().querySelector('textarea').value = '';
     },
     render: function() {
         return (
@@ -133,16 +174,17 @@ var ButtonComponent = React.createClass({
 var EventList = React.createClass({
     render: function() {
         return (
-            !this.props.data.length ? <EmptyTable /> :<EventTable data ={this.props.data} />
+            !this.props.data.length ? <EmptyTable /> :<EventTable data ={this.props.data} deleteHandler={this.props.deleteHandler}/>
         )
     }
 });
 
 var EventTable = React.createClass({
     render: function() {
+        var deleteHandler = this.props.deleteHandler;
         var tableRows = this.props.data.map(function(event) {
             return (
-                <EventTableRow event = {event} key={event.id} deleteListItem={this.props.deleteListItem}/>
+                <EventTableRow event = {event} key={event.id} deleteHandler={deleteHandler}/>
             );
         });
         return (
@@ -163,6 +205,10 @@ var EventTable = React.createClass({
 });
 
 var EventTableRow = React.createClass({
+    submitForm: function(event) {
+        event.preventDefault();
+        this.props.deleteHandler(this.props.event);
+    },
     render: function() {
         return (
             <tr>
@@ -171,7 +217,7 @@ var EventTableRow = React.createClass({
                 <td>{this.props.event.registrationStartDate}</td>
                 <td>{this.props.event.registrationEndDate}</td>
                 <td>
-                    <form onSubmit={this.props.deleteListItem}>
+                    <form onSubmit={this.submitForm}>
                         <ButtonComponent type="submit" value="Delete event" class="btn btn-danger" />
                     </form>
                 </td>

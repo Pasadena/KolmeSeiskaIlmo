@@ -14,6 +14,8 @@ case class Cabin(id: Option[Long] = None, name: String, description: String, cap
 
 object Cabin extends ((Option[Long], String, String, Int, BigDecimal) => Cabin){
 
+  implicit val cabinFormat = Json.format[Cabin]
+
   def getIdValue(id: Option[Long]): Long = {
     id match {
       case Some(cabinId) => cabinId

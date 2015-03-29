@@ -1,8 +1,11 @@
 var EventSection = React.createClass({displayName: "EventSection",
     getInitialState: function() {
-        return {data: []};
+        return {data: [], message: '', messageClass: ''};
     },
     componentDidMount: function() {
+        this.loadEvents();
+    },
+    loadEvents: function() {
         var eventRoute = '/admin/loadEvents';
         $.ajax({
             url: eventRoute,
@@ -23,19 +26,43 @@ var EventSection = React.createClass({displayName: "EventSection",
             type: 'POST',
             data: JSON.stringify(eventData),
             success: function(data) {
-                this.setState({data: data});
+                this.setStatusMessage(data);
+                this.loadEvents();
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(this.props.url, status, err.toString());
             }.bind(this)
         });
     },
-    deleteListItem: function(event) {
-
+    deleteListItem: function(eventData) {
+        var url = '/admin/events/' +eventData.id;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            success: function(data) {
+                this.setStatusMessage(data);
+                this.loadEvents();
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(status, err.toString());
+            }.bind(this)
+        });
+    },
+    setStatusMessage: function(messageData) {
+        if(messageData['status'] == 'Ok') {
+            this.setState({messageClass: 'alert alert-success'});
+        }
+        if(messageData['status'] == 'Error') {
+            this.setState({messageClass: 'alert alert-danger'});
+        }
+        this.setState({message: messageData['message']});
     },
     render: function() {
         return (
             React.createElement("div", {className: "panel panel-default"}, 
+                React.createElement("div", {className: this.state.messageClass, role: "alert"}, 
+                    this.state.message
+                ), 
                 React.createElement("div", {className: "panel-heading"}, 
                     React.createElement("h3", {className: "panel-title"}, "Events")
                 ), 
@@ -64,6 +91,12 @@ var EventForm = React.createClass({displayName: "EventForm",
             return;
         }
         this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd});
+
+        this.refs.eventName.clear();
+        this.refs.eventDescription.clear();
+        this.refs.eventDate.clear();
+        this.refs.regStart.clear();
+        this.refs.regEnd.clear();
         return
     },
     render: function() {
@@ -87,6 +120,9 @@ var InputComponent = React.createClass({displayName: "InputComponent",
     getValue: function() {
         return this.getDOMNode().querySelector('input').value;
     },
+    clear: function() {
+        this.getDOMNode().querySelector('input').value='';
+    },
     render: function() {
         return (
             React.createElement("div", {className: "form-group"}, 
@@ -103,6 +139,9 @@ var InputComponent = React.createClass({displayName: "InputComponent",
 var TextAreaComponent = React.createClass({displayName: "TextAreaComponent",
     getValue: function() {
         return this.getDOMNode().querySelector('textarea').value;
+    },
+    clear: function() {
+        this.getDOMNode().querySelector('textarea').value = '';
     },
     render: function() {
         return (
@@ -133,16 +172,17 @@ var ButtonComponent = React.createClass({displayName: "ButtonComponent",
 var EventList = React.createClass({displayName: "EventList",
     render: function() {
         return (
-            !this.props.data.length ? React.createElement(EmptyTable, null) :React.createElement(EventTable, {data: this.props.data})
+            !this.props.data.length ? React.createElement(EmptyTable, null) :React.createElement(EventTable, {data: this.props.data, deleteHandler: this.props.deleteHandler})
         )
     }
 });
 
 var EventTable = React.createClass({displayName: "EventTable",
     render: function() {
+        var deleteHandler = this.props.deleteHandler;
         var tableRows = this.props.data.map(function(event) {
             return (
-                React.createElement(EventTableRow, {event: event, key: event.id, deleteListItem: this.props.deleteListItem})
+                React.createElement(EventTableRow, {event: event, key: event.id, deleteHandler: deleteHandler})
             );
         });
         return (
@@ -163,6 +203,10 @@ var EventTable = React.createClass({displayName: "EventTable",
 });
 
 var EventTableRow = React.createClass({displayName: "EventTableRow",
+    submitForm: function(event) {
+        event.preventDefault();
+        this.props.deleteHandler(this.props.event);
+    },
     render: function() {
         return (
             React.createElement("tr", null, 
@@ -171,7 +215,7 @@ var EventTableRow = React.createClass({displayName: "EventTableRow",
                 React.createElement("td", null, this.props.event.registrationStartDate), 
                 React.createElement("td", null, this.props.event.registrationEndDate), 
                 React.createElement("td", null, 
-                    React.createElement("form", {onSubmit: this.props.deleteListItem}, 
+                    React.createElement("form", {onSubmit: this.submitForm}, 
                         React.createElement(ButtonComponent, {type: "submit", value: "Delete event", class: "btn btn-danger"})
                     )
                 )
