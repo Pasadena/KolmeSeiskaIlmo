@@ -32,6 +32,7 @@ object EventController extends Controller {
     val events: List[Event] =  EventDAO.getAll()
     val cabins: List[Cabin] = CabinDAO.getAll()
     Ok(Json.obj("events" -> Json.toJson(events), "cabins" -> Json.toJson(cabins)))
+    //Ok(Json.toJson(events))
   }
 
   def createEvent = DBAction(parse json) { implicit rs =>
