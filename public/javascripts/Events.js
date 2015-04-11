@@ -18,13 +18,13 @@ var EventSection = React.createClass({displayName: "EventSection",
             }.bind(this)
         });
     },
-    submitEventForm: function(eventData) {
+    submitEventForm: function(eventData, selectedCabins) {
         $.ajax({
             url: '/admin/events/',
             contentType: 'application/json',
             dataType: 'json',
             type: 'POST',
-            data: JSON.stringify(eventData),
+            data: JSON.stringify([eventData, selectedCabins]),
             success: function(data) {
                 this.setStatusMessage(data);
                 this.loadEvents();
@@ -57,6 +57,15 @@ var EventSection = React.createClass({displayName: "EventSection",
         }
         this.setState({message: messageData['message']});
     },
+    handleDeleteSelectedCabin: function(cabin) {
+        var availableCabins = this.state.cabins
+        availableCabins.push(cabin);
+        this.setState({cabins: availableCabins});
+    },
+    handleAddCabinToEvent: function(cabin) {
+        var availableCabins = this.state.cabins.filter(function(item) { return item.id != cabin.id });
+        this.setState({cabins: availableCabins});
+    },
     render: function() {
         return (
             React.createElement("div", {className: "panel panel-default"}, 
@@ -67,7 +76,7 @@ var EventSection = React.createClass({displayName: "EventSection",
                     React.createElement("h3", {className: "panel-title"}, "Events")
                 ), 
                 React.createElement("div", {style: {padding: '10px'}}, 
-                    React.createElement(EventForm, {formSubmitHandler: this.submitEventForm, availableCabins: this.state.cabins})
+                    React.createElement(EventForm, {formSubmitHandler: this.submitEventForm, availableCabins: this.state.cabins, handleDeleteSelectedCabin: this.handleDeleteSelectedCabin, addCabinHandler: this.handleAddCabinToEvent})
                 ), 
                 React.createElement("div", null, 
                     React.createElement(EventList, {data: this.state.events, deleteHandler: this.deleteListItem})
@@ -93,19 +102,26 @@ var EventForm = React.createClass({displayName: "EventForm",
         if(!eventName || !eventDescription || !eventDate || !regStart || !regEnd) {
             return;
         }
-        this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd});
+        this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd}, this.state.selectedCabins);
 
         this.refs.eventName.clear();
         this.refs.eventDescription.clear();
         this.refs.eventDate.clear();
         this.refs.regStart.clear();
         this.refs.regEnd.clear();
+        this.setState({selectedCabins: []});
         return
     },
     selectCabin: function(cabin) {
         var cabins =  this.state.selectedCabins;
         cabins.push(cabin);
         this.setState({selectedCabins: cabins});
+        this.props.addCabinHandler(cabin);
+    },
+    deleteCabin: function(cabin) {
+        var cabinIndex = this.state.selectedCabins.indexOf(cabin);
+        this.state.selectedCabins.splice(cabinIndex, 1);
+        this.props.handleDeleteSelectedCabin(cabin);
     },
     render: function() {
 
@@ -118,12 +134,13 @@ var EventForm = React.createClass({displayName: "EventForm",
         }, this);
         var selectedCabinElements = this.state.selectedCabins.map(function(cabin) {
             return (
-                React.createElement("li", {className: "event-cabin-list-item", key: cabin.id}, 
-                    React.createElement("div", {style: {width: '50%'}}, cabin.name, " ( ", cabin.capacity, " ) "), 
-                    React.createElement("div", {style: {width: '50%'}}, React.createElement(InputComponent, {type: "text", label: "Amount:", id: "nameField"}))
+                React.createElement("div", {className: "event-cabin-list-selected-item", key: cabin.id}, 
+                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, cabin.name, " ( ", cabin.capacity, " ) "), 
+                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, React.createElement(InputComponent, {type: "text", label: "Amount:", id: "nameField"})), 
+                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, React.createElement("span", {onClick: this.deleteCabin.bind(null, cabin)}, " ", React.createElement("i", {className: "glyphicon glyphicon-remove"})))
                 )
             );
-        });
+        }, this);
         return (
             React.createElement("form", {onSubmit: this.submitForm}, 
                 React.createElement("fieldset", null, 
@@ -134,18 +151,16 @@ var EventForm = React.createClass({displayName: "EventForm",
                     React.createElement(InputComponent, {type: "date", label: "Registration ends:", id: "endField", ref: "regEnd"})
                 ), 
                 React.createElement("h3", null, "Event's cabins"), 
-                    React.createElement("fieldset", null, 
-                        React.createElement("div", {className: "event-cabin-list"}, 
+                    React.createElement("div", {className: "event-cabin-list-container"}, 
+                        React.createElement("div", {className: "event-cabin-list-available"}, 
                             React.createElement("h5", null, "Available cabins"), 
                             React.createElement("ul", null, 
                                 cabinElements
                             )
                         ), 
-                        React.createElement("div", {className: "event-cabin-list"}, 
+                        React.createElement("div", {className: "event-cabin-list-selected"}, 
                             React.createElement("h5", null, "Selected cabins"), 
-                            React.createElement("ul", null, 
-                                selectedCabinElements
-                            )
+                            selectedCabinElements
                         )
                     ), 
                 React.createElement(ButtonComponent, {type: "submit", value: "Save event", class: "btn btn-success"})

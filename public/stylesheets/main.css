@@ -24,9 +24,20 @@
     transform: scale(1.2);
 }
 
-.event-cabin-list {
+.event-cabin-list-container {
+    vertical-align: top;
+}
+
+.event-cabin-list-available {
+    vertical-align: top;
     display: inline-block;
     width: 30%;
+}
+
+.event-cabin-list-selected {
+    vertical-align: top;
+    display: inline-block;
+    width: 70%;
 }
 
 .event-cabin-list-item {
@@ -40,4 +51,14 @@
     -ms-transform: translateX(20px);
     -webkit-transform: translateX(20px);
     transform: translateX(20px);
+}
+
+.event-cabin-list-selected-item {
+     display: table-row;
+}
+
+.event-cabin-list-selected-item-column {
+     display: table-cell;
+     vertical-align: top;
+     line-height: 20px;
 }

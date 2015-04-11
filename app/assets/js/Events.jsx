@@ -18,13 +18,13 @@ var EventSection = React.createClass({
             }.bind(this)
         });
     },
-    submitEventForm: function(eventData) {
+    submitEventForm: function(eventData, selectedCabins) {
         $.ajax({
             url: '/admin/events/',
             contentType: 'application/json',
             dataType: 'json',
             type: 'POST',
-            data: JSON.stringify(eventData),
+            data: JSON.stringify([eventData, selectedCabins]),
             success: function(data) {
                 this.setStatusMessage(data);
                 this.loadEvents();
@@ -57,6 +57,15 @@ var EventSection = React.createClass({
         }
         this.setState({message: messageData['message']});
     },
+    handleDeleteSelectedCabin: function(cabin) {
+        var availableCabins = this.state.cabins
+        availableCabins.push(cabin);
+        this.setState({cabins: availableCabins});
+    },
+    handleAddCabinToEvent: function(cabin) {
+        var availableCabins = this.state.cabins.filter(function(item) { return item.id != cabin.id });
+        this.setState({cabins: availableCabins});
+    },
     render: function() {
         return (
             <div className="panel panel-default">
@@ -67,7 +76,7 @@ var EventSection = React.createClass({
                     <h3 className="panel-title">Events</h3>
                 </div>
                 <div style={{padding: '10px'}}>
-                    <EventForm formSubmitHandler={this.submitEventForm} availableCabins={this.state.cabins} />
+                    <EventForm formSubmitHandler={this.submitEventForm} availableCabins={this.state.cabins} handleDeleteSelectedCabin={this.handleDeleteSelectedCabin} addCabinHandler={this.handleAddCabinToEvent}/>
                 </div>
                 <div>
                     <EventList data={this.state.events} deleteHandler={this.deleteListItem} />
@@ -93,19 +102,26 @@ var EventForm = React.createClass({
         if(!eventName || !eventDescription || !eventDate || !regStart || !regEnd) {
             return;
         }
-        this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd});
+        this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd}, this.state.selectedCabins);
 
         this.refs.eventName.clear();
         this.refs.eventDescription.clear();
         this.refs.eventDate.clear();
         this.refs.regStart.clear();
         this.refs.regEnd.clear();
+        this.setState({selectedCabins: []});
         return
     },
     selectCabin: function(cabin) {
         var cabins =  this.state.selectedCabins;
         cabins.push(cabin);
         this.setState({selectedCabins: cabins});
+        this.props.addCabinHandler(cabin);
+    },
+    deleteCabin: function(cabin) {
+        var cabinIndex = this.state.selectedCabins.indexOf(cabin);
+        this.state.selectedCabins.splice(cabinIndex, 1);
+        this.props.handleDeleteSelectedCabin(cabin);
     },
     render: function() {
 
@@ -118,12 +134,13 @@ var EventForm = React.createClass({
         }, this);
         var selectedCabinElements = this.state.selectedCabins.map(function(cabin) {
             return (
-                <li className="event-cabin-list-item" key={cabin.id}>
-                    <div style={{width: '50%'}}>{cabin.name} ( {cabin.capacity} ) </div>
-                    <div style={{width: '50%'}}><InputComponent type="text" label="Amount:" id="nameField"/></div>
-                </li>
+                <div className="event-cabin-list-selected-item" key={cabin.id}>
+                    <div className="event-cabin-list-selected-item-column">{cabin.name} ( {cabin.capacity} ) </div>
+                    <div className="event-cabin-list-selected-item-column"><InputComponent type="text" label="Amount:" id="nameField"/></div>
+                    <div className="event-cabin-list-selected-item-column"><span onClick={this.deleteCabin.bind(null, cabin)} > <i className="glyphicon glyphicon-remove"/></span></div>
+                </div>
             );
-        });
+        }, this);
         return (
             <form onSubmit={this.submitForm}>
                 <fieldset>
@@ -134,20 +151,18 @@ var EventForm = React.createClass({
                     <InputComponent type="date" label="Registration ends:" id="endField" ref="regEnd"/>
                 </fieldset>
                 <h3>Event's cabins</h3>
-                    <fieldset>
-                        <div className='event-cabin-list'>
+                    <div className="event-cabin-list-container">
+                        <div className='event-cabin-list-available'>
                             <h5>Available cabins</h5>
                             <ul>
                                 {cabinElements}
                             </ul>
                         </div>
-                        <div className='event-cabin-list'>
+                        <div className="event-cabin-list-selected">
                             <h5>Selected cabins</h5>
-                            <ul>
-                                {selectedCabinElements}
-                            </ul>
+                            {selectedCabinElements}
                         </div>
-                    </fieldset>
+                    </div>
                 <ButtonComponent type="submit" value="Save event" class="btn btn-success" />
             </form>
         )
