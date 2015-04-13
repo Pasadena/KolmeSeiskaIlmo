@@ -1,10 +1,12 @@
 package models
 
 import java.sql.Date
+import java.text.SimpleDateFormat
 
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import play.api.db.slick.Config.driver.simple._
-import play.api.libs.json.Json
+import play.api.libs.json._
 
 /**
  * Created by spokos on 3/25/15.
@@ -13,11 +15,15 @@ case class Event(id: Option[Long], name: String, description: String, dateOfEven
 
 object Event {
 
+  val pattern = "d.M.yy"
+  implicit val dateFormat = Format[DateTime](Reads.jodaDateReads(pattern), Writes.jodaDateWrites(pattern))
+
   implicit val eventFormat = Json.format[Event]
 }
 
 class Events(tag: Tag) extends Table[Event](tag, "EVENT") {
 
+  implicit val dateTimeFormat = DateTimeFormat.forPattern("dd-mm-yyyy")
   implicit val dateMapper = MappedColumnType.base[DateTime, Date](
     dateTime => new Date(dateTime.getMillis),
     date => new DateTime(date)

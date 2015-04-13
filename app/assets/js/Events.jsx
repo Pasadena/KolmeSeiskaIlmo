@@ -1,6 +1,6 @@
 var EventSection = React.createClass({
     getInitialState: function() {
-        return {events: [], message: '', messageClass: '', cabins: []};
+        return {events: [], message: '', messageClass: '', cabins: [], selectedEvent: null};
     },
     componentDidMount: function() {
         this.loadEvents();
@@ -35,13 +35,25 @@ var EventSection = React.createClass({
         });
     },
     deleteListItem: function(eventData) {
-        var url = '/admin/events/' +eventData.id;
+        var url = '/admin/events/delete/' +eventData.id;
         $.ajax({
             url: url,
-            type: 'POST',
             success: function(data) {
                 this.setStatusMessage(data);
                 this.loadEvents();
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(status, err.toString());
+            }.bind(this)
+        });
+    },
+    loadEvent: function(eventData) {
+        var url = '/admin/events/' +eventData.id;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            success: function(data) {
+                this.setState({selectedEvent: data});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(status, err.toString());
@@ -76,10 +88,10 @@ var EventSection = React.createClass({
                     <h3 className="panel-title">Events</h3>
                 </div>
                 <div style={{padding: '10px'}}>
-                    <EventForm formSubmitHandler={this.submitEventForm} availableCabins={this.state.cabins} handleDeleteSelectedCabin={this.handleDeleteSelectedCabin} addCabinHandler={this.handleAddCabinToEvent}/>
+                    <EventForm event={this.state.selectedEvent} formSubmitHandler={this.submitEventForm} availableCabins={this.state.cabins} handleDeleteSelectedCabin={this.handleDeleteSelectedCabin} addCabinHandler={this.handleAddCabinToEvent}/>
                 </div>
                 <div>
-                    <EventList data={this.state.events} deleteHandler={this.deleteListItem} />
+                    <EventList data={this.state.events} deleteHandler={this.deleteListItem} editHandler={this.loadEvent}/>
                 </div>
             </div>
         )
@@ -89,7 +101,20 @@ var EventSection = React.createClass({
 
 var EventForm = React.createClass({
     getInitialState: function() {
-        return {selectedCabins: []};
+        return {
+        eventName: '',
+        eventDescription: '',
+        eventDate: '',
+        regStart: '',
+        regEnd: '',
+        selectedCabins: []};
+    },
+    componentWillReceiveProps: function(nextProps) {
+        if(nextProps.event) {
+            var editEvent = nextProps.event;
+            this.setState({eventName: editEvent.name, eventDescription: editEvent.description, eventDate: editEvent.dateOfEvent, regStart: editEvent.registrationStartDate,
+            regEnd: editEvent.registrationEndDate});
+        }
     },
     submitForm: function(event) {
         event.preventDefault();
@@ -99,17 +124,12 @@ var EventForm = React.createClass({
         var regStart = this.refs.regStart.getValue();
         var regEnd = this.refs.regEnd.getValue();
 
-        if(!eventName || !eventDescription || !eventDate || !regStart || !regEnd) {
+        if(!eventName || !eventDate || !regStart || !regEnd) {
             return;
         }
         this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd}, this.state.selectedCabins);
 
-        this.refs.eventName.clear();
-        this.refs.eventDescription.clear();
-        this.refs.eventDate.clear();
-        this.refs.regStart.clear();
-        this.refs.regEnd.clear();
-        this.setState({selectedCabins: []});
+        this.setState(this.getInitialState());
         return
     },
     selectCabin: function(cabin) {
@@ -144,11 +164,11 @@ var EventForm = React.createClass({
         return (
             <form onSubmit={this.submitForm}>
                 <fieldset>
-                    <InputComponent type="text" placeholder="Insert event name" label="Event name:" id="nameField" ref="eventName"/>
-                    <TextAreaComponent placeholder="Insert event description" label="Event description:" id="descriptionField" ref="eventDescription"/>
-                    <InputComponent type="date" label="Event date:" id="dateField" ref="eventDate"/>
-                    <InputComponent type="date" label="Registration starts:" id="startField" ref="regStart"/>
-                    <InputComponent type="date" label="Registration ends:" id="endField" ref="regEnd"/>
+                    <InputComponent type="text" placeholder="Insert event name" label="Event name:" id="nameField" ref="eventName" value={this.state.eventName}/>
+                    <TextAreaComponent placeholder="Insert event description" label="Event description:" id="descriptionField" ref="eventDescription" value={this.state.eventDescription}/>
+                    <InputComponent type="datepicker" label="Event date:" id="eventDate" ref="eventDate" value={this.state.eventDate}/>
+                    <InputComponent type="datepicker" label="Registration starts:" id="startField" ref="regStart" value={this.state.regStart}/>
+                    <InputComponent type="datepicker" label="Registration ends:" id="endField" ref="regEnd" value={this.state.regEnd}/>
                 </fieldset>
                 <h3>Event's cabins</h3>
                     <div className="event-cabin-list-container">
@@ -171,6 +191,23 @@ var EventForm = React.createClass({
 });
 
 var InputComponent = React.createClass({
+    getInitialState: function() {
+        return {value: ''};
+    },
+    componentDidMount: function() {
+        if(this.props.type && this.props.type == 'datepicker') {
+            var id = this.props.id;
+            $('#' +id).datepicker({
+                dateFormat: 'd.m.yy',
+                onSelect: function(date) {
+                    this.setState({value: date});
+                }.bind(this)
+            });
+        }
+    },
+    handleChange: function(event) {
+        this.setState({value: event.target.value});
+    },
     getValue: function() {
         return this.getDOMNode().querySelector('input').value;
     },
@@ -182,7 +219,7 @@ var InputComponent = React.createClass({
             <div className="form-group">
                 <label className="col-sm-2 control-label" htmlFor={this.props.id}>{this.props.label}</label>
                 <div className="col-sm-10">
-                    <input type={this.props.type} placeholder={this.props.placeholder} id={this.props.id} ref={this.props.ref}/>
+                    <input type={this.props.type} placeholder={this.props.placeholder} id={this.props.id} ref={this.props.ref} value={this.state.value} onChange={this.handleChange}/>
                     <span className="help-block">{this.props.help}</span>
                 </div>
             </div>
@@ -191,6 +228,12 @@ var InputComponent = React.createClass({
 });
 
 var TextAreaComponent = React.createClass({
+    getInitialState: function() {
+        return {value: ''};
+    },
+    handleChange: function(event) {
+        this.setState({value: event.target.value});
+    },
     getValue: function() {
         return this.getDOMNode().querySelector('textarea').value;
     },
@@ -202,7 +245,7 @@ var TextAreaComponent = React.createClass({
             <div className="form-group">
                 <label className="col-sm-2 control-label" htmlFor={this.props.id}>{this.props.label}</label>
                 <div className="col-sm-10">
-                    <textarea placeholder={this.props.placeholder} id={this.props.id} />
+                    <textarea placeholder={this.props.placeholder} id={this.props.id} onChange={this.handleChange} value={this.state.value} />
                     <span className="help-block">{this.props.help}</span>
                 </div>
             </div>
@@ -226,7 +269,7 @@ var ButtonComponent = React.createClass({
 var EventList = React.createClass({
     render: function() {
         return (
-            !this.props.data.length ? <EmptyTable /> :<EventTable data ={this.props.data} deleteHandler={this.props.deleteHandler}/>
+            !this.props.data.length ? <EmptyTable /> :<EventTable data ={this.props.data} deleteHandler={this.props.deleteHandler} editHandler={this.props.editHandler}/>
         )
     }
 });
@@ -234,9 +277,10 @@ var EventList = React.createClass({
 var EventTable = React.createClass({
     render: function() {
         var deleteHandler = this.props.deleteHandler;
+        var editHandler = this.props.editHandler;
         var tableRows = this.props.data.map(function(event) {
             return (
-                <EventTableRow event = {event} key={event.id} deleteHandler={deleteHandler}/>
+                <EventTableRow event = {event} key={event.id} deleteHandler={deleteHandler} editHandler={editHandler}/>
             );
         });
         return (
@@ -257,9 +301,13 @@ var EventTable = React.createClass({
 });
 
 var EventTableRow = React.createClass({
-    submitForm: function(event) {
+    deleteEvent: function(event) {
         event.preventDefault();
         this.props.deleteHandler(this.props.event);
+    },
+    editEvent: function(event) {
+        event.preventDefault();
+        this.props.editHandler(this.props.event)
     },
     render: function() {
         return (
@@ -269,8 +317,11 @@ var EventTableRow = React.createClass({
                 <td>{this.props.event.registrationStartDate}</td>
                 <td>{this.props.event.registrationEndDate}</td>
                 <td>
-                    <form onSubmit={this.submitForm}>
-                        <ButtonComponent type="submit" value="Delete event" class="btn btn-danger" />
+                    <form onSubmit={this.deleteEvent}>
+                        <ButtonComponent type="submit" value="Delete" class="btn btn-danger" />
+                    </form>
+                    <form onSubmit={this.editEvent}>
+                        <ButtonComponent type="submit" value="Edit" class="btn btn-default" />
                     </form>
                 </td>
             </tr>

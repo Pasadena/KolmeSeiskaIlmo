@@ -1,6 +1,6 @@
 var EventSection = React.createClass({displayName: "EventSection",
     getInitialState: function() {
-        return {events: [], message: '', messageClass: '', cabins: []};
+        return {events: [], message: '', messageClass: '', cabins: [], selectedEvent: null};
     },
     componentDidMount: function() {
         this.loadEvents();
@@ -35,13 +35,25 @@ var EventSection = React.createClass({displayName: "EventSection",
         });
     },
     deleteListItem: function(eventData) {
-        var url = '/admin/events/' +eventData.id;
+        var url = '/admin/events/delete/' +eventData.id;
         $.ajax({
             url: url,
-            type: 'POST',
             success: function(data) {
                 this.setStatusMessage(data);
                 this.loadEvents();
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(status, err.toString());
+            }.bind(this)
+        });
+    },
+    loadEvent: function(eventData) {
+        var url = '/admin/events/' +eventData.id;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            success: function(data) {
+                this.setState({selectedEvent: data});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(status, err.toString());
@@ -76,10 +88,10 @@ var EventSection = React.createClass({displayName: "EventSection",
                     React.createElement("h3", {className: "panel-title"}, "Events")
                 ), 
                 React.createElement("div", {style: {padding: '10px'}}, 
-                    React.createElement(EventForm, {formSubmitHandler: this.submitEventForm, availableCabins: this.state.cabins, handleDeleteSelectedCabin: this.handleDeleteSelectedCabin, addCabinHandler: this.handleAddCabinToEvent})
+                    React.createElement(EventForm, {event: this.state.selectedEvent, formSubmitHandler: this.submitEventForm, availableCabins: this.state.cabins, handleDeleteSelectedCabin: this.handleDeleteSelectedCabin, addCabinHandler: this.handleAddCabinToEvent})
                 ), 
                 React.createElement("div", null, 
-                    React.createElement(EventList, {data: this.state.events, deleteHandler: this.deleteListItem})
+                    React.createElement(EventList, {data: this.state.events, deleteHandler: this.deleteListItem, editHandler: this.loadEvent})
                 )
             )
         )
@@ -89,7 +101,20 @@ var EventSection = React.createClass({displayName: "EventSection",
 
 var EventForm = React.createClass({displayName: "EventForm",
     getInitialState: function() {
-        return {selectedCabins: []};
+        return {
+        eventName: '',
+        eventDescription: '',
+        eventDate: '',
+        regStart: '',
+        regEnd: '',
+        selectedCabins: []};
+    },
+    componentWillReceiveProps: function(nextProps) {
+        if(nextProps.event) {
+            var editEvent = nextProps.event;
+            this.setState({eventName: editEvent.name, eventDescription: editEvent.description, eventDate: editEvent.dateOfEvent, regStart: editEvent.registrationStartDate,
+            regEnd: editEvent.registrationEndDate});
+        }
     },
     submitForm: function(event) {
         event.preventDefault();
@@ -99,17 +124,12 @@ var EventForm = React.createClass({displayName: "EventForm",
         var regStart = this.refs.regStart.getValue();
         var regEnd = this.refs.regEnd.getValue();
 
-        if(!eventName || !eventDescription || !eventDate || !regStart || !regEnd) {
+        if(!eventName || !eventDate || !regStart || !regEnd) {
             return;
         }
         this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd}, this.state.selectedCabins);
 
-        this.refs.eventName.clear();
-        this.refs.eventDescription.clear();
-        this.refs.eventDate.clear();
-        this.refs.regStart.clear();
-        this.refs.regEnd.clear();
-        this.setState({selectedCabins: []});
+        this.setState(this.getInitialState());
         return
     },
     selectCabin: function(cabin) {
@@ -144,11 +164,11 @@ var EventForm = React.createClass({displayName: "EventForm",
         return (
             React.createElement("form", {onSubmit: this.submitForm}, 
                 React.createElement("fieldset", null, 
-                    React.createElement(InputComponent, {type: "text", placeholder: "Insert event name", label: "Event name:", id: "nameField", ref: "eventName"}), 
-                    React.createElement(TextAreaComponent, {placeholder: "Insert event description", label: "Event description:", id: "descriptionField", ref: "eventDescription"}), 
-                    React.createElement(InputComponent, {type: "date", label: "Event date:", id: "dateField", ref: "eventDate"}), 
-                    React.createElement(InputComponent, {type: "date", label: "Registration starts:", id: "startField", ref: "regStart"}), 
-                    React.createElement(InputComponent, {type: "date", label: "Registration ends:", id: "endField", ref: "regEnd"})
+                    React.createElement(InputComponent, {type: "text", placeholder: "Insert event name", label: "Event name:", id: "nameField", ref: "eventName", value: this.state.eventName}), 
+                    React.createElement(TextAreaComponent, {placeholder: "Insert event description", label: "Event description:", id: "descriptionField", ref: "eventDescription", value: this.state.eventDescription}), 
+                    React.createElement(InputComponent, {type: "datepicker", label: "Event date:", id: "eventDate", ref: "eventDate", value: this.state.eventDate}), 
+                    React.createElement(InputComponent, {type: "datepicker", label: "Registration starts:", id: "startField", ref: "regStart", value: this.state.regStart}), 
+                    React.createElement(InputComponent, {type: "datepicker", label: "Registration ends:", id: "endField", ref: "regEnd", value: this.state.regEnd})
                 ), 
                 React.createElement("h3", null, "Event's cabins"), 
                     React.createElement("div", {className: "event-cabin-list-container"}, 
@@ -171,6 +191,23 @@ var EventForm = React.createClass({displayName: "EventForm",
 });
 
 var InputComponent = React.createClass({displayName: "InputComponent",
+    getInitialState: function() {
+        return {value: ''};
+    },
+    componentDidMount: function() {
+        if(this.props.type && this.props.type == 'datepicker') {
+            var id = this.props.id;
+            $('#' +id).datepicker({
+                dateFormat: 'd.m.yy',
+                onSelect: function(date) {
+                    this.setState({value: date});
+                }.bind(this)
+            });
+        }
+    },
+    handleChange: function(event) {
+        this.setState({value: event.target.value});
+    },
     getValue: function() {
         return this.getDOMNode().querySelector('input').value;
     },
@@ -182,7 +219,7 @@ var InputComponent = React.createClass({displayName: "InputComponent",
             React.createElement("div", {className: "form-group"}, 
                 React.createElement("label", {className: "col-sm-2 control-label", htmlFor: this.props.id}, this.props.label), 
                 React.createElement("div", {className: "col-sm-10"}, 
-                    React.createElement("input", {type: this.props.type, placeholder: this.props.placeholder, id: this.props.id, ref: this.props.ref}), 
+                    React.createElement("input", {type: this.props.type, placeholder: this.props.placeholder, id: this.props.id, ref: this.props.ref, value: this.state.value, onChange: this.handleChange}), 
                     React.createElement("span", {className: "help-block"}, this.props.help)
                 )
             )
@@ -191,6 +228,12 @@ var InputComponent = React.createClass({displayName: "InputComponent",
 });
 
 var TextAreaComponent = React.createClass({displayName: "TextAreaComponent",
+    getInitialState: function() {
+        return {value: ''};
+    },
+    handleChange: function(event) {
+        this.setState({value: event.target.value});
+    },
     getValue: function() {
         return this.getDOMNode().querySelector('textarea').value;
     },
@@ -202,7 +245,7 @@ var TextAreaComponent = React.createClass({displayName: "TextAreaComponent",
             React.createElement("div", {className: "form-group"}, 
                 React.createElement("label", {className: "col-sm-2 control-label", htmlFor: this.props.id}, this.props.label), 
                 React.createElement("div", {className: "col-sm-10"}, 
-                    React.createElement("textarea", {placeholder: this.props.placeholder, id: this.props.id}), 
+                    React.createElement("textarea", {placeholder: this.props.placeholder, id: this.props.id, onChange: this.handleChange, value: this.state.value}), 
                     React.createElement("span", {className: "help-block"}, this.props.help)
                 )
             )
@@ -226,7 +269,7 @@ var ButtonComponent = React.createClass({displayName: "ButtonComponent",
 var EventList = React.createClass({displayName: "EventList",
     render: function() {
         return (
-            !this.props.data.length ? React.createElement(EmptyTable, null) :React.createElement(EventTable, {data: this.props.data, deleteHandler: this.props.deleteHandler})
+            !this.props.data.length ? React.createElement(EmptyTable, null) :React.createElement(EventTable, {data: this.props.data, deleteHandler: this.props.deleteHandler, editHandler: this.props.editHandler})
         )
     }
 });
@@ -234,9 +277,10 @@ var EventList = React.createClass({displayName: "EventList",
 var EventTable = React.createClass({displayName: "EventTable",
     render: function() {
         var deleteHandler = this.props.deleteHandler;
+        var editHandler = this.props.editHandler;
         var tableRows = this.props.data.map(function(event) {
             return (
-                React.createElement(EventTableRow, {event: event, key: event.id, deleteHandler: deleteHandler})
+                React.createElement(EventTableRow, {event: event, key: event.id, deleteHandler: deleteHandler, editHandler: editHandler})
             );
         });
         return (
@@ -257,9 +301,13 @@ var EventTable = React.createClass({displayName: "EventTable",
 });
 
 var EventTableRow = React.createClass({displayName: "EventTableRow",
-    submitForm: function(event) {
+    deleteEvent: function(event) {
         event.preventDefault();
         this.props.deleteHandler(this.props.event);
+    },
+    editEvent: function(event) {
+        event.preventDefault();
+        this.props.editHandler(this.props.event)
     },
     render: function() {
         return (
@@ -269,8 +317,11 @@ var EventTableRow = React.createClass({displayName: "EventTableRow",
                 React.createElement("td", null, this.props.event.registrationStartDate), 
                 React.createElement("td", null, this.props.event.registrationEndDate), 
                 React.createElement("td", null, 
-                    React.createElement("form", {onSubmit: this.submitForm}, 
-                        React.createElement(ButtonComponent, {type: "submit", value: "Delete event", class: "btn btn-danger"})
+                    React.createElement("form", {onSubmit: this.deleteEvent}, 
+                        React.createElement(ButtonComponent, {type: "submit", value: "Delete", class: "btn btn-danger"})
+                    ), 
+                    React.createElement("form", {onSubmit: this.editEvent}, 
+                        React.createElement(ButtonComponent, {type: "submit", value: "Edit", class: "btn btn-default"})
                     )
                 )
             )

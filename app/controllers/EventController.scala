@@ -73,6 +73,10 @@ object EventController extends Controller {
       case true => Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully deleted"))
       case false => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened during event delete!"))
     }
+  }
 
+  def getEvent(id: Long) = DBAction { implicit re =>
+    val event = EventDAO.findById(id)
+    Ok(Json.toJson(event))
   }
 }

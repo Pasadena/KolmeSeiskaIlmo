@@ -67,7 +67,8 @@ object Application extends Controller {
     Ok(Routes.javascriptRouter("jsRoutes")(
       routes.javascript.EventController.events,
       routes.javascript.EventController.createEvent,
-      routes.javascript.EventController.deleteEvent
+      routes.javascript.EventController.deleteEvent,
+      routes.javascript.EventController.getEvent
     )).as("text/javascript")
 
   }
