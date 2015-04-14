@@ -27,7 +27,9 @@ var EventSection = React.createClass({displayName: "EventSection",
             data: JSON.stringify([eventData, selectedCabins]),
             success: function(data) {
                 this.setStatusMessage(data);
-                this.loadEvents();
+                var existingEvents = this.state.events
+                existingEvents.push(data['event']);
+                this.setState({events: existingEvents});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(this.props.url, status, err.toString());
@@ -130,7 +132,12 @@ var EventForm = React.createClass({displayName: "EventForm",
         }
         this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd}, this.state.selectedCabins);
 
-        this.setState(this.getInitialState());
+        this.refs.eventName.clear();
+        this.refs.eventDescription.clear();
+        this.refs.eventDate.clear();
+        this.refs.regStart.clear();
+        this.refs.regEnd.clear();
+
         return
     },
     selectCabin: function(cabin) {
@@ -210,10 +217,10 @@ var InputComponent = React.createClass({displayName: "InputComponent",
         this.setState({value: event.target.value});
     },
     getValue: function() {
-        return this.getDOMNode().querySelector('input').value;
+        return this.state.value;
     },
     clear: function() {
-        this.getDOMNode().querySelector('input').value='';
+        this.setState(this.getInitialState());
     },
     render: function() {
         return (
@@ -236,10 +243,10 @@ var TextAreaComponent = React.createClass({displayName: "TextAreaComponent",
         this.setState({value: event.target.value});
     },
     getValue: function() {
-        return this.getDOMNode().querySelector('textarea').value;
+        return this.state.value;
     },
     clear: function() {
-        this.getDOMNode().querySelector('textarea').value = '';
+        this.setState(this.getInitialState());
     },
     render: function() {
         return (

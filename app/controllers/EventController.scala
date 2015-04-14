@@ -61,7 +61,6 @@ object EventController extends Controller {
             }
             case None => BadRequest(Json.obj("status" ->"KO", "message" -> "Unexpected error happened when saving event cabins!"))
           }
-          Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully saved"))
         }
         case None => BadRequest(Json.obj("status" ->"KO", "message" -> "Unexpected error happened during event saving!"))
       }
