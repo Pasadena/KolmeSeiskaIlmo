@@ -38,6 +38,7 @@ var EventSection = React.createClass({
         var url = '/admin/events/delete/' +eventData.id;
         $.ajax({
             url: url,
+            type: 'POST',
             success: function(data) {
                 this.setStatusMessage(data);
                 this.loadEvents();

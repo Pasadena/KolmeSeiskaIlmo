@@ -83,7 +83,12 @@ object EventDAO {
   }
 
   def delete(id: Long)(implicit session: Session) = {
+    this.deleteEventCabins(id)
     val toDeleteEvent = events.filter(_.id === id)
     toDeleteEvent.delete
+  }
+
+  private def deleteEventCabins(eventId: Long)(implicit session: Session) = {
+    eventCabins.filter(_.id === eventId).delete
   }
 }
