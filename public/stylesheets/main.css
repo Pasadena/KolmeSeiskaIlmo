@@ -62,3 +62,7 @@
      vertical-align: top;
      line-height: 20px;
 }
+
+.list-form {
+    display:inline-block;
+}

@@ -1,6 +1,6 @@
 package controllers
 
-import models.{Cabin, CabinDAO, EventDAO, Event}
+import models._
 import play.api.data.validation.ValidationError
 import play.api.db.slick.DBAction
 import play.api.mvc.Controller
@@ -35,22 +35,12 @@ object EventController extends Controller {
   }
 
   def events = DBAction { implicit rs =>
-    //val events:scala.concurrent.Future[List[Event]] = scala.concurrent.Future { EventDAO.getAll() }
-    //val cabins = scala.concurrent.Future { CabinDAO.getAll() }
-    //events.map ( eventResult: List[Event] => cabins.map(cabinResult: List[Cabin] =>
-    //  Ok(Json.obj("events" -> Json.toJson(eventResult), "cabins" -> Json.toJson(cabinResult))))
-    //)
-    //events.map(eventResult => Ok(Json.obj("events" -> Json.toJson(eventResult)))
-    //Ok(Json.obj("events" -> Json.toJson(events), "cabins" -> Json.toJson(cabins)))
-
     val events: List[Event] =  EventDAO.getAll()
-    val cabins: List[Cabin] = CabinDAO.getAll()
-    Ok(Json.obj("events" -> Json.toJson(events), "cabins" -> Json.toJson(cabins)))
-    //Ok(Json.toJson(events))
+    Ok(Json.obj("events" -> Json.toJson(events)))
   }
 
   def createEvent = DBAction(parse json) { implicit rs =>
-    val jsResult = rs.body.validate[(Event, List[Cabin])]
+    val jsResult = rs.body.validate[(Event, List[EventCabin])]
     jsResult match {
       case event => event.asOpt match {
         case Some(x) => {
@@ -76,6 +66,22 @@ object EventController extends Controller {
 
   def getEvent(id: Long) = DBAction { implicit re =>
     val event = EventDAO.findById(id)
-    Ok(Json.toJson(event))
+    Ok(Json.obj("event" -> Json.toJson(event), "cabins" -> Json.toJson(EventDAO.getEventCabins(event.id.get))))
+  }
+
+  def updateEvent(id: Long) = DBAction(parse json) {  implicit rs =>
+    val jsResult = rs.body.validate[(Event, List[EventCabin])]
+    jsResult match {
+      case eventData => eventData.asOpt match {
+        case Some(eventTuple) =>
+          EventDAO.updateEvent(eventTuple._1, eventTuple._2)
+          Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully updated!"))
+        case None => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened during event update!"))
+      }
+    }
+  }
+
+  def fetchCabins() = DBAction { implicit rs =>
+    Ok(Json.toJson(CabinDAO.getAll()))
   }
 }

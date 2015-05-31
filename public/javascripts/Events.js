@@ -1,6 +1,6 @@
 var EventSection = React.createClass({displayName: "EventSection",
     getInitialState: function() {
-        return {events: [], message: '', messageClass: '', cabins: [], selectedEvent: null};
+        return {events: [], message: '', messageClass: '', selectedEvent: null};
     },
     componentDidMount: function() {
         this.loadEvents();
@@ -11,7 +11,7 @@ var EventSection = React.createClass({displayName: "EventSection",
             url: eventRoute,
             dataType: 'json',
             success: function(data) {
-                this.setState({events: data['events'], cabins: data['cabins']});
+                this.setState({events: data['events'], selectedEvent: null});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(status, err.toString());
@@ -19,17 +19,23 @@ var EventSection = React.createClass({displayName: "EventSection",
         });
     },
     submitEventForm: function(eventData, selectedCabins) {
+        var url = eventData.id != null ? ('/admin/events/' + eventData.id) : '/admin/events/';
         $.ajax({
-            url: '/admin/events/',
+            url: url,
             contentType: 'application/json',
             dataType: 'json',
             type: 'POST',
             data: JSON.stringify([eventData, selectedCabins]),
             success: function(data) {
-                this.setStatusMessage(data);
-                var existingEvents = this.state.events
-                existingEvents.push(data['event']);
-                this.setState({events: existingEvents});
+                var existingEvents = this.state.events;
+                if(eventData.id == null) {
+                    existingEvents.push(data['event']);
+                } else {
+                    var updatedEventInList = _.find(existingEvents, function(event) { return event.id == eventData.id});
+                    var existingEventIndex = existingEvents.indexOf(updatedEventInList);
+                    existingEvents[existingEventIndex] = eventData;
+                }
+                this.setState({events: existingEvents, message: data['message'], messageClass: this.getStatusMessageClass(data), selectedEvent: null});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(this.props.url, status, err.toString());
@@ -42,8 +48,9 @@ var EventSection = React.createClass({displayName: "EventSection",
             url: url,
             type: 'POST',
             success: function(data) {
-                this.setStatusMessage(data);
-                this.loadEvents();
+                var messageClass = this.getStatusMessageClass(data);
+                var existingEventsWithoutDeleted = _.filter(this.state.events, function(event) {return event.id != eventData.id});
+                this.setState({events: existingEventsWithoutDeleted, message: data['message'], messageClass: messageClass});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(status, err.toString());
@@ -56,30 +63,23 @@ var EventSection = React.createClass({displayName: "EventSection",
             url: url,
             dataType: 'json',
             success: function(data) {
-                this.setState({selectedEvent: data});
+                var selectedEvent = data['event'];
+                selectedEvent.cabins = data['cabins']
+                this.setState({selectedEvent: selectedEvent});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(status, err.toString());
             }.bind(this)
         });
     },
-    setStatusMessage: function(messageData) {
+    getStatusMessageClass: function(messageData) {
         if(messageData['status'] == 'Ok') {
-            this.setState({messageClass: 'alert alert-success'});
+            return 'alert alert-success';
         }
         if(messageData['status'] == 'Error') {
-            this.setState({messageClass: 'alert alert-danger'});
+            return 'alert alert-danger';
         }
-        this.setState({message: messageData['message']});
-    },
-    handleDeleteSelectedCabin: function(cabin) {
-        var availableCabins = this.state.cabins
-        availableCabins.push(cabin);
-        this.setState({cabins: availableCabins});
-    },
-    handleAddCabinToEvent: function(cabin) {
-        var availableCabins = this.state.cabins.filter(function(item) { return item.id != cabin.id });
-        this.setState({cabins: availableCabins});
+        return '';
     },
     render: function() {
         return (
@@ -91,7 +91,7 @@ var EventSection = React.createClass({displayName: "EventSection",
                     React.createElement("h3", {className: "panel-title"}, "Events")
                 ), 
                 React.createElement("div", {style: {padding: '10px'}}, 
-                    React.createElement(EventForm, {event: this.state.selectedEvent, formSubmitHandler: this.submitEventForm, availableCabins: this.state.cabins, handleDeleteSelectedCabin: this.handleDeleteSelectedCabin, addCabinHandler: this.handleAddCabinToEvent})
+                    React.createElement(EventForm, {event: this.state.selectedEvent, formSubmitHandler: this.submitEventForm})
                 ), 
                 React.createElement("div", null, 
                     React.createElement(EventList, {data: this.state.events, deleteHandler: this.deleteListItem, editHandler: this.loadEvent})
@@ -104,19 +104,37 @@ var EventSection = React.createClass({displayName: "EventSection",
 
 var EventForm = React.createClass({displayName: "EventForm",
     getInitialState: function() {
-        return {
-        eventName: '',
-        eventDescription: '',
-        eventDate: '',
-        regStart: '',
-        regEnd: '',
-        selectedCabins: []};
+        return { eventName: '',
+                eventDescription: '',
+                eventDate: '',
+                regStart: '',
+                regEnd: '',
+                availableCabins: [],
+                selectedCabins: []};
+    },
+    componentDidMount: function() {
+        $.ajax({
+            url: '/admin/cabins',
+            dataType: 'json',
+            success: function(data) {
+                this.setState({availableCabins: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(status, err.toString());
+            }.bind(this)
+        });
     },
     componentWillReceiveProps: function(nextProps) {
         if(nextProps.event) {
             var editEvent = nextProps.event;
+            var availableCabinMap = _.indexBy(this.state.availableCabins, "id");
+            _.each(editEvent.cabins, function(eventCabin) {
+                eventCabin.underlyingCabin = availableCabinMap[eventCabin.cabinId];
+            });
+            var selectedCabinIds = _.pluck(editEvent.cabins, 'cabinId');
+            var unSelectedCabins = _.filter(this.state.availableCabins, function(cabin) {return !_.contains(selectedCabinIds, cabin.id);});
             this.setState({eventName: editEvent.name, eventDescription: editEvent.description, eventDate: editEvent.dateOfEvent, regStart: editEvent.registrationStartDate,
-            regEnd: editEvent.registrationEndDate});
+            regEnd: editEvent.registrationEndDate, availableCabins: unSelectedCabins, selectedCabins: editEvent.cabins});
         }
     },
     submitForm: function(event) {
@@ -127,10 +145,20 @@ var EventForm = React.createClass({displayName: "EventForm",
         var regStart = this.refs.regStart.getValue();
         var regEnd = this.refs.regEnd.getValue();
 
+        var eventId = this.props.event != null ? this.props.event.id : null;
+        var eventCabins = [];
+        for (index in this.state.selectedCabins) {
+            var cabin = this.state.selectedCabins[index];
+            var cabinAmount = parseInt(this.refs[cabin.cabinId].getValue(), 10);
+            eventCabins.push({"cabinId": cabin.cabinId, "amount": cabinAmount, "eventId": eventId})
+            this.state.availableCabins.push(cabin.underlyingCabin)
+        }
+
         if(!eventName || !eventDate || !regStart || !regEnd) {
             return;
         }
-        this.props.formSubmitHandler({name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd}, this.state.selectedCabins);
+
+        this.props.formSubmitHandler({id: eventId, name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd}, eventCabins);
 
         this.refs.eventName.clear();
         this.refs.eventDescription.clear();
@@ -138,22 +166,24 @@ var EventForm = React.createClass({displayName: "EventForm",
         this.refs.regStart.clear();
         this.refs.regEnd.clear();
 
-        return
+        this.setState({ eventName: '', eventDescription: '', eventDate: '', regStart: '', regEnd: '', availableCabins: this.state.availableCabins, selectedCabins: []});
     },
     selectCabin: function(cabin) {
         var cabins =  this.state.selectedCabins;
-        cabins.push(cabin);
-        this.setState({selectedCabins: cabins});
-        this.props.addCabinHandler(cabin);
+        cabins.push({"cabinId": cabin.id, "underlyingCabin": cabin, eventId: -1});
+        var availableCabinsWithoutSelected = _.filter(this.state.availableCabins, function(availableCabin) {
+            return availableCabin.id != cabin.id;
+        });
+        this.setState({availableCabins: availableCabinsWithoutSelected, selectedCabins: cabins});
     },
     deleteCabin: function(cabin) {
-        var cabinIndex = this.state.selectedCabins.indexOf(cabin);
-        this.state.selectedCabins.splice(cabinIndex, 1);
-        this.props.handleDeleteSelectedCabin(cabin);
+        var selectedCabinsWithoutDeleted = _.filter(this.state.selectedCabins, function(selectedCabin) { return selectedCabin.cabinId != cabin.cabinId; });
+        this.state.availableCabins.push(cabin.underlyingCabin)
+        this.setState({availableCabins: this.state.availableCabins, selectedCabins: selectedCabinsWithoutDeleted});
     },
     render: function() {
 
-        var cabinElements = this.props.availableCabins.map(function(cabin) {
+        var cabinElements = this.state.availableCabins.map(function(cabin) {
             return (
                 React.createElement("li", {className: "event-cabin-list-item", key: cabin.id}, 
                     React.createElement("span", {onClick: this.selectCabin.bind(null, cabin)}, cabin.name, " (", cabin.capacity, " persons)")
@@ -162,11 +192,7 @@ var EventForm = React.createClass({displayName: "EventForm",
         }, this);
         var selectedCabinElements = this.state.selectedCabins.map(function(cabin) {
             return (
-                React.createElement("div", {className: "event-cabin-list-selected-item", key: cabin.id}, 
-                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, cabin.name, " ( ", cabin.capacity, " ) "), 
-                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, React.createElement(InputComponent, {type: "text", label: "Amount:", id: "nameField"})), 
-                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, React.createElement("span", {onClick: this.deleteCabin.bind(null, cabin)}, " ", React.createElement("i", {className: "glyphicon glyphicon-remove"})))
-                )
+                React.createElement(SelectedCabinComponent, {cabin: cabin, deleteCabinHandler: this.deleteCabin, ref: cabin.cabinId, key: cabin.cabinId})
             );
         }, this);
         return (
@@ -195,8 +221,33 @@ var EventForm = React.createClass({displayName: "EventForm",
             )
         )
     }
+});
+
+var SelectedCabinComponent = React.createClass({displayName: "SelectedCabinComponent",
+    getInitialState: function() {
+        return {amount: 0};
+    },
+    componentDidMount: function() {
+        this.setState({amount: this.props.cabin.amount})
+    },
+    getValue: function() {
+        return this.refs.amountField.getValue();
+    },
+    deleteCabin: function(cabin) {
+        this.props.deleteCabinHandler(cabin);
+    },
+    render: function() {
+        return (
+            React.createElement("div", {className: "event-cabin-list-selected-item"}, 
+                React.createElement("div", {className: "event-cabin-list-selected-item-column"}, this.props.cabin.underlyingCabin.name, " ( ", this.props.cabin.underlyingCabin.capacity, " ) "), 
+                React.createElement("div", {className: "event-cabin-list-selected-item-column"}, React.createElement(InputComponent, {type: "text", label: "Amount:", id: "cabinAmountField", value: this.state.amount, ref: "amountField"})), 
+                React.createElement("div", {className: "event-cabin-list-selected-item-column"}, React.createElement("span", {onClick: this.deleteCabin.bind(null, this.props.cabin)}, " ", React.createElement("span", {className: "glyphicon glyphicon-remove", "aria-hidden": "true"})))
+            )
+        );
+    }
 
 });
+
 
 var InputComponent = React.createClass({displayName: "InputComponent",
     getInitialState: function() {
@@ -211,6 +262,11 @@ var InputComponent = React.createClass({displayName: "InputComponent",
                     this.setState({value: date});
                 }.bind(this)
             });
+        }
+    },
+    componentWillReceiveProps: function(nextProps) {
+        if(nextProps.value) {
+            this.setState({value: nextProps.value});
         }
     },
     handleChange: function(event) {
@@ -238,6 +294,11 @@ var InputComponent = React.createClass({displayName: "InputComponent",
 var TextAreaComponent = React.createClass({displayName: "TextAreaComponent",
     getInitialState: function() {
         return {value: ''};
+    },
+    componentWillReceiveProps: function(nextProps) {
+        if(nextProps.value) {
+            this.setState({value: nextProps.value});
+        }
     },
     handleChange: function(event) {
         this.setState({value: event.target.value});
@@ -302,7 +363,9 @@ var EventTable = React.createClass({displayName: "EventTable",
                         React.createElement("th", null)
                     )
                 ), 
-                tableRows
+                React.createElement("tbody", null, 
+                    tableRows
+                )
             )
         )
     }
@@ -325,11 +388,15 @@ var EventTableRow = React.createClass({displayName: "EventTableRow",
                 React.createElement("td", null, this.props.event.registrationStartDate), 
                 React.createElement("td", null, this.props.event.registrationEndDate), 
                 React.createElement("td", null, 
-                    React.createElement("form", {onSubmit: this.deleteEvent}, 
-                        React.createElement(ButtonComponent, {type: "submit", value: "Delete", class: "btn btn-danger"})
+                    React.createElement("div", {className: "list-form"}, 
+                        React.createElement("form", {onSubmit: this.deleteEvent}, 
+                            React.createElement(ButtonComponent, {type: "submit", value: "Delete", class: "btn btn-danger"})
+                        )
                     ), 
-                    React.createElement("form", {onSubmit: this.editEvent}, 
-                        React.createElement(ButtonComponent, {type: "submit", value: "Edit", class: "btn btn-default"})
+                    React.createElement("div", {className: "list-form"}, 
+                        React.createElement("form", {onSubmit: this.editEvent}, 
+                            React.createElement(ButtonComponent, {type: "submit", value: "Edit", class: "btn btn-default"})
+                        )
                     )
                 )
             )

@@ -15,7 +15,7 @@ case class Event(id: Option[Long], name: String, description: String, dateOfEven
 
 object Event {
 
-  val pattern = "d.M.yy"
+  val pattern = "d.M.yyyy"
   implicit val dateFormat = Format[DateTime](Reads.jodaDateReads(pattern), Writes.jodaDateWrites(pattern))
 
   implicit val eventFormat = Json.format[Event]
@@ -40,15 +40,20 @@ class Events(tag: Tag) extends Table[Event](tag, "EVENT") {
 
 }
 
-case class EventCabin(id: Option[Long], eventId: Long, cabinId: Long)
+case class EventCabin(id: Option[Long], eventId: Option[Long], cabinId: Long, amount: Int)
+
+object EventCabin {
+  implicit val eventCabinFormat = Json.format[EventCabin]
+}
 
 class EventCabins(tag: Tag) extends Table[EventCabin](tag, "EVENT_CABIN") {
 
   def id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
-  def eventId = column[Long]("EVENT_ID")
+  def eventId = column[Option[Long]]("EVENT_ID")
   def cabinId = column[Long]("CABIN_ID")
+  def amount = column[Int]("AMOUNT_")
 
-  def * = (id, eventId, cabinId) <> (EventCabin.tupled, EventCabin.unapply _)
+  def * = (id, eventId, cabinId, amount) <> ((EventCabin.apply _).tupled, EventCabin.unapply _)
 
 }
 
@@ -65,14 +70,27 @@ object EventDAO {
     (events returning events.map(_.id)) += event
   }
 
-  def createEventCabins(eventId: Long, cabins: List[Cabin])(implicit session: Session) = {
-    for (cabin <- cabins) (eventCabins returning eventCabins.map(_.id) += new EventCabin(None, eventId, cabin.id.get))
+  def updateEvent(event: Event, cabins: List[EventCabin])(implicit session: Session): Unit = {
+    val copiedElement = event.copy(event.id, event.name, event.description, event.dateOfEvent, event.registrationStartDate, event.registrationEndDate)
+    events.filter(_.id === copiedElement.id.get).update(copiedElement)
+    val cabinsIds = cabins.foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)
+    val existingCabinsIds = eventCabins.filter(cabin => cabin.eventId === copiedElement.id.get).foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)
+    //delete
+    eventCabins.filter(cabin => cabin.eventId === copiedElement.id.get && !(cabin.cabinId inSet cabinsIds)).delete
+    //update
+    cabins.filter(cabin => existingCabinsIds.contains(cabin.id)).foreach { existingCabin =>
+      eventCabins.update(existingCabin)
+    }
+    //create
+    this.createEventCabins(event.id.get, cabins.filter(cabin => cabin.id == None))
   }
 
-  def getEventCabins(eventID: Long)(implicit session: Session) = {
-      for {cabinKeys <- eventCabins.list if cabinKeys.eventId == eventID
-           cabin:Cabin <- CabinDAO.getAll() if (cabin.id.get == cabinKeys.cabinId)
-      } yield cabin
+  def createEventCabins(eventId: Long, cabins: List[EventCabin])(implicit session: Session) = {
+    for (cabin <- cabins) (eventCabins returning eventCabins.map(_.id) += cabin.copy(None, Some(eventId), cabin.cabinId, cabin.amount))
+  }
+
+  def getEventCabins(eventId: Long)(implicit session: Session): List[EventCabin] = {
+    eventCabins.filter(_.eventId === eventId).list
   }
 
   def findById(id:Long)(implicit session: Session): Event = {
@@ -89,6 +107,6 @@ object EventDAO {
   }
 
   private def deleteEventCabins(eventId: Long)(implicit session: Session) = {
-    eventCabins.filter(_.id === eventId).delete
+    eventCabins.filter(_.eventId === eventId).delete
   }
 }

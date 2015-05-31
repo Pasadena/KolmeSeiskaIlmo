@@ -8,6 +8,7 @@ GET     /admin                          controllers.EventController.adminIndex
 
 # Cabins
 GET     /                               controllers.Application.index
+GET     /admin/cabins                   controllers.EventController.fetchCabins
 POST    /                               controllers.Application.createCabin
 POST    /:id/delete                     controllers.Application.deleteCabin(id: Long)
 POST    /:id                            controllers.Application.editCabin(id: Long)
@@ -18,6 +19,7 @@ GET /admin/loadEvents                   controllers.EventController.events
 POST /admin/events/                     controllers.EventController.createEvent
 POST /admin/events/delete/:id           controllers.EventController.deleteEvent(id: Long)
 GET /admin/events/:id                   controllers.EventController.getEvent(id: Long)
+POST /admin/events/:id                  controllers.EventController.updateEvent(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)
