@@ -4,7 +4,7 @@ var AdminLayout = React.createClass({displayName: "AdminLayout",
             React.createElement("section", null, 
                 React.createElement("h1", null, "Browse admin sections"), 
                 React.createElement(AdminSection, {name: "Events", page: "/admin/events"}), 
-                React.createElement(AdminSection, {name: "Cabins", page: "/"})
+                React.createElement(AdminSection, {name: "Cabins", page: "/admin/cabins"})
             )
         );
     }

@@ -4,7 +4,7 @@ var AdminLayout = React.createClass({
             <section>
                 <h1>Browse admin sections</h1>
                 <AdminSection name="Events" page="/admin/events"/>
-                <AdminSection name="Cabins" page="/"/>
+                <AdminSection name="Cabins" page="/admin/cabins"/>
             </section>
         );
     }
