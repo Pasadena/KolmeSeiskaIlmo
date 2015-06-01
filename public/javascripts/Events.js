@@ -114,7 +114,7 @@ var EventForm = React.createClass({displayName: "EventForm",
     },
     componentDidMount: function() {
         $.ajax({
-            url: '/admin/cabins',
+            url: '/admin/loadCabins',
             dataType: 'json',
             success: function(data) {
                 this.setState({availableCabins: data});

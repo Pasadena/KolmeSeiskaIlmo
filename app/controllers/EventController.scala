@@ -81,6 +81,10 @@ object EventController extends Controller {
     }
   }
 
+  def cabinIndex = DBAction { implicit rs =>
+    Ok(views.html.admin.cabins())
+  }
+
   def fetchCabins() = DBAction { implicit rs =>
     Ok(Json.toJson(CabinDAO.getAll()))
   }
