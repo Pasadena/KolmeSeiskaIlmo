@@ -8,11 +8,12 @@ GET     /admin                          controllers.EventController.adminIndex
 
 # Cabins
 GET     /                               controllers.Application.index
-GET     /admin/cabins                   controllers.EventController.cabinIndex
-GET     /admin/loadCabins               controllers.EventController.fetchCabins
-POST    /                               controllers.Application.createCabin
-POST    /:id/delete                     controllers.Application.deleteCabin(id: Long)
-POST    /:id                            controllers.Application.editCabin(id: Long)
+GET     /admin/cabins                   controllers.CabinController.cabinIndex
+GET     /admin/loadCabins               controllers.CabinController.fetchCabins
+GET     /admin/cabins/:id               controllers.CabinController.fetchCabin(id: Long)
+POST    /admin/cabins                   controllers.CabinController.createCabin
+POST    /admin/cabins/delete/:id        controllers.CabinController.deleteCabin(id: Long)
+POST    /admin/cabins/:id               controllers.CabinController.updateCabin(id: Long)
 
 #Events
 GET /admin/events                       controllers.EventController.index

@@ -46,12 +46,12 @@ object CabinDAO {
       cabins returning cabins.map(_.id) += cabin
     }
 
-    def updateCabin(id: Long, cabin:Cabin)(implicit session:Session) = {
+    def updateCabin(cabin:Cabin)(implicit session:Session) = {
       val toUpdateCabin = cabin.copy(cabin.id, cabin.name, cabin.description, cabin.capacity, cabin.price)
-      cabins.filter(_.id === id).update(toUpdateCabin)
+      cabins.filter(_.id === cabin.id.get).update(toUpdateCabin)
     }
 
-    def deleteCabin(id: Long)(implicit session:Session): Unit = {
+    def deleteCabin(id: Long)(implicit session:Session) = {
       val toDeleteObject = cabins.filter(_.id === id)
       toDeleteObject.delete
     }

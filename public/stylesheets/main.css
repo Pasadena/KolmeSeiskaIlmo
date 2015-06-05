@@ -66,3 +66,10 @@
 .list-form {
     display:inline-block;
 }
+
+.alerts {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    z-index: 10;
+}
