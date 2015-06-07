@@ -1,27 +1,30 @@
-var AdminLayout = React.createClass({
-    render: function() {
-        return (
-            <section>
-                <h1>Browse admin sections</h1>
-                <AdminSection name="Events" page="/admin/events"/>
-                <AdminSection name="Cabins" page="/admin/cabins"/>
-            </section>
-        );
-    }
-});
+define(['react'], function(React) {
 
-var AdminSection = React.createClass({
-    navigate: function() {
-        var url = this.props.page
-        window.location = url
-    },
-    render: function() {
-        return (
-            <div className="admin-section" onClick={this.navigate.bind(this)}>
-                {this.props.name}
-            </div>
-        );
-    }
-});
+    var AdminLayout = React.createClass({
+        render: function() {
+            return (
+                <section>
+                    <h1>Browse admin sections</h1>
+                    <AdminSection name="Events" page="/admin/events"/>
+                    <AdminSection name="Cabins" page="/admin/cabins"/>
+                </section>
+            );
+        }
+    });
 
-React.render(<AdminLayout />, document.getElementById('adminSections'));
+    var AdminSection = React.createClass({
+        navigate: function() {
+            var url = this.props.page
+            window.location = url
+        },
+        render: function() {
+            return (
+                <div className="admin-section" onClick={this.navigate}>
+                    {this.props.name}
+                </div>
+            );
+        }
+    });
+
+    return AdminLayout;
+});

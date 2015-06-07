@@ -19,7 +19,14 @@ libraryDependencies ++= Seq(
   "org.webjars" 			%% 	"webjars-play" 				% "2.3.0",
   "org.webjars" % "bootstrap" % "3.0.0",
   "org.webjars" % "jquery-ui" % "1.11.2",
-  "org.webjars" % "jquery-ui-themes" % "1.11.2"
+  "org.webjars" % "jquery-ui-themes" % "1.11.2",
+  "org.webjars" % "requirejs" % "2.1.18",
+  "org.webjars" % "jsx-requirejs-plugin" % "0.6.0",
+  "org.webjars" % "react" % "0.13.3",
+  "org.webjars" % "jquery" % "2.1.4",
+  "org.webjars" % "react-router" % "0.13.2",
+  "org.webjars" % "jsx-requirejs-plugin" % "0.6.0",
+  "org.webjars" % "underscorejs" % "1.8.3"
 )
 
 playRunHooks <+= baseDirectory.map(base => GruntHook(base))
