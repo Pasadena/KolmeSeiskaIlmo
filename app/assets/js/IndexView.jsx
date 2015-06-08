@@ -42,7 +42,7 @@ define(['react'], function(React) {
             return (
                 <div className="card" ref={this.props.event.id}>
                     <div className="card-header">
-                        <span className="eventName">{this.props.event.name}</span>
+                        <span>{this.props.event.name}</span>
                     </div>
                     <div className="card-body">
                         <ul>
