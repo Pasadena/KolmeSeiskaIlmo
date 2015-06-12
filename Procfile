@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/kolmeseiskailmo -DapplyEvolutions.default=true
+web: target/universal/stage/bin/kolmeseiskailmo -Dhttp.port=8080 -DapplyEvolutions.default=true
