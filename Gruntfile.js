@@ -20,11 +20,19 @@ module.exports = function(grunt) {
                 files: '**/*.jsx',
                 tasks: ['react']
             }
+        },
+        copy: {
+          main: {
+            files: [
+              {expand: true, src: ['node_modules/validator/validator.js'], dest: 'public/javascripts'}
+            ]
+          }
         }
     });
 
     grunt.loadNpmTasks('grunt-react');
-    grunt.loadNpmTasks('grunt-contrib-watch')
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.registerTask('default', ['react']);
 

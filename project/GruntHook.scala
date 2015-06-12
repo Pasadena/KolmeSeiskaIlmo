@@ -13,6 +13,7 @@ object GruntHook {
 
         override def beforeStarted(): Unit = {
           Process("grunt react", base).run
+          Process("grunt copy", base).run
         }
 
         override def afterStarted(addr: InetSocketAddress): Unit = {

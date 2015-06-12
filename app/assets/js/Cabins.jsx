@@ -3,6 +3,7 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents'], function(
     var ButtonComponent = FormComponents.ButtonComponent;
     var InputComponent = FormComponents.InputComponent;
     var TextAreaComponent = FormComponents.TextAreaComponent;
+    var Form = FormComponents.Form;
 
     var CabinPageView = React.createClass({
         getInitialState: function() {
@@ -201,39 +202,23 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents'], function(
     var CabinDialog = React.createClass({
         getInitialState: function() {
             return {
-                cabinName: '',
-                description: '',
-                capacity: null,
-                price: null,
-                formValid: true
+                cabin: null
             };
         },
         componentDidMount: function() {
             if(this.props.cabin) {
-                this.setState({cabinName: this.props.cabin.name, description: this.props.cabin.description, capacity: this.props.cabin.capacity, price: this.props.cabin.price});
+                this.setState({cabin: this.props.cabin});
             }
         },
-        saveCabin: function(event) {
-            event.preventDefault();
-            if(!this.validate()) {
-                this.setState({formValid: false});
-            } else {
-                var capacity = parseInt(this.refs.cabinCapacity.getValue(), 10);
-                var price = parseFloat(this.refs.cabinPrice.getValue());
-                var cabinId = this.props.cabin != null ? this.props.cabin.id : null;
-                this.saveToDb({id: cabinId, name: this.refs.cabinName.getValue(), description: this.refs.cabinDescription.getValue(), capacity: capacity, price: price});
-                this.setState(this.getInitialState());
-            }
-        },
-        validate: function() {
-            var fieldsValid = true;
-            _.each(this.refs, function(field) {
-                if(field.props.required && (!field.getValue() || field.getValue() == '')) {
-                    field.state.isValid = false;
-                    fieldsValid = false;
-                }
-            });
-            return fieldsValid;
+        saveCabin: function(model) {
+            var cabinId = this.props.cabin != null ? this.props.cabin.id : null;
+            var capacity = parseInt(model["capacity"], 10);
+            var price = parseFloat(model["price"]);
+            model["id"] = cabinId;
+            model["capacity"] = capacity;
+            model["price"] = price;
+            this.saveToDb(model);
+            this.setState(this.getInitialState());
         },
         saveToDb: function(cabin) {
             var url = cabin.id != null ? ('/admin/cabins/' + cabin.id) : '/admin/cabins';
@@ -258,14 +243,14 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents'], function(
         render: function() {
             return (
                 <div id='cabinDialog'>
-                    <form onSubmit={this.saveCabin} className='form-horizontal'>
-                        <InputComponent type="text" placeholder="Insert cabin name" label="Cabin name:" id="nameField" ref="cabinName" value={this.state.cabinName} errorMessage='Name is mandatory' required='true'/>
-                        <TextAreaComponent placeholder="Insert cabin description" label="Cabin description:" id="descriptionField" ref="cabinDescription" value={this.state.description} />
-                        <InputComponent type="number" placeholder="Insert cabin capacity" label="Cabin capacity:" id="capacityField" ref="cabinCapacity" value={this.state.capacity} errorMessage='Capacity is mandatory' required='true'/>
-                        <InputComponent type="number" placeholder="Insert cabin price" label="Cabin price:" id="priceField" ref="cabinPrice" value={this.state.price} errorMessage='Price is mandatory' required='true'/>
+                    <Form onSubmit={this.saveCabin} model={this.props.cabin}>
+                        <InputComponent type="text" name="name" placeholder="Insert cabin name" label="Cabin name:" id="nameField" errorMessage='Name is mandatory' required='true'/>
+                        <TextAreaComponent name="description" placeholder="Insert cabin description" label="Cabin description:" id="descriptionField" />
+                        <InputComponent type="number" name="capacity" placeholder="Insert cabin capacity" label="Cabin capacity:" id="capacityField" errorMessage='Capacity is mandatory' required='true'/>
+                        <InputComponent type="number" name="price" placeholder="Insert cabin price" label="Cabin price:" id="priceField" errorMessage='Price is mandatory' required='true'/>
                         <ButtonComponent type="submit" value="Save cabin" class="btn btn-success" />
                         <ButtonComponent type="button" value="Cancel" class="btn" onClick={this.closeCabinDialog}/>
-                    </form>
+                    </Form>
                 </div>
             );
         }
