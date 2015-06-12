@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/KolmeSeiskaIlmo.port=${PORT} -DapplyEvolutions.default=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL}
+web: target/universal/stage/bin/KolmeSeiskaIlmo.port=8080 -DapplyEvolutions.default=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL}
