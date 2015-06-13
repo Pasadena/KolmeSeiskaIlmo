@@ -7,6 +7,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-react": "^0.10.0",
     "validator": "^3.40.0",
-    "grunt-contrib-copy": "^0.8.0"
+    "grunt-contrib-copy": "^0.8.0",
+    "lodash": "^2.4.2""
   }
 }
