@@ -36,6 +36,6 @@ module.exports = function(grunt) {
 
     grunt.registerTask('default', ['react']);
 
-    grunt.registerTask('heroku', 'react copy');
+    grunt.registerTask('heroku', ['react', 'copy']);
 
 };
