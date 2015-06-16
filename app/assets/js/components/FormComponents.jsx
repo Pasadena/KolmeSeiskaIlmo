@@ -29,6 +29,10 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
                 this.bindExistingValuesToFields(nextProps.model);
             }
         },
+        componentWillUpdate: function(nextProps, nextState) {
+            this.elements = [];
+            this.children = this.registerChildren(this.props.children);
+        },
         bindExistingValuesToFields: function(model) {
             for(name in this.state.model) {
                 if(this.elements[name]) {
@@ -38,11 +42,12 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
         },
         registerChildren: function(children) {
             var clonedChildren = React.Children.map(children, function(child) {
-                if(child.props.children) {
-                    this.registerChildren(child.props.children);
+                var childProps;
+                if(child.props && child.props.children) {
+                    child.props.children = this.registerChildren(child.props.children);
                 }
-                if(child.props.name) {
-                    return React.cloneElement(child, {attachToForm: this.attachToForm, detachFromForm: this.detachFromForm, validate: this.validate});
+                if(child.props && child.props.name) {
+                    return React.cloneElement(child, {attachToForm: this.attachToForm, detachFromForm: this.detachFromForm, validate: this.validate, children: child.props.children});
                 } else {
                     return child;
                 }
@@ -126,7 +131,9 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
             return {value: this.props.value || '', isValid: true, serverErrors: null};
         },
         componentWillMount: function() {
-            this.props.attachToForm(this);
+            if(this.props.attachToForm) {
+                this.props.attachToForm(this);
+            }
             if(this.props.required) {
                 this.props.validations = this.props.validations ? this.props.validations + "," : "";
                 this.props.validations += "isValue";

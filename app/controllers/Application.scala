@@ -15,9 +15,11 @@ import models._
 
 object Application extends Controller {
 
-  //implicit val cabinFormat = Json.format[Cabin]
-
   def index = DBAction { implicit rs =>
+    Ok(views.html.index(""))
+  }
+
+  def register(id: Long) = DBAction { implicit rs =>
     Ok(views.html.index(""))
   }
 
@@ -27,7 +29,8 @@ object Application extends Controller {
       routes.javascript.EventController.createEvent,
       routes.javascript.EventController.deleteEvent,
       routes.javascript.EventController.getEvent,
-      routes.javascript.CabinController.fetchCabins
+      routes.javascript.CabinController.fetchCabins,
+      routes.javascript.Application.register
     )).as("text/javascript")
 
   }

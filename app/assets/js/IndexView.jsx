@@ -38,9 +38,13 @@ define(['react'], function(React) {
     });
 
     var AvailableEventCard = React.createClass({
+        startRegister: function() {
+            var url = "/register/" + this.props.event.id;
+            window.location = url
+        },
         render: function() {
             return (
-                <div className="card" ref={this.props.event.id}>
+                <div className="card" ref={this.props.event.id} onClick={this.startRegister}>
                     <div className="card-header">
                         <span>{this.props.event.name}</span>
                     </div>

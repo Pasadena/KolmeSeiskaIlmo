@@ -1,4 +1,4 @@
-define(['react', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events'], function(React, Router, IndexView, AdminPage, CabinPage, EventPage) {
+define(['react', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events', 'RegisterView'], function(React, Router, IndexView, AdminPage, CabinPage, EventPage, RegisterView) {
     var Route = Router.Route
 
 
@@ -26,6 +26,7 @@ define(['react', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events'], 
     var routes = (
         <Route handler={App}>
             <Route path="/" handler={IndexView} />
+            <Route path="/register/:eventId" handler={RegisterView} />
             <Router.NotFoundRoute handler={NotFound} />
             <Route path="/admin" handler={AdminPage} />
             <Route path="/admin/cabins" handler={CabinPage} />
@@ -36,7 +37,7 @@ define(['react', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events'], 
     var AppRouter = {};
     AppRouter.startRouter = function() {
         Router.run(routes, Router.HistoryLocation, function (Root, state) {
-          React.render(<Root/>, document.getElementById('container'));
+          React.render(<Root params={state.params}/>, document.getElementById('container'));
         });
     }
 

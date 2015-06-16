@@ -63,6 +63,10 @@ object CabinDAO {
       }
     }
 
+    def findByIdList(idList: List[Long])(implicit session:Session): List[Cabin] = {
+      cabins.filter(cabin => cabin.id inSet idList).list
+    }
+
 }
 
 
