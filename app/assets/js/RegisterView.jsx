@@ -100,10 +100,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             return (
                 <div id="personList">
                     <h2>Fill passenger details: </h2>
-                    {/*<Form onSubmit={this.saveRegistration}>*/}
+                    <Form onSubmit={this.saveRegistration}>
                         {items}
                         <ButtonComponent type="submit" value="Save registration" class="btn btn-success" />
-                    {/*</Form>*/}
+                    </Form>
                 </div>
             );
         }

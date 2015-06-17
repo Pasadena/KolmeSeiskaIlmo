@@ -31,7 +31,7 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
         },
         componentWillUpdate: function(nextProps, nextState) {
             this.elements = [];
-            this.children = this.registerChildren(this.props.children);
+            this.children = this.registerChildren(nextProps.children);
         },
         bindExistingValuesToFields: function(model) {
             for(name in this.state.model) {
