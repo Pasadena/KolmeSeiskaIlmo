@@ -65,7 +65,9 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
         },
         updateModel: function() {
             for (name in this.state.model) {
-                this.state.model[name] = this.elements[name].state.value;
+                if(this.elements[name]) {
+                    this.state.model[name] = this.elements[name].state.value;
+                }
             }
         },
         submitForm: function(event) {
