@@ -3,6 +3,8 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
     var InputComponent = FormComponents.InputComponent;
     var Form = FormComponents.Form;
     var ButtonComponent = FormComponents.ButtonComponent;
+    var FormFragment = FormComponents.FormFragment;
+    var MultiModelForm = FormComponents.MultiModelForm;
 
     var RegisterView = React.createClass({
         mixins: [Router.State],
@@ -81,7 +83,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             while(++i <= len) placesInCabin.push(i)
             var items = placesInCabin.map(function(order) {
                 return (
-                    <fieldset key={order}>
+                    <FormFragment key={order}>
                         <legend>{order}</legend>
                         <InputComponent type="text" placeholder="Insert first name" label="First name:" id="firstNameField" name="firstName"/>
                         <InputComponent type="text" placeholder="Insert last name" label="Last name:" id="lastNameField" name="lastName"/>
@@ -94,16 +96,16 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                             <option key={3} value="3">Breakfast</option>
                             <option key={4} value="4">Lunch</option>
                         </select>
-                    </fieldset>
+                    </FormFragment>
                 );
             });
             return (
                 <div id="personList">
                     <h2>Fill passenger details: </h2>
-                    <Form onSubmit={this.saveRegistration}>
+                    <MultiModelForm onSubmit={this.saveRegistration}>
                         {items}
                         <ButtonComponent type="submit" value="Save registration" class="btn btn-success" />
-                    </Form>
+                    </MultiModelForm>
                 </div>
             );
         }

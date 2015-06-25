@@ -1,4 +1,4 @@
-define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], function(React, $, validator) {
+define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 'jqueryui'], function(React, $, validator, _) {
 
     validator.extend('isValue', function (str) {
         if(str != '') {
@@ -8,37 +8,34 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
         }
     });
 
-    var Form = React.createClass({
-        propTypes: function() {
-            onSubmit: React.PropTypes.func.isRequired
-            model: React.PropTypes.object;
-        },
+    var RegisteredComponentSection = React.createClass({
         getInitialState: function() {
-            return {
-                isSubmitting:  false,
-                formValid: true,
-                model: {}
-            };
+            return {model: {}};
         },
         componentWillMount: function() {
             this.elements = [];
             this.children = this.registerChildren(this.props.children);
+        },
+        componentWillUpdate: function(nextProps, nextState) {
+            if(!this.elements) {
+                this.elements = [];
+                this.children = this.registerChildren(nextProps.children);
+            }
         },
         componentWillReceiveProps: function(nextProps) {
             if(nextProps.model) {
                 this.bindExistingValuesToFields(nextProps.model);
             }
         },
-        componentWillUpdate: function(nextProps, nextState) {
-            this.elements = [];
-            this.children = this.registerChildren(nextProps.children);
-        },
         bindExistingValuesToFields: function(model) {
-            for(name in this.state.model) {
+            for(name in model) {
                 if(this.elements[name]) {
                     this.elements[name].setState({value: model[name]});
                 }
             }
+        },
+        getModel: function() {
+            return this.state.model;
         },
         registerChildren: function(children) {
             var clonedChildren = React.Children.map(children, function(child) {
@@ -70,17 +67,6 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
                 }
             }
         },
-        submitForm: function(event) {
-            event.preventDefault();
-            ;
-            if(this.validateForm()) {
-                this.setState({isSubmitting: true, formValid: true});
-                this.updateModel();
-                this.props.onSubmit(this.state.model);
-            } else {
-                this.setState({isSubmitting: false, formValid: false});
-            }
-        },
         validate: function(component) {
             if(!component.props.validations) {
                 return true;
@@ -100,17 +86,17 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
             component.setState({isValid: isValid, serverError: null});
             return isValid;
         },
-        validateForm: function() {
-            var formValid = true;
+        validateSection: function() {
+            var fragmentValid = true;
             var elements = this.elements;
             Object.keys(elements).forEach(function(name) {
                 var component = elements[name];
                 var isComponentValid = component.props.validate(component);
                 if(!isComponentValid) {
-                    formValid = false;
+                    fragmentValid = false;
                 }
             });
-            return formValid;
+            return fragmentValid;
         },
         setErrorsToInputs: function(errors) {
             Object.keys(errors).forEach(function(name, index) {
@@ -121,8 +107,114 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
         }.bind(this),
         render: function() {
             return (
-                <form onSubmit={this.submitForm} className='form-horizontal'>
+                <div>
                     {this.children}
+                </div>
+            );
+        }
+    });
+
+    var FormFragment = React.createClass({
+        getInitialState: function() {
+            return {
+                fragmentValid: true
+            };
+        },
+        render: function() {
+            return (
+                <RegisteredComponentSection>
+                    {this.props.children}
+                </RegisteredComponentSection>
+            );
+        }
+    });
+
+    var MultiModelForm = React.createClass({
+        propTypes: function() {
+            onSubmit: React.PropTypes.func.isRequired
+        },
+        getInitialState: function() {
+            return {
+                isSubmitting:  false,
+                formValid: true,
+            };
+        },
+        componentWillMount: function() {
+            this.fragments = this.getFragments(this.props.children);
+        },
+        componentWillUpdate: function(nextProps, nextState) {
+            this.fragments = this.getFragments(this.props.children);
+        },
+        getFragments: function(children) {
+            return _.filter(children, function(child) { return child.type && (child.type.displayName == 'FormFragment'); });
+        },
+        updateModels: function() {
+            var formModels = [];
+            for (fragment in this.fragments) {
+                fragment.updateModel();
+                formModels.push(fragment.getModel());
+            }
+        },
+        submitForm: function(event) {
+            event.preventDefault();
+            if(this.validateForm()) {
+                this.setState({isSubmitting: true, formValid: true});
+                var formModels = this.updateModels();
+                this.props.onSubmit(formModels);
+            } else {
+                this.setState({isSubmitting: false, formValid: false});
+            }
+        },
+        validateForm: function() {
+            var fragmentValid = true;
+            var elements = this.elements;
+            for(fragment in this.fragments) {
+                var isFragmentValid = fragment.validateFragment();
+                if(!isFragmentValid) {
+                    fragmentValid = false;
+                }
+            }
+            return fragmentValid;
+        },
+        render: function() {
+            return (
+                <form onSubmit={this.submitForm} className='form-horizontal'>
+                    {this.props.children}
+                </form>
+            );
+        }
+    });
+
+    var Form = React.createClass({
+        propTypes: function() {
+            onSubmit: React.PropTypes.func.isRequired
+            model: React.PropTypes.object;
+        },
+        getInitialState: function() {
+            return {
+                isSubmitting:  false,
+                formValid: true
+            };
+        },
+        submitForm: function(event) {
+            event.preventDefault();
+            if(this.validateForm()) {
+                this.setState({isSubmitting: true, formValid: true});
+                this.refs.formSection.updateModel();
+                this.props.onSubmit(this.refs.formSection.getModel());
+            } else {
+                this.setState({isSubmitting: false, formValid: false});
+            }
+        },
+        validateForm: function() {
+            return this.refs.formSection.validateSection();
+        },
+        render: function() {
+            return (
+                <form onSubmit={this.submitForm} className='form-horizontal'>
+                    <RegisteredComponentSection model={this.props.model} ref="formSection">
+                        {this.props.children}
+                    </RegisteredComponentSection>
                 </form>
             );
         }
@@ -241,5 +333,5 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'jqueryui'], f
             )
         }
     });
-    return {InputComponent: InputComponent, TextAreaComponent: TextAreaComponent, ButtonComponent: ButtonComponent, Form: Form};
+    return {InputComponent: InputComponent, TextAreaComponent: TextAreaComponent, ButtonComponent: ButtonComponent, Form: Form, FormFragment: FormFragment, MultiModelForm: MultiModelForm};
 });
