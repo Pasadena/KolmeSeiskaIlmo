@@ -8,7 +8,8 @@ require.config({
         "JSXTransformer" : "../lib/jsx-requirejs-plugin/js/JSXTransformer",
         "text" : "../lib/jsx-requirejs-plugin/js/text",
         "jsx" : "../lib/jsx-requirejs-plugin/js/jsx",
-        "underscore" : "../lib/underscorejs/underscore"
+        "underscore" : "../lib/underscorejs/underscore",
+        "react-bootstrap": "node_modules/react-bootstrap/dist/react-bootstrap"
     },
     "shim": {
         "react": {

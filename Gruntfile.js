@@ -24,7 +24,7 @@ module.exports = function(grunt) {
         copy: {
           main: {
             files: [
-              {expand: true, src: ['node_modules/validator/validator.js'], dest: 'public/javascripts'}
+              {expand: true, src: ['node_modules/*'], dest: 'public/javascripts'}
             ]
           }
         }
