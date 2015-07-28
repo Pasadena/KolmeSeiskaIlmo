@@ -4,8 +4,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
     var ListGroup = RB.ListGroup;
     var ListGroupItem = RB.ListGroupItem;
     var PageHeader = RB.PageHeader;
+    var Modal = RB.Modal;
     var Form = FormComponents.Form;
     var ButtonInput = RB.ButtonInput;
+    var Button = RB.Button;
     var FormFragment = FormComponents.FormFragment;
     var MultiModelForm = FormComponents.MultiModelForm;
 
@@ -52,6 +54,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     <PageHeader>Register to event: {eventName} </PageHeader>
                     <SelectCabinComponent cabins={this.state.cabins} selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>
                     {passengerListComponent}
+                    <div id="notificationDiv"/>
                 </div>
             );
         }
@@ -82,7 +85,13 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
 
     var PassengerListComponent = React.createClass({
         saveRegistration: function() {
-            alert("TODO: Make this do something");
+            var dialog = React.createElement('div');
+            var closeDialog = function() {
+                $('#notificationDiv').hide();
+            }
+            $('#notificationDiv').show();
+            var notificationElement = <SuccessNotification close={closeDialog}/>;
+            React.render(notificationElement, document.getElementById('notificationDiv'));
         },
         render: function() {
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
@@ -92,12 +101,12 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 return (
                     <FormFragment key={order}>
                         <Panel header={headerName} bsStyle="info">
-                            <Input type="text" placeholder="Insert first name" label="First name:" id="firstNameField" name="firstName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
-                            <Input type="text" placeholder="Insert last name" label="Last name:" id="lastNameField" name="lastName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
-                            <Input type="email" placeholder="Insert email" label="Email:" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
-                            <Input type="email" placeholder="Insert date of birth" label="Date Of Birth:" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
+                            <Input type="text" placeholder="Insert first name" label="First name:*" id="firstNameField" name="firstName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
+                            <Input type="text" placeholder="Insert last name" label="Last name:*" id="lastNameField" name="lastName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
+                            <Input type="email" placeholder="Insert email" label="Email:*" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
+                            <Input type="text" placeholder="Insert date of birth" label="Date Of Birth:*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert Club-number" label="Club-number:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
-                            <Input type="select" label="Dining:" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4">
+                            <Input type="select" label="Dining:*" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
                                 <option key={1} value="1">Dinner, first serving</option>
                                 <option key={2} value="2">Dinner, second serving</option>
                                 <option key={3} value="3">Breakfast</option>
@@ -119,26 +128,18 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         }
     });
 
-
-    var PassengerInfoComponent = React.createClass({
+    var SuccessNotification = React.createClass({
+        dismiss: function(event) {
+            event.preventDefault();
+            this.props.close();
+        },
         render: function() {
             return (
-                <div>
-
-                    <InputComponent type="text" placeholder="Insert first name" label="First name:" id="firstNameField" name="firstName"/>
-                    <InputComponent type="text" placeholder="Insert last name" label="Last name:" id="lastNameField" name="lastName"/>
-                    <InputComponent type="email" placeholder="Insert email" label="Email:" id="emailField" name="email"/>
-                    <InputComponent type="email" placeholder="Insert date of birth" label="Date Of Birth:" id="dobField" name="dateOfBirth"/>
-                    <InputComponent type="text" placeholder="Insert Club-number" label="Club-number:" id="clubNumberField" name="clubNumber"/>
-                    <select>
-                        <option key={1} value="1">Dinner, first serving</option>
-                        <option key={2} value="2">Dinner, second serving</option>
-                        <option key={3} value="3">Breakfast</option>
-                        <option key={4} value="4">Lunch</option>
-                    </select>
-                    <ButtonComponent type="submit" value="Save registration" class="btn btn-success" />
-
-                </div>
+                <RB.Modal onRequestHide={this.dismiss}>
+                    <div className="modal-header">Registration successfull!</div>
+                    <div className="modal-body"><p>Congratulations! You have successfully registered to this event. Enjoy! </p></div>
+                    <div className="modal-footer"><Button onClick={this.dismiss}>Okey dokey!</Button></div>
+                </RB.Modal>
             );
         }
     });

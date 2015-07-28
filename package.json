@@ -8,6 +8,6 @@
     "grunt-react": "^0.10.0",
     "validator": "^3.40.0",
     "grunt-contrib-copy": "^0.8.0",
-    "react-bootstrap": "^23.5"
+    "react-bootstrap": "^0.24.2"
   }
 }

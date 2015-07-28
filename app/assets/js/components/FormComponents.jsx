@@ -264,7 +264,6 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         render: function() {
             var label = this.props.required ? '*' + this.props.label : this.props.label;
             return (
-
                 <div className="form-group">
                     <label className="col-sm-2 control-label" htmlFor={this.props.id}>{label}</label>
                     <div className="col-sm-10">
