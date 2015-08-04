@@ -13,6 +13,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
 
     var RegisterView = React.createClass({
         mixins: [Router.State],
+
+        childContextTypes: {
+            router: React.PropTypes.func
+        },
         getInitialState: function() {
             return {event: null, cabins: null, selectedCabin: null};
         },
@@ -84,10 +88,14 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
     });
 
     var PassengerListComponent = React.createClass({
+        contextTypes: {
+            router: React.PropTypes.func
+        },
         saveRegistration: function() {
-            var dialog = React.createElement('div');
+            var that = this;
             var closeDialog = function() {
                 $('#notificationDiv').hide();
+                that.context.router.transitionTo("/");
             }
             $('#notificationDiv').show();
             var notificationElement = <SuccessNotification close={closeDialog}/>;

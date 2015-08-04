@@ -1,4 +1,4 @@
-define(['react'], function(React) {
+define(['react', 'react-router'], function(React, Router) {
 
     var IndexViewComponent = React.createClass({
         getInitialState: function() {
@@ -20,7 +20,7 @@ define(['react'], function(React) {
         render: function() {
             var eventComponents = this.state.events.map(function(event) {
                 return (
-                    <AvailableEventCard event={event} ref={event.id}/>
+                    <AvailableEventCard event={event} ref={event.id} key={event.id}/>
                 );
             });
             var eventList = !this.state.events.length ? <div>There are no events to display!</div> : eventComponents;
@@ -38,13 +38,13 @@ define(['react'], function(React) {
     });
 
     var AvailableEventCard = React.createClass({
-        startRegister: function() {
-            var url = "/register/" + this.props.event.id;
-            window.location = url
+        mixins: [Router.Navigation],
+        registerToEvent: function() {
+            this.transitionTo("/register", {id: this.props.event.id});
         },
         render: function() {
             return (
-                <div className="card" ref={this.props.event.id} onClick={this.startRegister}>
+                <div className="card" ref={this.props.event.id} onClick={this.registerToEvent}>
                     <div className="card-header">
                         <span>{this.props.event.name}</span>
                     </div>
