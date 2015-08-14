@@ -1,4 +1,6 @@
-define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 'jqueryui'], function(React, $, validator, _) {
+define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 'react-bootstrap', 'jqueryui'], function(React, $, validator, _, RB) {
+
+    var Input = RB.Input;
 
     validator.extend('isValue', function (str) {
         if(str != '') {
@@ -120,9 +122,21 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
                 fragmentValid: true
             };
         },
+        componentDidMount: function() {
+
+        },
+        validateFragment: function() {
+            return this.refs.wrapper.validateSection();
+        },
+        updateModel: function() {
+            return this.refs.wrapper.updateModel();
+        },
+        getModel: function() {
+            return this.refs.wrapper.getModel();
+        },
         render: function() {
             return (
-                <RegisteredComponentSection>
+                <RegisteredComponentSection ref="wrapper">
                     {this.props.children}
                 </RegisteredComponentSection>
             );
@@ -143,17 +157,20 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             this.fragments = this.getFragments(this.props.children);
         },
         componentWillUpdate: function(nextProps, nextState) {
-            this.fragments = this.getFragments(this.props.children);
+            this.fragments = this.getFragments(nextProps.children);
         },
         getFragments: function(children) {
-            return _.filter(children, function(child) { return child.type && (child.type.displayName == 'FormFragment'); });
+            var flattenedChilds = _.flatten(children);
+            return _.filter(flattenedChilds, function(child) { return child.type && (child.type.displayName == 'FormFragment'); });
         },
         updateModels: function() {
             var formModels = [];
-            for (fragment in this.fragments) {
-                fragment.updateModel();
-                formModels.push(fragment.getModel());
+            for(refIndex in this.refs) {
+                var fragmentRef = this.refs[refIndex];
+                fragmentRef.updateModel();
+                formModels.push(fragmentRef.getModel());
             }
+            return formModels;
         },
         submitForm: function(event) {
             event.preventDefault();
@@ -167,9 +184,9 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         },
         validateForm: function() {
             var fragmentValid = true;
-            var elements = this.elements;
-            for(fragment in this.fragments) {
-                var isFragmentValid = fragment.validateFragment();
+            for(refIndex in this.refs) {
+                var fragmentRef = this.refs[refIndex];
+                var isFragmentValid = fragmentRef.validateFragment();
                 if(!isFragmentValid) {
                     fragmentValid = false;
                 }
@@ -177,9 +194,17 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             return fragmentValid;
         },
         render: function() {
+            var index = 0,
+            children = React.Children.map(this.props.children, function (child) {
+                if(child.type && (child.type.displayName == 'FormFragment')) {
+                    return React.cloneElement(child, { ref: (index++)});
+                } else {
+                    return child;
+                }
+            });
             return (
                 <form onSubmit={this.submitForm} className='form-horizontal'>
-                    {this.props.children}
+                    {children}
                 </form>
             );
         }
@@ -216,6 +241,30 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
                         {this.props.children}
                     </RegisteredComponentSection>
                 </form>
+            );
+        }
+    });
+
+    var InputWrapper = React.createClass({
+        getInitialState: function() {
+            return {value: this.props.value || '', isValid: true, serverErrors: null};
+        },
+        componentWillMount: function() {
+            if(this.props.attachToForm) {
+                this.props.attachToForm(this);
+            }
+        },
+        componentWillUnMount: function() {
+            this.props.detachFromForm(this);
+        },
+        handleChange: function(event) {
+            this.setState({value: event.target.value});
+        },
+        render: function() {
+            return(
+                <Input type={this.props.type} placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name} labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName} required={this.props.required} onChange={this.handleChange}>
+                    {this.props.children}
+                </Input>
             );
         }
     });
@@ -332,5 +381,5 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             )
         }
     });
-    return {InputComponent: InputComponent, TextAreaComponent: TextAreaComponent, ButtonComponent: ButtonComponent, Form: Form, FormFragment: FormFragment, MultiModelForm: MultiModelForm};
+    return {InputComponent: InputComponent, TextAreaComponent: TextAreaComponent, ButtonComponent: ButtonComponent, Form: Form, FormFragment: FormFragment, MultiModelForm: MultiModelForm, InputWrapper: InputWrapper};
 });

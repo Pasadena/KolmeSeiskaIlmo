@@ -40,7 +40,8 @@ define(['react', 'react-router'], function(React, Router) {
     var AvailableEventCard = React.createClass({
         mixins: [Router.Navigation],
         registerToEvent: function() {
-            this.transitionTo("/register", {id: this.props.event.id});
+            window.location = "/register/" +this.props.event.id;
+            {/*this.transitionTo("/register/", {id: this.props.event.id});*/}
         },
         render: function() {
             return (

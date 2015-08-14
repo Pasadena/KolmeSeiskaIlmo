@@ -9,6 +9,7 @@ GET     /admin                          controllers.EventController.adminIndex
 # Register page
 GET     /register/:id                   controllers.Application.register(id: Long)
 GET     /register/loadEvent/:id         controllers.EventController.getSelectedEvent(id: Long)
+POST    /register                       controllers.RegistrationController.register
 
 # Cabins
 GET     /                               controllers.Application.index

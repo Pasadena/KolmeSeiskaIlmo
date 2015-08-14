@@ -1,6 +1,7 @@
 define(['react','react-router', 'jquery', 'components/FormComponents', 'underscore', 'react-bootstrap'], function(React, Router, $, FormComponents, _, RB) {
     var Panel = RB.Panel;
-    var Input = RB.Input;
+    var Input = FormComponents.InputWrapper;
+    var RBInput = RB.Input;
     var ListGroup = RB.ListGroup;
     var ListGroupItem = RB.ListGroupItem;
     var PageHeader = RB.PageHeader;
@@ -25,7 +26,6 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         },
         componentDidMount: function() {
             this.loadEventData();
-            {/*this.togglePersonInfoComponent();*/}
         },
         loadEventData: function() {
             var url = "/register/loadEvent/" +this.getParams().eventId;
@@ -40,17 +40,13 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 }.bind(this)
             });
         },
-        togglePersonInfoComponent: function() {
-            $('#personList').slideDown();
-        },
         updateSelectedCabin: function(selectedCabin) {
             this.setState({selectedCabin: selectedCabin});
-            {/*this.togglePersonInfoComponent();*/}
         },
         render: function() {
             var passengerListComponent;
              if(this.state.selectedCabin) {
-                passengerListComponent = <PassengerListComponent selectedCabin={this.state.selectedCabin}/>;
+                passengerListComponent = <PassengerListComponent selectedCabin={this.state.selectedCabin} event={this.state.event}/>;
              }
              var eventName = this.state.event != null ? this.state.event.name : "";
             return (
@@ -73,7 +69,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.id ? true : null;
                 return (
                     <ListGroupItem key={cabin.id}>
-                        <Input type="radio" name={cabin.name} value={cabin.name} onChange={this.selectCabin.bind(null, cabin)} checked={selected} label={cabin.name}/>
+                        <RBInput type="radio" name={cabin.name} value={cabin.name} onChange={this.selectCabin.bind(null, cabin)} checked={selected} label={cabin.name}/>
                     </ListGroupItem>
                      );
             }, this);
@@ -91,15 +87,34 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         contextTypes: {
             router: React.PropTypes.func
         },
-        saveRegistration: function() {
+        saveRegistration: function(registrations) {
             var that = this;
             var closeDialog = function() {
                 $('#notificationDiv').hide();
                 that.context.router.transitionTo("/");
             }
-            $('#notificationDiv').show();
-            var notificationElement = <SuccessNotification close={closeDialog}/>;
-            React.render(notificationElement, document.getElementById('notificationDiv'));
+            _.each(registrations, function(registration) {
+                registration["dinner"] = registration["dinner"] ? parseInt(registration[dinner]) : 0;
+                registration["responsiblePerson"] = 0;
+                registration["registrationId"] = -1;
+            }, this);
+
+            var registration = {cabinId: this.props.selectedCabin.id, eventId: this.props.event.id};
+            $.ajax({
+                url: "/register",
+                contentType: 'application/json',
+                dataType: 'json',
+                type: "POST",
+                data: JSON.stringify(registrations, registration),
+                success: function(data) {
+                    $('#notificationDiv').show();
+                    var notificationElement = <SuccessNotification close={closeDialog}/>;
+                    React.render(notificationElement, document.getElementById('notificationDiv'));
+                }.bind(this),
+                error: function(xhr, status, err) {
+                    console.error(status, err.toString());
+                }.bind(this)
+            });
         },
         render: function() {
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
@@ -107,28 +122,30 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var items = placesInCabin.map(function(order) {
                 var headerName = <h3>{order}. person:</h3>
                 return (
-                    <FormFragment key={order}>
+                    <FormFragment key={order} ref={order}>
                         <Panel header={headerName} bsStyle="info">
                             <Input type="text" placeholder="Insert first name" label="First name:*" id="firstNameField" name="firstName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert last name" label="Last name:*" id="lastNameField" name="lastName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="email" placeholder="Insert email" label="Email:*" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert date of birth" label="Date Of Birth:*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert Club-number" label="Club-number:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
-                            <Input type="select" label="Dining:*" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
+                            <Input type="select" name="dinner" label="Dining:*" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
                                 <option key={1} value="1">Dinner, first serving</option>
                                 <option key={2} value="2">Dinner, second serving</option>
                                 <option key={3} value="3">Breakfast</option>
                                 <option key={4} value="4">Lunch</option>
                             </Input>
+                            <Input type="checkbox" label="Responsible person:" id="responsiblePerson" name="responsiblePerson" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
                         </Panel>
                     </FormFragment>
                 );
             });
+            var flattenedItems = _.flatten(items);
             return (
                 <div id="personList">
                     <h2>Fill passenger details: </h2>
                     <MultiModelForm onSubmit={this.saveRegistration}>
-                        {items}
+                        {flattenedItems}
                         <ButtonInput type="submit" bsStyle="success" value="Save registration"/>
                     </MultiModelForm>
                 </div>
