@@ -94,8 +94,8 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 that.context.router.transitionTo("/");
             }
             _.each(registrations, function(registration) {
-                registration["dinner"] = registration["dinner"] ? parseInt(registration[dinner]) : 0;
-                registration["responsiblePerson"] = 0;
+                registration["selectedDining"] = registration["selectedDining"] ? parseInt(registration[dinner]) : 0;
+                registration["contactPerson"] = 0;
                 registration["registrationId"] = -1;
             }, this);
 
@@ -105,7 +105,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 contentType: 'application/json',
                 dataType: 'json',
                 type: "POST",
-                data: JSON.stringify(registrations, registration),
+                data: JSON.stringify([registrations, registration]),
                 success: function(data) {
                     $('#notificationDiv').show();
                     var notificationElement = <SuccessNotification close={closeDialog}/>;
@@ -129,13 +129,13 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                             <Input type="email" placeholder="Insert email" label="Email:*" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert date of birth" label="Date Of Birth:*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert Club-number" label="Club-number:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
-                            <Input type="select" name="dinner" label="Dining:*" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
+                            <Input type="select" name="selectedDining" label="Dining:*" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
                                 <option key={1} value="1">Dinner, first serving</option>
                                 <option key={2} value="2">Dinner, second serving</option>
                                 <option key={3} value="3">Breakfast</option>
                                 <option key={4} value="4">Lunch</option>
                             </Input>
-                            <Input type="checkbox" label="Responsible person:" id="responsiblePerson" name="responsiblePerson" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
+                            <Input type="checkbox" label="Contact person:" id="contactPerson" name="contactPerson" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
                         </Panel>
                     </FormFragment>
                 );
