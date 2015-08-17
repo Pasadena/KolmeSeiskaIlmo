@@ -54,6 +54,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     <PageHeader>Register to event: {eventName} </PageHeader>
                     <SelectCabinComponent cabins={this.state.cabins} selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>
                     {passengerListComponent}
+                    <RegistrationSummaryView event={this.state.event} />
                     <div id="notificationDiv"/>
                 </div>
             );
@@ -165,6 +166,48 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     <div className="modal-body"><p>Congratulations! You have successfully registered to this event. Enjoy! </p></div>
                     <div className="modal-footer"><Button onClick={this.dismiss}>Okey dokey!</Button></div>
                 </RB.Modal>
+            );
+        }
+    });
+
+    var RegistrationSummaryView = React.createClass({
+        getInitialState: function() {
+            return {registrationCounts: []};
+        },
+        componentDidMount: function() {
+            if(this.props.event) {
+                this.loadCounts(this.props.event);
+            }
+        },
+        componentWillUpdate: function(nextProps, nextState)  {
+            if(nextProps.event) {
+                this.loadCounts(nextProps.event);
+            }
+        },
+        loadCounts: function(event) {
+            var url = "/register/registrations/" +event.id;
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                success: function(data) {
+                    this.setState({registrationCounts: data['counts']});
+                }.bind(this),
+                error: function(xhr, status, err) {
+                    console.error(status, err.toString());
+                }.bind(this)
+            });
+        },
+        render: function() {
+            return (
+                <Panel header="Registration counts:" bsStyle="info">
+                    <ul>
+                        {this.state.registrationCounts.map(function(count) {
+                            return (
+                                <li>{count[0]} : {count[1]} </li>
+                            );
+                        })}
+                    </ul>
+                </Panel>
             );
         }
     });

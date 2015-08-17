@@ -10,6 +10,7 @@ GET     /admin                          controllers.EventController.adminIndex
 GET     /register/:id                   controllers.Application.register(id: Long)
 GET     /register/loadEvent/:id         controllers.EventController.getSelectedEvent(id: Long)
 POST    /register                       controllers.RegistrationController.register
+GET    /register/registrations/:id      controllers.RegistrationController.loadRegistrationCounts(id: Long)
 
 # Cabins
 GET     /                               controllers.Application.index

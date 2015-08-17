@@ -64,6 +64,7 @@ object RegistrationDAO {
 
   val registrations = TableQuery[Registrations]
   val registeredPersons = TableQuery[RegisteredPersons]
+  val cabins = TableQuery[Cabins]
 
   def saveRegistration(registration: Registration)(implicit session: Session): Long = {
     ((registrations returning registrations.map(_.id)) += registration.copy(registration.id, registration.cabinId, registration.eventId, Some(new Timestamp(System.currentTimeMillis())))).get
@@ -71,6 +72,14 @@ object RegistrationDAO {
 
   def saveRegistrationPersons(persons: List[RegisteredPerson], registrationId: Long)(implicit session: Session) = {
     for(person <- persons)  registeredPersons += person.copy(None, registrationId, person.firstName, person.lastName, person.email, person.dateOfBirth, person.clubNumber, person.selectedDining, 1)
+  }
+
+  def loadRegisteredCabinsCount(eventId: Long)(implicit session: Session): List[(String, Int)] = {
+    val eventCabins = for {
+      (registration, cabin) <- (registrations leftJoin cabins on (_.cabinId === _.id)) if registration.eventId === eventId
+    } yield (cabin.name, registration.id.get)
+    val cabinList = eventCabins.list
+    cabinList.foldLeft(Map[String, Int]()) { (map, element) => if(map.contains(element._1)) { map + (element._1 -> (map.get(element._1).get +1)) } else { map + (element._1 -> 1) } }.toList
   }
 
 }
