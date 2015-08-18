@@ -53,6 +53,10 @@ class EventCabins(tag: Tag) extends Table[EventCabin](tag, "EVENT_CABIN") {
   def cabinId = column[Long]("CABIN_ID")
   def amount = column[Int]("AMOUNT_")
 
+  def event = foreignKey("EVENT_FK", eventId, TableQuery[Events])(_.id)
+
+  def cabin = foreignKey("CABIN_FK", cabinId, TableQuery[Cabins])(_.id.get)
+
   def * = (id, eventId, cabinId, amount) <> ((EventCabin.apply _).tupled, EventCabin.unapply _)
 
 }

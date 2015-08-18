@@ -37,6 +37,10 @@ class Registrations(tag: Tag) extends Table[Registration](tag, "REGISTRATION") {
   def eventId = column[Long]("EVENT_ID")
   def timestamp = column[Option[Timestamp]]("TIMESTAMP_")
 
+  def event = foreignKey("EVENT_FK", eventId, TableQuery[Events])(_.id.get)
+
+  def cabin = foreignKey("CABIN_FK", cabinId, TableQuery[Cabins])(_.id.get)
+
   def * = (id, cabinId, eventId, timestamp) <> ((Registration.apply _).tupled, Registration.unapply _)
 }
 
