@@ -1,6 +1,6 @@
 package controllers
 
-import models.{Registration, RegistrationDAO, RegisteredPerson}
+import models.{Cabin, Registration, RegistrationDAO, RegisteredPerson}
 import play.api.data.validation.ValidationError
 import play.api.mvc._
 import play.api.libs.json._
@@ -53,7 +53,7 @@ object RegistrationController extends Controller {
   }
 
   def loadRegistrationCounts(eventId: Long) = DBAction { implicit rs =>
-    val cabinCounts: List[(String, Int)] =  RegistrationDAO.loadRegisteredCabinsCount(eventId)
+    val cabinCounts: List[(Cabin, Int)] =  RegistrationDAO.loadRegisteredCabinsCount(eventId)
     Ok(Json.obj("counts" -> Json.toJson(cabinCounts)))
   }
 

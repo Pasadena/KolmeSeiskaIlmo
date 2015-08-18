@@ -93,9 +93,9 @@ object EventDAO {
     eventCabins.filter(_.eventId === eventId).list
   }
 
-  def findById(id:Long)(implicit session: Session): Event = {
+  def findById(id:Long)(implicit session: Session): (Event, List[EventCabin]) = {
     events.filter(event => event.id === id).firstOption match {
-      case Some(event) => event
+      case Some(event) => (event, this.getEventCabins(id))
       case None => throw new RuntimeException("No matching value for id #id")
     }
   }

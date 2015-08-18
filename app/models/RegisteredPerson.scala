@@ -74,12 +74,12 @@ object RegistrationDAO {
     for(person <- persons)  registeredPersons += person.copy(None, registrationId, person.firstName, person.lastName, person.email, person.dateOfBirth, person.clubNumber, person.selectedDining, 1)
   }
 
-  def loadRegisteredCabinsCount(eventId: Long)(implicit session: Session): List[(String, Int)] = {
+  def loadRegisteredCabinsCount(eventId: Long)(implicit session: Session): List[(Cabin, Int)] = {
     val eventCabins = for {
-      (registration, cabin) <- (registrations leftJoin cabins on (_.cabinId === _.id)) if registration.eventId === eventId
-    } yield (cabin.name, registration.id.get)
+      (cabin, registration) <- (cabins leftJoin registrations on (_.id === _.cabinId)) if registration.eventId === eventId
+    } yield (cabin, registration.id.get)
     val cabinList = eventCabins.list
-    cabinList.foldLeft(Map[String, Int]()) { (map, element) => if(map.contains(element._1)) { map + (element._1 -> (map.get(element._1).get +1)) } else { map + (element._1 -> 1) } }.toList
+    cabinList.foldLeft(Map[Cabin, Int]()) { (map, element) => if(map.contains(element._1)) { map + (element._1 -> (map.get(element._1).get +1)) } else { map + (element._1 -> 1) } }.toList
   }
 
 }

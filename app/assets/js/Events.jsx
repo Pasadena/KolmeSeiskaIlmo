@@ -35,7 +35,7 @@ define(['react', 'jquery', 'components/FormComponents'], function(React, $, Form
                 success: function(data) {
                     var existingEvents = this.state.events;
                     if(eventData.id == null) {
-                        existingEvents.push(data['event']);
+                        existingEvents.push(data['event'][0]);
                     } else {
                         var updatedEventInList = _.find(existingEvents, function(event) { return event.id == eventData.id});
                         var existingEventIndex = existingEvents.indexOf(updatedEventInList);
@@ -70,7 +70,7 @@ define(['react', 'jquery', 'components/FormComponents'], function(React, $, Form
                 dataType: 'json',
                 success: function(data) {
                     var selectedEvent = data['event'];
-                    selectedEvent.cabins = data['cabins']
+                    selectedEvent.cabins = selectedEvent.cabins
                     this.setState({selectedEvent: selectedEvent});
                 }.bind(this),
                 error: function(xhr, status, err) {
