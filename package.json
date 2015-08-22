@@ -1,6 +1,9 @@
 {
   "name": "KolmeSeiskaIlmo",
   "version": "0.1.0",
+  "dependencies": {
+    "flux": "^2.0.0"
+  },
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-contrib-copy": "^0.8.0",
@@ -9,5 +12,8 @@
     "validator": "^3.40.0",
     "grunt-contrib-copy": "^0.8.0",
     "react-bootstrap": "^0.24.2"
+  },
+  "scripts": {
+    "postinstall": "grunt copy"
   }
 }
