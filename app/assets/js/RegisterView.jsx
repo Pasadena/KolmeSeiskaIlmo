@@ -19,7 +19,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             router: React.PropTypes.func
         },
         getInitialState: function() {
-            return {event: null, registeredCabins: null, selectedCabin: null, eventCabins: null, cabinTotalAmounts: null};
+            return {event: null, registeredCabins: null, selectedCabin: null, eventCabins: null, cabinTotalAmounts: null, showNotification: false};
         },
         componentWillMount: function() {
 
@@ -43,10 +43,17 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         updateSelectedCabin: function(selectedCabin) {
             this.setState({selectedCabin: selectedCabin});
         },
+        handleSubmit: function() {
+            this.setState({showNotification: true});
+        },
+        closeDialog: function() {
+            this.setState({showNotification: false});
+            this.context.router.transitionTo("/");
+        },
         render: function() {
             var passengerListComponent;
              if(this.state.selectedCabin) {
-                passengerListComponent = <PassengerListComponent selectedCabin={this.state.selectedCabin} event={this.state.event}/>;
+                passengerListComponent = <PassengerListComponent selectedCabin={this.state.selectedCabin} event={this.state.event} submitHandler={this.handleSubmit}/>;
              }
              var eventName = this.state.event != null ? this.state.event.name : "";
             return (
@@ -55,7 +62,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     <SelectCabinComponent cabins={this.state.eventCabins} occupiedCabins={this.state.registeredCabins} availableCabins={this.state.cabinTotalAmounts} selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>
                     {passengerListComponent}
                     <RegistrationSummaryView event={this.state.event} cabinCounts={this.state.cabinTotalAmounts} registeredCabinCounts={this.state.registeredCabins}/>
-                    <div id="notificationDiv"/>
+                    <SuccessNotification close={this.closeDialog} show={this.state.showNotification}/>;
                 </div>
             );
         }
@@ -97,11 +104,6 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             router: React.PropTypes.func
         },
         saveRegistration: function(registrations) {
-            var that = this;
-            var closeDialog = function() {
-                $('#notificationDiv').hide();
-                that.context.router.transitionTo("/");
-            }
             _.each(registrations, function(registration) {
                 registration["selectedDining"] = registration["selectedDining"] ? parseInt(registration[dinner]) : 0;
                 registration["contactPerson"] = 0;
@@ -116,9 +118,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 type: "POST",
                 data: JSON.stringify([registrations, registration]),
                 success: function(data) {
-                    $('#notificationDiv').show();
-                    var notificationElement = <SuccessNotification close={closeDialog}/>;
-                    React.render(notificationElement, document.getElementById('notificationDiv'));
+                    this.props.submitHandler();
                 }.bind(this),
                 error: function(xhr, status, err) {
                     console.error(status, err.toString());
@@ -169,7 +169,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         },
         render: function() {
             return (
-                <RB.Modal onRequestHide={this.dismiss}>
+                <RB.Modal onRequestHide={this.dismiss} onHide={this.dismiss} show={this.props.show}>
                     <div className="modal-header">Registration successfull!</div>
                     <div className="modal-body"><p>Congratulations! You have successfully registered to this event. Enjoy! </p></div>
                     <div className="modal-footer"><Button onClick={this.dismiss}>Okey dokey!</Button></div>
