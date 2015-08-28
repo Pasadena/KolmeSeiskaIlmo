@@ -1,21 +1,28 @@
-define(['react', 'react-router'], function(React, Router) {
+define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], function(React, Router, EventStore, EventActions) {
+
+    function getIndexPageState() {
+        return {
+            events: EventStore.getEvents(),
+            selectedEvent: null
+        };
+    }
 
     var IndexViewComponent = React.createClass({
         getInitialState: function() {
-            return {events: []};
+            return getIndexPageState();
+        },
+        componentWillMount: function() {
+            EventActions.loadEvents();
         },
         componentDidMount: function() {
-            var eventRoute = '/admin/loadEvents';
-            $.ajax({
-                url: eventRoute,
-                dataType: 'json',
-                success: function(data) {
-                    this.setState({events: data['events']});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(status, err.toString());
-                }.bind(this)
-            });
+            EventStore.addChangeListener(this._onChange);
+
+        },
+        componentWillUnmount: function() {
+            EventStore.removeChangeListener(this._onChange);
+        },
+        _onChange: function() {
+            this.setState(this.getInitialState());
         },
         render: function() {
             var eventComponents = this.state.events.map(function(event) {

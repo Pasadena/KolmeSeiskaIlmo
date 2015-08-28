@@ -1,5 +1,5 @@
-import GruntHook._
 import play.PlayImport.PlayKeys.playRunHooks
+import play.PlayScala
 
 name := """KolmeSeiskaIlmo"""
 
@@ -31,3 +31,4 @@ libraryDependencies ++= Seq(
 )
 
 playRunHooks <+= baseDirectory.map(base => GruntHook(base))
+

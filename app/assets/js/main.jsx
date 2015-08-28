@@ -9,7 +9,8 @@ require.config({
         "text" : "../lib/jsx-requirejs-plugin/js/text",
         "jsx" : "../lib/jsx-requirejs-plugin/js/jsx",
         "underscore" : "../lib/underscorejs/underscore",
-        "react-bootstrap": "node_modules/react-bootstrap/dist/react-bootstrap"
+        "react-bootstrap": "node_modules/react-bootstrap/dist/react-bootstrap",
+        "flux": "node_modules/flux/dist/Flux"
     },
     "shim": {
         "react": {
@@ -18,6 +19,9 @@ require.config({
         "react-router": {
             exports: "react-router",
             deps: ['react']
+        },
+        "flux": {
+            exports: "flux"
         }
     }
 });

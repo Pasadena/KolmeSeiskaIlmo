@@ -1,15 +1,34 @@
-define(['react', 'jquery', 'components/FormComponents'], function(React, $, FormComponents) {
+define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'actions/EventActions'], function(React, $, FormComponents, EventStore, EventActions) {
 
     var ButtonComponent = FormComponents.ButtonComponent;
     var InputComponent = FormComponents.InputComponent;
     var TextAreaComponent = FormComponents.TextAreaComponent;
 
+    function getEventPageState() {
+        var messageData = EventStore.getMessageData();
+        return {
+            events: EventStore.getEvents(),
+            selectedEvent: EventStore.getSelectedEvent(),
+            message: messageData.message,
+            messageStatus: messageData.messageStatus
+        };
+    }
+
     var EventSection = React.createClass({displayName: "EventSection",
         getInitialState: function() {
-            return {events: [], message: '', messageClass: '', selectedEvent: null};
+            return getEventPageState();
+        },
+        componentWillMount: function() {
+            EventActions.loadEvents();
         },
         componentDidMount: function() {
-            this.loadEvents();
+            EventStore.addChangeListener(this._onChange);
+        },
+        componentWillUnmount: function() {
+            EventStore.removeChangeListener(this._onChange);
+        },
+        _onChange: function() {
+            this.setState(this.getInitialState());
         },
         loadEvents: function() {
             var eventRoute = '/admin/loadEvents';
@@ -26,27 +45,8 @@ define(['react', 'jquery', 'components/FormComponents'], function(React, $, Form
         },
         submitEventForm: function(eventData, selectedCabins) {
             var url = eventData.id != null ? ('/admin/events/' + eventData.id) : '/admin/events/';
-            $.ajax({
-                url: url,
-                contentType: 'application/json',
-                dataType: 'json',
-                type: 'POST',
-                data: JSON.stringify([eventData, selectedCabins]),
-                success: function(data) {
-                    var existingEvents = this.state.events;
-                    if(eventData.id == null) {
-                        existingEvents.push(data['event'][0]);
-                    } else {
-                        var updatedEventInList = _.find(existingEvents, function(event) { return event.id == eventData.id});
-                        var existingEventIndex = existingEvents.indexOf(updatedEventInList);
-                        existingEvents[existingEventIndex] = eventData;
-                    }
-                    this.setState({events: existingEvents, message: data['message'], messageClass: this.getStatusMessageClass(data), selectedEvent: null});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(this.props.url, status, err.toString());
-                }.bind(this)
-            });
+            EventActions.saveEvent({data: [eventData, selectedCabins], url: url});
+            this.setState(this.getInitialState());
         },
         deleteListItem: function(eventData) {
             var url = '/admin/events/delete/' +eventData.id;
@@ -78,11 +78,11 @@ define(['react', 'jquery', 'components/FormComponents'], function(React, $, Form
                 }.bind(this)
             });
         },
-        getStatusMessageClass: function(messageData) {
-            if(messageData['status'] == 'Ok') {
+        getStatusMessageClass: function() {
+            if(this.state.messageStatus == 'Ok') {
                 return 'alert alert-success';
             }
-            if(messageData['status'] == 'Error') {
+            if(this.state.messageStatus == 'Error') {
                 return 'alert alert-danger';
             }
             return '';
@@ -90,7 +90,7 @@ define(['react', 'jquery', 'components/FormComponents'], function(React, $, Form
         render: function() {
             return (
                 React.createElement("div", {className: "panel panel-default"}, 
-                    React.createElement("div", {className: this.state.messageClass, role: "alert"}, 
+                    React.createElement("div", {className: this.getStatusMessageClass(), role: "alert"}, 
                         this.state.message
                     ), 
                     React.createElement("div", {className: "panel-heading"}, 
