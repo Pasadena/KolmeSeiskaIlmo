@@ -6,8 +6,10 @@ define(['dispatcher/AppDispatcher', 'AmdEvents'], function(AppDispatcher, Events
         events = data['events'];
     }
 
-    function setSelectedEvent(event) {
-        selectedEvent = event;
+    function setSelectedEvent(data) {
+        var eventPayload = data['event'];
+        selectedEvent = eventPayload.event;
+        selectedEvent.cabins = eventPayload.cabins
     }
 
     function addEvent(data) {
@@ -51,14 +53,17 @@ define(['dispatcher/AppDispatcher', 'AmdEvents'], function(AppDispatcher, Events
             case "LOAD_EVENTS":
                 setEvents(action.data);
                 break;
-            case "SELECT_EVENT":
+            case "LOAD_EVENT":
+                updateLoadState(true);
+                break;
+            case "LOAD_EVENT_SUCCESS":
                 setSelectedEvent(action.data);
                 break;
             case "SAVE_EVENT":
                 updateLoadState(true);
                 break;
             case "SAVE_EVENT_SUCCESS":
-                updateLoadState(true);
+                updateLoadState(false);
                 setMessageData({message: action.data['message'], messageStatus: action.data['status']})
                 addEvent(action.data);
                 break;

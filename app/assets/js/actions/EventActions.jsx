@@ -5,6 +5,13 @@ define(['dispatcher/AppDispatcher'], function(AppDispatcher) {
         loadEvents: function() {
             fetchEvents();
         },
+        loadEventData: function(eventId) {
+            AppDispatcher.handleAction({
+                actionType: "LOAD_EVENT",
+                data: eventId
+            });
+            fetchEvent(eventId);
+        },
         saveEvent: function(payload) {
             AppDispatcher.handleAction({
                 actionType: "SAVE_EVENT",
@@ -40,6 +47,23 @@ define(['dispatcher/AppDispatcher'], function(AppDispatcher) {
             success: function(data) {
                 AppDispatcher.handleAction({
                     actionType: "LOAD_EVENTS",
+                    data: data
+                });
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(status, err.toString());
+            }.bind(this)
+        });
+    }
+
+    function fetchEvent(eventId) {
+        var url = "/register/loadData/" +eventId;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            success: function(data) {
+                AppDispatcher.handleAction({
+                    actionType: "LOAD_EVENT_SUCCESS",
                     data: data
                 });
             }.bind(this),

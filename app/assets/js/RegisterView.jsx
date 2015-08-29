@@ -1,4 +1,4 @@
-define(['react','react-router', 'jquery', 'components/FormComponents', 'underscore', 'react-bootstrap'], function(React, Router, $, FormComponents, _, RB) {
+define(['react','react-router', 'jquery', 'components/FormComponents', 'underscore', 'react-bootstrap', 'store/EventStore', 'store/RegistrationStore', 'actions/EventActions', 'actions/RegistrationActions'], function(React, Router, $, FormComponents, _, RB, EventStore, RegistrationStore, EventActions, RegistrationActions) {
     var Panel = RB.Panel;
     var Input = FormComponents.InputWrapper;
     var RBInput = RB.Input;
@@ -19,32 +19,30 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             router: React.PropTypes.func
         },
         getInitialState: function() {
-            return {event: null, registeredCabins: null, selectedCabin: null, eventCabins: null, cabinTotalAmounts: null, showNotification: false};
+            var event = EventStore.getSelectedEvent();
+            var registrations = RegistrationStore.getRegistrations();
+            return {event: event, selectedCabin: null, registrations: registrations, showNotification: RegistrationStore.getNotificationState()};
         },
         componentWillMount: function() {
-
+            EventActions.loadEventData(this.getParams().eventId);
+            RegistrationActions.getRegistrations(this.getParams().eventId);
         },
         componentDidMount: function() {
-            this.loadEventData();
+            EventStore.addChangeListener(this._onChange);
+            RegistrationStore.addChangeListener(this._onChange);
         },
-        loadEventData: function() {
-            var url = "/register/loadEvent/" +this.getParams().eventId;
-            $.ajax({
-                url: url,
-                dataType: 'json',
-                success: function(data) {
-                    this.setState({event: data['event'][0], registeredCabins: data['registeredCabins'], eventCabins: data['availableCabins'], cabinTotalAmounts: data['event'][1]});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(status, err.toString());
-                }.bind(this)
-            });
+        componentWillUnmount: function() {
+            EventStore.removeChangeListener(this._onChange);
+            RegistrationStore.addChangeListener(this._onChange);
+        },
+        _onChange: function() {
+            this.setState(this.getInitialState());
         },
         updateSelectedCabin: function(selectedCabin) {
             this.setState({selectedCabin: selectedCabin});
         },
-        handleSubmit: function() {
-            this.setState({showNotification: true});
+        handleSubmit: function(registrationData) {
+            RegistrationActions.saveRegistration({data: registrationData, url: "/register"})
         },
         closeDialog: function() {
             this.setState({showNotification: false});
@@ -56,13 +54,18 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 passengerListComponent = <PassengerListComponent selectedCabin={this.state.selectedCabin} event={this.state.event} submitHandler={this.handleSubmit}/>;
              }
              var eventName = this.state.event != null ? this.state.event.name : "";
+             var selectCabinComponent, registrationSummaryComponent;
+             if(this.state.event) {
+                selectCabinComponent = (<SelectCabinComponent event={this.state.event} registrations = {this.state.registrations} selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>);
+                registrationSummaryComponent = (<RegistrationSummaryView event={this.state.event} registrations={this.state.registrations}/>);
+             }
             return (
                 <div>
                     <PageHeader>Register to event: {eventName} </PageHeader>
-                    <SelectCabinComponent cabins={this.state.eventCabins} occupiedCabins={this.state.registeredCabins} availableCabins={this.state.cabinTotalAmounts} selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>
+                    {selectCabinComponent}
                     {passengerListComponent}
-                    <RegistrationSummaryView event={this.state.event} cabinCounts={this.state.cabinTotalAmounts} registeredCabinCounts={this.state.registeredCabins}/>
-                    <SuccessNotification close={this.closeDialog} show={this.state.showNotification}/>;
+                    {registrationSummaryComponent}
+                    <SuccessNotification close={this.closeDialog} show={this.state.showNotification}/>
                 </div>
             );
         }
@@ -73,19 +76,17 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             this.props.cabinSelectHandler(selectedCabin);
         },
         render: function() {
-            var cabinButtons = !this.props.cabins ? [] : this.props.cabins.map(function(cabin) {
-                var totalCabinAmount = _.first(_.filter(this.props.availableCabins, function(eventCabin) {
-                    return eventCabin.cabinId == cabin.id;
-                })).amount;
-                var registeredCabinsOfType = _.first(_.filter(this.props.occupiedCabins, function(countsForCabin) {
-                    return countsForCabin[0].id == cabin.id;
-                }));
-                var availableCabinCount = registeredCabinsOfType ? totalCabinAmount - registeredCabinsOfType[1] : totalCabinAmount;
+            var cabinButtons = !this.props.event.cabins ? [] : this.props.event.cabins.map(function(cabin) {
+                var totalAmountOfCabins = cabin.cabinCount;
+                var totalAmountOfOccupiedCabins = _.reduce(this.props.registrations, function(memo, item) {
+                    return item.cabinId == cabin.cabin.id ? memo + 1 : memo;
+                }, 0);
+                var numberOfAvailableCabins = totalAmountOfCabins - totalAmountOfOccupiedCabins;
+                var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " available ) ";
                 var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.id ? true : null;
-                var label = cabin.name +" ( " + availableCabinCount + " available ) ";
                 return (
                     <ListGroupItem key={cabin.id}>
-                        <RBInput type="radio" name={cabin.name} value={cabin.name} onChange={this.selectCabin.bind(null, cabin)} checked={selected} label={label}/>
+                        <RBInput type="radio" name={cabin.cabin.name} value={cabin.cabin.name} onChange={this.selectCabin.bind(null, cabin.cabin)} checked={selected} label={label}/>
                     </ListGroupItem>
                      );
             }, this);
@@ -111,19 +112,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             }, this);
 
             var registration = {cabinId: this.props.selectedCabin.id, eventId: this.props.event.id};
-            $.ajax({
-                url: "/register",
-                contentType: 'application/json',
-                dataType: 'json',
-                type: "POST",
-                data: JSON.stringify([registrations, registration]),
-                success: function(data) {
-                    this.props.submitHandler();
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(status, err.toString());
-                }.bind(this)
-            });
+            this.props.submitHandler([registrations, registration]);
         },
         render: function() {
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
@@ -183,12 +172,13 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             return {registrationCounts: []};
         },
         render: function() {
+            var registrationForCabinTypes = _.countBy(this.props.registrations, function(item) { return item.cabinId; });
             return (
                 <Panel header="Registration counts:" bsStyle="info">
                     <ul>
-                        {(this.props.registeredCabinCounts ? this.props.registeredCabinCounts : []).map(function(count) {
+                        {(this.props.event.cabins ? this.props.event.cabins : []).map(function(cabin) {
                             return (
-                                <li>{count[0].name} : {count[1]} </li>
+                                <li>{cabin.cabin.name} : {registrationForCabinTypes[cabin.cabin.id]} </li>
                             );
                         })}
                     </ul>

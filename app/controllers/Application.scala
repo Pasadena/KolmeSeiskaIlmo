@@ -23,6 +23,7 @@ object Application extends Controller {
     Ok(views.html.index(""))
   }
 
+
   def javascriptRoutes = Action{ implicit request =>
     Ok(Routes.javascriptRouter("jsRoutes")(
       routes.javascript.EventController.events,
@@ -30,7 +31,7 @@ object Application extends Controller {
       routes.javascript.EventController.deleteEvent,
       routes.javascript.EventController.getEvent,
       routes.javascript.CabinController.fetchCabins,
-      routes.javascript.Application.register
+      routes.javascript.EventController.getSelectedEvent
     )).as("text/javascript")
 
   }

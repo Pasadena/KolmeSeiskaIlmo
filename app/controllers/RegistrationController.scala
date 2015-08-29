@@ -52,9 +52,8 @@ object RegistrationController extends Controller {
     }
   }
 
-  def loadRegistrationCounts(eventId: Long) = DBAction { implicit rs =>
-    val cabinCounts: List[(Cabin, Int)] =  RegistrationDAO.loadRegisteredCabinsCount(eventId)
-    Ok(Json.obj("counts" -> Json.toJson(cabinCounts)))
+  def loadRegistrations(eventId: Long) = DBAction { implicit rs =>
+    Ok(Json.obj("registrations" -> Json.toJson(RegistrationDAO.loadEventRegistrations(eventId))))
   }
 
 }

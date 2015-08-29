@@ -1,19 +1,26 @@
 define(['dispatcher/AppDispatcher', 'AmdEvents'], function(AppDispatcher, Events) {
 
-    var event = {}, registrations = [];
+    var registrations = [], loadState = false, showNotification = false;
 
-    function loadRegistrationData(data) {
-        event = data['event'];
+    function setRegistrations(data) {
         registrations = data['registrations'];
+    }
+
+    function updateLoadState(state) {
+        loadState = state;
+    }
+
+    function setNotificationState(state) {
+        showNotification = state;
     }
 
     var RegistrationStore = _.extend({}, Events.EventEmitter.prototype, {
 
-        getEvent: function() {
-            return event;
-        },
         getRegistrations: function() {
             return registrations;
+        },
+        getNotificationState: function() {
+            return showNotification;
         },
         emitChange: function() {
             this.emit('change');
@@ -30,8 +37,20 @@ define(['dispatcher/AppDispatcher', 'AmdEvents'], function(AppDispatcher, Events
         var action = payload.action;
 
         switch(action.actionType) {
-            case "LOAD_EVENT":
-                loadRegistrationData(action.data);
+            case "LOAD_REGISTRATIONS":
+                updateLoadState(true);
+                break;
+            case "LOAD_REGISTRATIONS_SUCCESS":
+                updateLoadState(false);
+                setRegistrations(action.data);
+                setNotificationState(false);
+                break;
+            case "SAVE_REGISTRATION":
+                updateLoadState(true);
+                break;
+            case "SAVE_REGISTRATION_SUCCESS":
+                updateLoadState(false);
+                setNotificationState(true);
                 break;
             default:
                 return true;

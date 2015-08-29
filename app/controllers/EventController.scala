@@ -70,9 +70,8 @@ object EventController extends Controller {
   }
 
   def getSelectedEvent(id: Long) = DBAction { implicit re =>
-    val event = EventDAO.findById(id)
-    val cabinIds = EventDAO.getEventCabins(event._1.id.get).foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)
-    Ok(Json.obj("event" -> Json.toJson(event), "registeredCabins" -> Json.toJson(RegistrationDAO.loadRegisteredCabinsCount(id)), "availableCabins" -> CabinDAO.findByIdList(cabinIds) ))
+    val event = EventDAO.findEventDataById(id)
+    Ok(Json.obj("event" -> Json.toJson(event)))
   }
 
   def updateEvent(id: Long) = DBAction(parse json) {  implicit rs =>

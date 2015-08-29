@@ -13,12 +13,24 @@ import play.api.libs.json._
  */
 case class Event(id: Option[Long], name: String, description: String, dateOfEvent: DateTime, registrationStartDate: DateTime, registrationEndDate: DateTime)
 
+case class EventData(event: Event, cabins: List[EventCabinData])
+
+case class EventCabinData(cabin: Cabin, cabinCount: Int)
+
 object Event {
 
   val pattern = "d.M.yyyy"
   implicit val dateFormat = Format[DateTime](Reads.jodaDateReads(pattern), Writes.jodaDateWrites(pattern))
 
   implicit val eventFormat = Json.format[Event]
+}
+
+object EventCabinData {
+  implicit val dataFormat = Json.format[EventCabinData]
+}
+
+object EventData {
+  implicit val eventDataFormat = Json.format[EventData]
 }
 
 class Events(tag: Tag) extends Table[Event](tag, "EVENT") {
@@ -65,6 +77,7 @@ object EventDAO {
 
   val events = TableQuery[Events]
   val eventCabins = TableQuery[EventCabins]
+  val cabins = TableQuery[Cabins]
 
   def getAll()(implicit session: Session): List[Event] = {
     events.list
@@ -101,6 +114,18 @@ object EventDAO {
     events.filter(event => event.id === id).firstOption match {
       case Some(event) => (event, this.getEventCabins(id))
       case None => throw new RuntimeException("No matching value for id #id")
+    }
+  }
+
+  def findEventDataById(id:Long)(implicit session: Session): EventData = {
+    val foo = for {
+      event <- events if event.id === id
+      eventCabin <- eventCabins if eventCabin.eventId === id
+      cabin <- cabins if eventCabin.cabinId === cabin.id
+    } yield (event, cabin, eventCabin.amount)
+    foo.list.groupBy(_._1).map {case (event, data) => EventData(event, data.map {case (event, cabin, amount) => EventCabinData(cabin, amount)})}.toList match {
+      case Nil => throw new RuntimeException("No matching value for id #id")
+      case x :: xs => x
     }
   }
 
