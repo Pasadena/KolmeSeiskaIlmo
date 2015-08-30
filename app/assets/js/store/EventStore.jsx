@@ -51,6 +51,10 @@ define(['dispatcher/AppDispatcher', 'AmdEvents'], function(AppDispatcher, Events
 
         switch(action.actionType) {
             case "LOAD_EVENTS":
+                updateLoadState(true);
+                break;
+            case "LOAD_EVENTS_SUCCESS":
+                updateLoadState(false);
                 setEvents(action.data);
                 break;
             case "LOAD_EVENT":
