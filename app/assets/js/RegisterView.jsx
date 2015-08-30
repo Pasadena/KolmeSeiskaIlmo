@@ -84,9 +84,12 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 var numberOfAvailableCabins = totalAmountOfCabins - totalAmountOfOccupiedCabins;
                 var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " available ) ";
                 var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.id ? true : null;
+                var cabinSelectionDisabled =  numberOfAvailableCabins <= 0 ? true : false;
+                var radioClass = cabinSelectionDisabled ? "disabled-cabin" : null;
                 return (
                     <ListGroupItem key={cabin.id}>
-                        <RBInput type="radio" name={cabin.cabin.name} value={cabin.cabin.name} onChange={this.selectCabin.bind(null, cabin.cabin)} checked={selected} label={label}/>
+                        <RBInput type="radio" name={cabin.cabin.name} value={cabin.cabin.name} onChange={this.selectCabin.bind(null, cabin.cabin)} checked={selected}
+                            label={label} disabled={cabinSelectionDisabled} labelClassName={radioClass}/>
                     </ListGroupItem>
                      );
             }, this);
