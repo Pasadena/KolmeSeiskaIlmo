@@ -2,6 +2,7 @@ package controllers
 
 import com.typesafe.config.ConfigFactory
 import models.{ Registration, RegistrationDAO, RegisteredPerson}
+import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.mvc._
 import play.api.libs.json._
@@ -72,7 +73,11 @@ object RegistrationController extends Controller {
         Seq(contactPerson.email),
         bodyText = Some(views.txt.email(configOptions.getString("smtp.user")).toString())
       )
-      MailerPlugin.send(email)
+      try {
+        MailerPlugin.send(email)
+      } catch {
+        case e:Exception => Logger.logger.error(e.getMessage)
+      }
     }
   }
 
