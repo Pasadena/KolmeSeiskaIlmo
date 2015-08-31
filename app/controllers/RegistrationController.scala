@@ -1,10 +1,13 @@
 package controllers
 
-import models.{Cabin, Registration, RegistrationDAO, RegisteredPerson}
+import com.typesafe.config.ConfigFactory
+import models.{ Registration, RegistrationDAO, RegisteredPerson}
 import play.api.data.validation.ValidationError
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.db.slick._
+import play.api.libs.mailer._
+import play.api.Play.current
 
 /**
  * Created by spokos on 8/4/15.
@@ -45,6 +48,10 @@ object RegistrationController extends Controller {
         case Some((list, registration)) => {
           val registrationId = RegistrationDAO.saveRegistration(registration)
           RegistrationDAO.saveRegistrationPersons(list, registrationId)
+          list.filter(_.contactPerson == 1) match {
+            case Nil => sendConfirmationMail(list(0))
+            case x :: xs => sendConfirmationMail(x)
+          }
           Ok(Json.obj("status" -> "Ok", "message" -> "Registration succesfully saved"))
         }
         case None => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened while parsing registration list"))
@@ -54,6 +61,18 @@ object RegistrationController extends Controller {
 
   def loadRegistrations(eventId: Long) = DBAction { implicit rs =>
     Ok(Json.obj("registrations" -> Json.toJson(RegistrationDAO.loadEventRegistrations(eventId))))
+  }
+
+  def sendConfirmationMail(contactPerson: RegisteredPerson) = {
+    val configOptions = ConfigFactory.load()
+    val allowedEmailRecipients = configOptions.getString("test.emails")
+    if (allowedEmailRecipients.split(",").toList.contains(contactPerson.email)) {
+      val email = Email("Test email", configOptions.getString("smtp.user"),
+        Seq(contactPerson.email),
+        bodyText = Some("A text message")
+      )
+      MailerPlugin.send(email)
+    }
   }
 
 }
