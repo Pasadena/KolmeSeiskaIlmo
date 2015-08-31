@@ -8,6 +8,7 @@ import play.api.libs.json._
 import play.api.db.slick._
 import play.api.libs.mailer._
 import play.api.Play.current
+import play.api.i18n.Messages
 
 /**
  * Created by spokos on 8/4/15.
@@ -67,9 +68,9 @@ object RegistrationController extends Controller {
     val configOptions = ConfigFactory.load()
     val allowedEmailRecipients = configOptions.getString("test.emails")
     if (allowedEmailRecipients.split(",").toList.contains(contactPerson.email)) {
-      val email = Email("Test email", configOptions.getString("smtp.user"),
+      val email = Email(Messages("registration.email.title"), configOptions.getString("smtp.user"),
         Seq(contactPerson.email),
-        bodyText = Some("A text message")
+        bodyText = Some(views.txt.email(configOptions.getString("smtp.user")).toString())
       )
       MailerPlugin.send(email)
     }

@@ -1,0 +1,9 @@
+@(organizationEmail: String)
+
+Kiitos, varauksesi on rekisteröity. Maksettuanne matkan saatte matkalippunne satamassa henkilötodistustanne vastaan.
+
+Varauksenne vahvistuu lopullisesti maksusuorituksen kirjauduttua järjestäjälle. Huomaa, ettei maksamatta jättäminen ole peruutus! Tapahtuman järjestäjällä on oikeus poistaa varaus, jota ei ole maksettu eräpäivään mennessä.
+
+Kaikki muutokset ja peruutukset varaukseen tehdään vastaamalla tähän sähköpostiin. Teekkariristeilyyn liittyvissä kysymyksissä voit ottaa yhteyttä sähköpostilla osoitteeseen: @organizationEmail
+
+Varauksen yhteenveto sekä maksuohjeet löytyvät tähän viestiin liitetystä liitetiedostosta.
