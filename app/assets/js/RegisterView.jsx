@@ -54,6 +54,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 passengerListComponent = <PassengerListComponent selectedCabin={this.state.selectedCabin} event={this.state.event} submitHandler={this.handleSubmit}/>;
              }
              var eventName = this.state.event != null ? this.state.event.name : "";
+             var description = this.state.event != null ? this.state.event.description : "";
              var selectCabinComponent, registrationSummaryComponent;
              if(this.state.event) {
                 selectCabinComponent = (<SelectCabinComponent event={this.state.event} registrations = {this.state.registrations} selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>);
@@ -62,8 +63,13 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             return (
                 <div>
                     <PageHeader>Register to event: {eventName} </PageHeader>
+                    <RB.Well bsSize="small">{description}</RB.Well>
                     {selectCabinComponent}
-                    {passengerListComponent}
+                    <RB.Fade in={this.state.selectedCabin ? true : false}>
+                        <div>
+                            {passengerListComponent}
+                        </div>
+                    </RB.Fade>
                     {registrationSummaryComponent}
                     <SuccessNotification close={this.closeDialog} show={this.state.showNotification}/>
                 </div>
@@ -125,6 +131,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 return (
                     <FormFragment key={order} ref={order}>
                         <Panel header={headerName} bsStyle="info">
+                            <RB.Well bsSize="large" bsStyle="danger">* marks required field</RB.Well>
                             <Input type="text" placeholder="Insert first name" label="First name:*" id="firstNameField" name="firstName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert last name" label="Last name:*" id="lastNameField" name="lastName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="email" placeholder="Insert email" label="Email:*" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
