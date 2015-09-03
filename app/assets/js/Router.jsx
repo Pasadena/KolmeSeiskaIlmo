@@ -1,11 +1,23 @@
-define(['react', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events', 'RegisterView'], function(React, Router, IndexView, AdminPage, CabinPage, EventPage, RegisterView) {
+define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events', 'RegisterView'], function(React, $, _, Router, IndexView, AdminPage, CabinPage, EventPage, RegisterView) {
     var Route = Router.Route
 
 
     var App = React.createClass({
+
+        componentDidMount: function() {
+            $(document).ajaxStart(_.debounce(function() {
+                $('.overlay').show();
+            }), 100);
+            $(document).ajaxStop(function() {
+                $('.overlay').hide();
+            });
+        },
         render: function() {
             return (
-                <div>
+                <div id="mainSection">
+                    <div className="overlay" style={{display: 'none'}} >
+                        <div id="spinner" className="loading"/>
+                    </div>
                     <Router.RouteHandler />
                 </div>
             );
