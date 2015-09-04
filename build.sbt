@@ -28,7 +28,8 @@ libraryDependencies ++= Seq(
   "org.webjars" % "jsx-requirejs-plugin" % "0.6.0",
   "org.webjars" % "underscorejs" % "1.8.3",
   "org.webjars" % "react-bootstrap" % "0.19.1",
-  "com.typesafe.play" %% "play-mailer" % "2.4.1"
+  "com.typesafe.play" %% "play-mailer" % "2.4.1",
+  "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
 )
 
 playRunHooks <+= baseDirectory.map(base => GruntHook(base))

@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/kolmeseiskailmo -Dhttp.port=${PORT} -DapplyEvolutions.default=true
+web: target/universal/stage/bin/kolmeseiskailmo -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Dconfig.resource=production.conf
