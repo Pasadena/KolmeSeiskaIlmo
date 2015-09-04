@@ -16,6 +16,8 @@ import play.api.i18n.Messages
  */
 object RegistrationController extends Controller {
 
+  val registrationLogger = Logger(this.getClass)
+
   implicit def tuple3Reads[A, B, C](implicit aFormat: Format[A], bFormat: Format[B], cFormat: Format[C]): Reads[Tuple3[A, B, C]] = Reads[Tuple3[A, B, C]] {
     case JsArray(arr) if arr.size == 3 => for {
       a <- aFormat.reads(arr(0))
@@ -76,7 +78,7 @@ object RegistrationController extends Controller {
       try {
         MailerPlugin.send(email)
       } catch {
-        case e:Exception => Logger.logger.error(e.getMessage)
+        case e:Exception => registrationLogger.error("Failed to send email", e)
       }
     }
   }
