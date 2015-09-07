@@ -34,7 +34,7 @@ define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], fu
             return (
                 <section>
                     <hgroup>
-                        <h1>Available events </h1>
+                        <h1>Available events: </h1>
                     </hgroup>
                     <div>
                         {eventList}
