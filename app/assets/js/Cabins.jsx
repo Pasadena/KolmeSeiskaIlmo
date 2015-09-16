@@ -1,13 +1,14 @@
-define(['react', 'jquery', 'underscore', 'components/FormComponents'], function(React, $, _, FormComponents) {
+define(['react', 'jquery', 'underscore', 'components/FormComponents', 'react-bootstrap'], function(React, $, _, FormComponents, RB) {
 
     var ButtonComponent = FormComponents.ButtonComponent;
     var InputComponent = FormComponents.InputComponent;
     var TextAreaComponent = FormComponents.TextAreaComponent;
     var Form = FormComponents.Form;
+    var Input = FormComponents.InputWrapper;
 
     var CabinPageView = React.createClass({
         getInitialState: function() {
-            return {cabins: []};
+            return {cabins: [], selectedCabin: null, modalOpen: false};
         },
         componentDidMount: function() {
             $.ajax({
@@ -20,28 +21,6 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents'], function(
                     console.error(status, err.toString());
                 }.bind(this)
             });
-        },
-        createCabin: function(event) {
-            event.preventDefault();
-            this.openDialog();
-        },
-        openDialog: function(cabin) {
-            var dialog = $('<div>').dialog({
-                width: 700,
-                height: 500,
-                modal: true,
-                title: 'Create cabin',
-                close: function(e) {
-                    React.unmountComponentAtNode(this);
-                    $(this).remove();
-                }
-            });
-
-            var closeDialog = function(event) {
-                event.preventDefault();
-                dialog.dialog('close');
-            }
-            React.render(<CabinDialog closeDialog={closeDialog} onSuccess={this.addCabinToList} cabin={cabin}/>, dialog[0]);
         },
         addCabinToList: function(response) {
             var cabinData = response['cabin'];
@@ -89,6 +68,16 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents'], function(
                 }.bind(this)
             });
         },
+        closeDialog: function() {
+            this.setState({modalOpen: false});
+        },
+        editSelectedCabin: function(cabin) {
+            this.setState({selectedCabin: cabin, modalOpen: true});
+        },
+        createCabin: function(event) {
+            event.preventDefault();
+            this.setState({modalOpen: true});
+        },
         render: function() {
             return (
                 <div>
@@ -97,10 +86,10 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents'], function(
                         <div className="panel-heading">
                             <h3 className="panel-title">Cabins</h3>
                         </div>
-                        <CabinListView cabins={this.state.cabins} editCabinHandler={this.openDialog} deleteCabinHandler={this.deleteSelectedCabin}/>
+                        <CabinListView cabins={this.state.cabins} editCabinHandler={this.editSelectedCabin} deleteCabinHandler={this.deleteSelectedCabin}/>
                     </div>
                     <a className="btn btn-success" onClick={this.createCabin}>Create cabin</a>
-
+                    <CabinDialog closeDialog={this.closeDialog} onSuccess={this.addCabinToList} cabin={this.state.selectedCabin} show={this.state.modalOpen}/>
                 </div>
             );
         }
@@ -240,18 +229,32 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents'], function(
         closeCabinDialog: function(event) {
             this.props.closeDialog(event);
         },
+        dismiss: function(event) {
+            this.props.close();
+        },
         render: function() {
+            var modalTitle = this.props.cabin ? "Edit cabin details" : "Create cabin";
+            var cabin = this.props.cabin ? this.props.cabin : {}
             return (
-                <div id='cabinDialog'>
+                <RB.Modal onRequestHide={this.dismiss} onHide={this.dismiss} show={this.props.show} bsStyle="primary" title={modalTitle}>
                     <Form onSubmit={this.saveCabin} model={this.props.cabin}>
-                        <InputComponent type="text" name="name" placeholder="Insert cabin name" label="Cabin name:" id="nameField" errorMessage='Name is mandatory' required='true'/>
-                        <TextAreaComponent name="description" placeholder="Insert cabin description" label="Cabin description:" id="descriptionField" />
-                        <InputComponent type="number" name="capacity" placeholder="Insert cabin capacity" label="Cabin capacity:" id="capacityField" errorMessage='Capacity is mandatory' required='true'/>
-                        <InputComponent type="number" name="price" placeholder="Insert cabin price" label="Cabin price:" id="priceField" errorMessage='Price is mandatory' required='true'/>
-                        <ButtonComponent type="submit" value="Save cabin" class="btn btn-success" />
-                        <ButtonComponent type="button" value="Cancel" class="btn" onClick={this.closeCabinDialog}/>
+                        <RB.ModalHeader>
+                            <RB.Modal.Title>{modalTitle}</RB.Modal.Title>
+                        </RB.ModalHeader>
+                        <RB.Modal.Body>
+                            <Input type="text" name="name" placeholder="Insert cabin name" label="Cabin name:" id="nameField" errorMessage='Name is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <Input type="textarea" name="description" placeholder="Insert cabin description" label="Cabin description:" id="descriptionField" labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <Input type="number" name="capacity" placeholder="Insert cabin capacity" label="Cabin capacity:" id="capacityField" errorMessage='Capacity is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <Input type="number" name="price" placeholder="Insert cabin price" label="Cabin price:" id="priceField" errorMessage='Price is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                        </RB.Modal.Body>
+                        <RB.Modal.Footer>
+                            <RB.ButtonGroup>
+                                <RB.ButtonInput type="submit" value="Save cabin" className="btn btn-success" />
+                                <RB.ButtonInput type="button" value="Cancel" className="btn" onClick={this.closeCabinDialog}/>
+                            </RB.ButtonGroup>
+                        </RB.Modal.Footer>
                     </Form>
-                </div>
+                </RB.Modal>
             );
         }
 

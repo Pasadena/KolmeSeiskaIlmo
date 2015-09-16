@@ -15,12 +15,15 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             return {model: {}};
         },
         componentWillMount: function() {
-            this.elements = [];
+            this.elements = {};
             this.children = this.registerChildren(this.props.children);
+        },
+        componentDidMount: function() {
+            this.componentWillReceiveProps(this.props);
         },
         componentWillUpdate: function(nextProps, nextState) {
             if(!this.elements) {
-                this.elements = [];
+                this.elements = {};
                 this.children = this.registerChildren(nextProps.children);
             }
         },
@@ -262,7 +265,7 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         },
         render: function() {
             return(
-                <Input type={this.props.type} placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name} labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName} required={this.props.required} onChange={this.handleChange}>
+                <Input type={this.props.type} value={this.state.value} placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name} labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName} required={this.props.required} onChange={this.handleChange}>
                     {this.props.children}
                 </Input>
             );
