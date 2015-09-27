@@ -26,7 +26,7 @@ GET /admin/events                       controllers.EventController.index
 GET /admin/loadEvents                   controllers.EventController.events
 POST /admin/events/                     controllers.EventController.createEvent
 POST /admin/events/delete/:id           controllers.EventController.deleteEvent(id: Long)
-GET /admin/events/:id                   controllers.EventController.getEvent(id: Long)
+GET /admin/events/:id                   controllers.EventController.getSelectedEvent(id: Long)
 POST /admin/events/:id                  controllers.EventController.updateEvent(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path

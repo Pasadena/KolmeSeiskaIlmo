@@ -5,10 +5,10 @@ define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage
     var App = React.createClass({
 
         componentDidMount: function() {
-            $(document).ajaxStart(_.debounce(function() {
+            $(document).ajaxStart(function() {
                 $('.overlay').show();
-            }), 100);
-            $(document).ajaxStop(function() {
+            });
+            $(document).ajaxComplete(function() {
                 $('.overlay').hide();
             });
         },

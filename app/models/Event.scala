@@ -15,7 +15,7 @@ case class Event(id: Option[Long], name: String, description: String, dateOfEven
 
 case class EventData(event: Event, cabins: List[EventCabinData])
 
-case class EventCabinData(cabin: Cabin, cabinCount: Int)
+case class EventCabinData(id: Long, eventId: Long, cabin: Cabin, cabinCount: Int)
 
 object Event {
 
@@ -122,8 +122,8 @@ object EventDAO {
       event <- events if event.id === id
       eventCabin <- eventCabins if eventCabin.eventId === id
       cabin <- cabins if eventCabin.cabinId === cabin.id
-    } yield (event, cabin, eventCabin.amount)
-    foo.list.groupBy(_._1).map {case (event, data) => EventData(event, data.map {case (event, cabin, amount) => EventCabinData(cabin, amount)})}.toList match {
+    } yield (event, cabin, eventCabin.amount, eventCabin.id)
+    foo.list.groupBy(_._1).map {case (event, data) => EventData(event, data.map {case (event, cabin, amount, eventCabinId) => EventCabinData(eventCabinId.get, event.id.get, cabin, amount)})}.toList match {
       case Nil => throw new RuntimeException("No matching value for id #id")
       case x :: xs => x
     }

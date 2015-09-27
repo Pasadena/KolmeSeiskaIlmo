@@ -29,7 +29,6 @@ object Application extends Controller {
       routes.javascript.EventController.events,
       routes.javascript.EventController.createEvent,
       routes.javascript.EventController.deleteEvent,
-      routes.javascript.EventController.getEvent,
       routes.javascript.CabinController.fetchCabins,
       routes.javascript.EventController.getSelectedEvent
     )).as("text/javascript")

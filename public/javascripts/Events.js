@@ -1,8 +1,12 @@
-define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'actions/EventActions'], function(React, $, FormComponents, EventStore, EventActions) {
+define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'store/CabinStore', 'actions/EventActions', 'react-bootstrap', 'actions/CabinActions'],
+function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, CabinActions) {
 
     var ButtonComponent = FormComponents.ButtonComponent;
     var InputComponent = FormComponents.InputComponent;
     var TextAreaComponent = FormComponents.TextAreaComponent;
+    var Form = FormComponents.Form;
+    var Input = FormComponents.InputWrapper;
+    var DateField = FormComponents.DateInputWrapper;
 
     function getEventPageState() {
         var messageData = EventStore.getMessageData();
@@ -10,7 +14,9 @@ define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'act
             events: EventStore.getEvents(),
             selectedEvent: EventStore.getSelectedEvent(),
             message: messageData.message,
-            messageStatus: messageData.messageStatus
+            messageStatus: messageData.messageStatus,
+            modalOpen: EventStore.getModalState(),
+            availableCabins: CabinStore.getCabins()
         };
     }
 
@@ -20,28 +26,18 @@ define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'act
         },
         componentWillMount: function() {
             EventActions.loadEvents();
+            CabinActions.fetchCabins();
         },
         componentDidMount: function() {
             EventStore.addChangeListener(this._onChange);
+            CabinStore.addChangeListener(this._onChange);
         },
         componentWillUnmount: function() {
             EventStore.removeChangeListener(this._onChange);
+            CabinStore.removeChangeListener(this._onChange);
         },
         _onChange: function() {
             this.setState(this.getInitialState());
-        },
-        loadEvents: function() {
-            var eventRoute = '/admin/loadEvents';
-            $.ajax({
-                url: eventRoute,
-                dataType: 'json',
-                success: function(data) {
-                    this.setState({events: data['events'], selectedEvent: null});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(status, err.toString());
-                }.bind(this)
-            });
         },
         submitEventForm: function(eventData, selectedCabins) {
             var url = eventData.id != null ? ('/admin/events/' + eventData.id) : '/admin/events/';
@@ -49,6 +45,10 @@ define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'act
             this.setState(this.getInitialState());
         },
         deleteListItem: function(eventData) {
+            if(confirm('Delete event! Are you sure mate?')) {
+                EventActions.deleteEvent(eventData.id);
+            }
+            {/**
             var url = '/admin/events/delete/' +eventData.id;
             $.ajax({
                 url: url,
@@ -61,22 +61,10 @@ define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'act
                 error: function(xhr, status, err) {
                     console.error(status, err.toString());
                 }.bind(this)
-            });
+            });**/}
         },
         loadEvent: function(eventData) {
-            var url = '/admin/events/' +eventData.id;
-            $.ajax({
-                url: url,
-                dataType: 'json',
-                success: function(data) {
-                    var selectedEvent = data['event'];
-                    selectedEvent.cabins = selectedEvent.cabins
-                    this.setState({selectedEvent: selectedEvent});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(status, err.toString());
-                }.bind(this)
-            });
+            EventActions.loadEventData(eventData.id)
         },
         getStatusMessageClass: function() {
             if(this.state.messageStatus == 'Ok') {
@@ -87,21 +75,25 @@ define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'act
             }
             return '';
         },
+        createEvent: function(event) {
+            event.preventDefault();
+            this.setState({modalOpen: true});
+        },
+        closeDialog: function() {
+            EventActions.closeDialog();
+        },
         render: function() {
             return (
-                React.createElement("div", {className: "panel panel-default"}, 
+                React.createElement("div", null, 
+                    React.createElement(RB.PageHeader, null, "Events:"), 
                     React.createElement("div", {className: this.getStatusMessageClass(), role: "alert"}, 
                         this.state.message
                     ), 
-                    React.createElement("div", {className: "panel-heading"}, 
-                        React.createElement("h3", {className: "panel-title"}, "Events")
+                    React.createElement(RB.Panel, {header: "Available events", bsStyle: "info"}, 
+                        React.createElement(EventList, {data: this.state.events, deleteHandler: this.deleteListItem, editHandler: this.loadEvent}), 
+                        React.createElement("a", {className: "btn btn-success", onClick: this.createEvent}, "Create a new event")
                     ), 
-                    React.createElement("div", {style: {padding: '10px'}}, 
-                        React.createElement(EventForm, {event: this.state.selectedEvent, formSubmitHandler: this.submitEventForm})
-                    ), 
-                    React.createElement("div", null, 
-                        React.createElement(EventList, {data: this.state.events, deleteHandler: this.deleteListItem, editHandler: this.loadEvent})
-                    )
+                    React.createElement(EventForm, {event: this.state.selectedEvent, formSubmitHandler: this.submitEventForm, show: this.state.modalOpen, closeDialog: this.closeDialog, cabins: this.state.availableCabins})
                 )
             )
         }
@@ -110,235 +102,121 @@ define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'act
 
     var EventForm = React.createClass({displayName: "EventForm",
         getInitialState: function() {
-            return { eventName: '',
-                    eventDescription: '',
-                    eventDate: '',
-                    regStart: '',
-                    regEnd: '',
-                    availableCabins: [],
-                    selectedCabins: []};
-        },
-        componentDidMount: function() {
-            $.ajax({
-                url: '/admin/loadCabins',
-                dataType: 'json',
-                success: function(data) {
-                    this.setState({availableCabins: data});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(status, err.toString());
-                }.bind(this)
-            });
+            return { selectedEvent: {}, availableCabins: [], selectedCabins: []};
         },
         componentWillReceiveProps: function(nextProps) {
             if(nextProps.event) {
-                var editEvent = nextProps.event;
-                var availableCabinMap = _.indexBy(this.state.availableCabins, "id");
-                _.each(editEvent.cabins, function(eventCabin) {
-                    eventCabin.underlyingCabin = availableCabinMap[eventCabin.cabinId];
-                });
-                var selectedCabinIds = _.pluck(editEvent.cabins, 'cabinId');
-                var unSelectedCabins = _.filter(this.state.availableCabins, function(cabin) {return !_.contains(selectedCabinIds, cabin.id);});
-                this.setState({eventName: editEvent.name, eventDescription: editEvent.description, eventDate: editEvent.dateOfEvent, regStart: editEvent.registrationStartDate,
-                regEnd: editEvent.registrationEndDate, availableCabins: unSelectedCabins, selectedCabins: editEvent.cabins});
+                this.setState({selectedEvent: nextProps.event, selectedCabins: nextProps.event.cabins, availableCabins: nextProps.cabins});
+            } else {
+                this.setState({selectedEvent: {}, selectedCabins: [], availableCabins: nextProps.cabins});
             }
         },
-        submitForm: function(event) {
-            event.preventDefault();
-            var eventName = this.refs.eventName.getValue();
-            var eventDescription = this.refs.eventDescription.getValue();
-            var eventDate = this.refs.eventDate.getValue();
-            var regStart = this.refs.regStart.getValue();
-            var regEnd = this.refs.regEnd.getValue();
-
-            var eventId = this.props.event != null ? this.props.event.id : null;
-            var eventCabins = [];
-            for (index in this.state.selectedCabins) {
-                var cabin = this.state.selectedCabins[index];
-                var cabinAmount = parseInt(this.refs[cabin.cabinId].getValue(), 10);
-                eventCabins.push({"cabinId": cabin.cabinId, "amount": cabinAmount, "eventId": eventId})
-                this.state.availableCabins.push(cabin.underlyingCabin)
-            }
-
-            if(!eventName || !eventDate || !regStart || !regEnd) {
-                return;
-            }
-
-            this.props.formSubmitHandler({id: eventId, name: eventName, description: eventDescription, dateOfEvent: eventDate, registrationStartDate: regStart, registrationEndDate: regEnd}, eventCabins);
-
-            this.refs.eventName.clear();
-            this.refs.eventDescription.clear();
-            this.refs.eventDate.clear();
-            this.refs.regStart.clear();
-            this.refs.regEnd.clear();
-
-            this.setState({ eventName: '', eventDescription: '', eventDate: '', regStart: '', regEnd: '', availableCabins: this.state.availableCabins, selectedCabins: []});
-        },
-        selectCabin: function(cabin) {
-            var cabins =  this.state.selectedCabins;
-            cabins.push({"cabinId": cabin.id, "underlyingCabin": cabin, eventId: -1});
-            var availableCabinsWithoutSelected = _.filter(this.state.availableCabins, function(availableCabin) {
-                return availableCabin.id != cabin.id;
+        submitForm: function(model) {
+            var eventCabins = _.map(this.refs.cabinSelect.state.selectedCabins, function(cabin) {
+                return {id: cabin.id, eventId: cabin.eventId, cabinId: cabin.cabin.id, amount: cabin.cabinCount};
             });
-            this.setState({availableCabins: availableCabinsWithoutSelected, selectedCabins: cabins});
+            var eventId = this.props.event ? this.props.event.id : null;
+            model.id = eventId;
+
+            this.props.formSubmitHandler(model, eventCabins);
+            this.setState({selectedEvent: {}, availableCabins: this.state.availableCabins, selectedCabins: []});
         },
-        deleteCabin: function(cabin) {
-            var selectedCabinsWithoutDeleted = _.filter(this.state.selectedCabins, function(selectedCabin) { return selectedCabin.cabinId != cabin.cabinId; });
-            this.state.availableCabins.push(cabin.underlyingCabin)
-            this.setState({availableCabins: this.state.availableCabins, selectedCabins: selectedCabinsWithoutDeleted});
+        dismiss: function() {
+            this.props.close();
+        },
+        closeDialog: function(event) {
+            event.preventDefault();
+            this.props.closeDialog();
         },
         render: function() {
-
-            var cabinElements = this.state.availableCabins.map(function(cabin) {
-                return (
-                    React.createElement("li", {className: "event-cabin-list-item", key: cabin.id}, 
-                        React.createElement("span", {onClick: this.selectCabin.bind(null, cabin)}, cabin.name, " (", cabin.capacity, " persons)")
-                    )
-                );
-            }, this);
-            var selectedCabinElements = this.state.selectedCabins.map(function(cabin) {
-                return (
-                    React.createElement(SelectedCabinComponent, {cabin: cabin, deleteCabinHandler: this.deleteCabin, ref: cabin.cabinId, key: cabin.cabinId})
-                );
-            }, this);
+            var modalTitle = this.props.event ? "Edit event" : "Create event";
             return (
-                React.createElement("form", {onSubmit: this.submitForm}, 
-                    React.createElement("fieldset", null, 
-                        React.createElement(InputComponent, {type: "text", placeholder: "Insert event name", label: "Event name:", id: "nameField", ref: "eventName", value: this.state.eventName}), 
-                        React.createElement(TextAreaComponent, {placeholder: "Insert event description", label: "Event description:", id: "descriptionField", ref: "eventDescription", value: this.state.eventDescription}), 
-                        React.createElement(InputComponent, {type: "datepicker", label: "Event date:", id: "eventDate", ref: "eventDate", value: this.state.eventDate}), 
-                        React.createElement(InputComponent, {type: "datepicker", label: "Registration starts:", id: "startField", ref: "regStart", value: this.state.regStart}), 
-                        React.createElement(InputComponent, {type: "datepicker", label: "Registration ends:", id: "endField", ref: "regEnd", value: this.state.regEnd})
-                    ), 
-                    React.createElement("h3", null, "Event's cabins"), 
-                        React.createElement("div", {className: "event-cabin-list-container"}, 
-                            React.createElement("div", {className: "event-cabin-list-available"}, 
-                                React.createElement("h5", null, "Available cabins"), 
-                                React.createElement("ul", null, 
-                                    cabinElements
-                                )
-                            ), 
-                            React.createElement("div", {className: "event-cabin-list-selected"}, 
-                                React.createElement("h5", null, "Selected cabins"), 
-                                selectedCabinElements
-                            )
+                React.createElement(RB.Modal, {onRequestHide: this.dismiss, onHide: this.dismiss, show: this.props.show, bsStyle: "primary", dialogClassName: "modal-large"}, 
+                    React.createElement(Form, {onSubmit: this.submitForm, model: this.props.event}, 
+                        React.createElement(RB.ModalHeader, null, 
+                            React.createElement(RB.Modal.Title, null, modalTitle)
                         ), 
-                    React.createElement(ButtonComponent, {type: "submit", value: "Save event", class: "btn btn-success"})
+                        React.createElement(RB.Modal.Body, null, 
+                            React.createElement(Input, {type: "text", name: "name", placeholder: "Insert event name", label: "Event name:", id: "nameField", errorMessage: "Name is mandatory", required: "true", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
+                            React.createElement(Input, {type: "text", name: "description", placeholder: "Insert event description", label: "Event description:", id: "descriptionField", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
+                            React.createElement(DateField, {type: "text", name: "dateOfEvent", label: "Event date:", id: "eventDate", errorMessage: "Event date is mandatory", required: "true", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
+                            React.createElement(DateField, {type: "text", name: "registrationStartDate", label: "Registration starts:", id: "startField", errorMessage: "Start date is mandatory", required: "true", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
+                            React.createElement(DateField, {type: "text", name: "registrationEndDate", label: "Registration ends:", id: "endField", errorMessage: "End date is mandatory", required: "true", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
+                            React.createElement("h4", null, "Event's cabins"), 
+                            React.createElement(EventCabinsView, {cabins: this.props.cabins, selectedCabins: this.state.selectedCabins, event: this.props.event, ref: "cabinSelect"})
+                        ), 
+                        React.createElement(RB.Modal.Footer, null, 
+                            React.createElement(RB.ButtonGroup, null, 
+                                React.createElement(RB.ButtonInput, {type: "submit", value: "Save event", className: "btn btn-success"}), 
+                                React.createElement(RB.ButtonInput, {type: "button", value: "Cancel", className: "btn", onClick: this.closeDialog})
+                            )
+                        )
+                    )
                 )
             )
         }
     });
 
-    var SelectedCabinComponent = React.createClass({displayName: "SelectedCabinComponent",
+    var EventCabinsView = React.createClass({displayName: "EventCabinsView",
         getInitialState: function() {
-            return {amount: 0};
+            return {selectedCabins: []};
         },
         componentDidMount: function() {
-            this.setState({amount: this.props.cabin.amount})
+            this.componentWillReceiveProps(this.props);
         },
-        getValue: function() {
-            return this.refs.amountField.getValue();
+        componentWillReceiveProps: function(nextProps) {
+            this.setState({selectedCabins: nextProps.selectedCabins});
         },
-        deleteCabin: function(cabin) {
-            this.props.deleteCabinHandler(cabin);
+        selectCabin: function(cabin, event) {
+            var selectedCabins = this.state.selectedCabins;
+            if(this._isCabinSelected(cabin)) {
+                this.setState({selectedCabins: _.filter(selectedCabins, function(selectedCabin) { return selectedCabin.cabin.id != cabin.id })});
+            } else {
+                selectedCabins.push({id: null, eventId: (this.props.event ? this.props.event.id : null), cabin: cabin, cabinCount: 0});
+                this.setState({selectedCabins: selectedCabins});
+            }
+        },
+        _isCabinSelected: function(cabin) {
+            var selectedCabinMatchingCabin = this._getSelectedCabin(cabin);
+            return selectedCabinMatchingCabin ? true : false;
+        },
+        _getSelectedCabin: function(cabin) {
+            return _.find(this.state.selectedCabins, function(selectedCabin) {
+                return selectedCabin.cabin.id == cabin.id;
+            });
+        },
+        updateValue: function(cabin, event) {
+            var selectedCabin = this._getSelectedCabin(cabin);
+            selectedCabin.cabinCount = parseInt(event.target.value, 10);
+            this.setState({selectedCabins: this.state.selectedCabins});
         },
         render: function() {
+            var cabinElements = this.props.cabins.map(function(cabin) {
+                var selectedCabinMatchingCabin = this._getSelectedCabin(cabin);
+                var cabinSelected = selectedCabinMatchingCabin ? true : false;
+                return (
+                    React.createElement("tr", {ref: cabin.id}, 
+                        React.createElement("td", null, React.createElement(RB.Input, {type: "checkbox", value: cabin.id, checked: cabinSelected, onChange: this.selectCabin.bind(null, cabin)})), 
+                        React.createElement("td", null, cabin.name, " (", cabin.capacity, " persons)"), 
+                        React.createElement("td", null, React.createElement(RB.Input, {type: "text", value: cabinSelected ? selectedCabinMatchingCabin.cabinCount : null, disabled: !cabinSelected, onChange: this.updateValue.bind(null, cabin), wrapperClassName: "col-xs-4"}))
+                    )
+                );
+            }, this);
             return (
-                React.createElement("div", {className: "event-cabin-list-selected-item"}, 
-                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, this.props.cabin.underlyingCabin.name, " ( ", this.props.cabin.underlyingCabin.capacity, " ) "), 
-                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, React.createElement(InputComponent, {type: "text", label: "Amount:", id: "cabinAmountField", value: this.state.amount, ref: "amountField"})), 
-                    React.createElement("div", {className: "event-cabin-list-selected-item-column"}, React.createElement("span", {onClick: this.deleteCabin.bind(null, this.props.cabin)}, " ", React.createElement("span", {className: "glyphicon glyphicon-remove", "aria-hidden": "true"})))
+                React.createElement(RB.Table, {style: {width: "80%", margin: "0 auto"}}, 
+                    React.createElement("thead", null, 
+                        React.createElement("tr", null, 
+                            React.createElement("td", null, "#"), 
+                            React.createElement("td", null, "Cabin"), 
+                            React.createElement("td", null, "Amount")
+                        )
+                    ), 
+                    React.createElement("tbody", null, 
+                        cabinElements
+                    )
                 )
             );
         }
-
-    });
-
-
-    var InputComponent = React.createClass({displayName: "InputComponent",
-        getInitialState: function() {
-            return {value: ''};
-        },
-        componentDidMount: function() {
-            if(this.props.type && this.props.type == 'datepicker') {
-                var id = this.props.id;
-                $('#' +id).datepicker({
-                    dateFormat: 'd.m.yy',
-                    onSelect: function(date) {
-                        this.setState({value: date});
-                    }.bind(this)
-                });
-            }
-        },
-        componentWillReceiveProps: function(nextProps) {
-            if(nextProps.value) {
-                this.setState({value: nextProps.value});
-            }
-        },
-        handleChange: function(event) {
-            this.setState({value: event.target.value});
-        },
-        getValue: function() {
-            return this.state.value;
-        },
-        clear: function() {
-            this.setState(this.getInitialState());
-        },
-        render: function() {
-            return (
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("label", {className: "col-sm-2 control-label", htmlFor: this.props.id}, this.props.label), 
-                    React.createElement("div", {className: "col-sm-10"}, 
-                        React.createElement("input", {type: this.props.type, placeholder: this.props.placeholder, id: this.props.id, ref: this.props.ref, value: this.state.value, onChange: this.handleChange}), 
-                        React.createElement("span", {className: "help-block"}, this.props.help)
-                    )
-                )
-            )
-        }
-    });
-
-    var TextAreaComponent = React.createClass({displayName: "TextAreaComponent",
-        getInitialState: function() {
-            return {value: ''};
-        },
-        componentWillReceiveProps: function(nextProps) {
-            if(nextProps.value) {
-                this.setState({value: nextProps.value});
-            }
-        },
-        handleChange: function(event) {
-            this.setState({value: event.target.value});
-        },
-        getValue: function() {
-            return this.state.value;
-        },
-        clear: function() {
-            this.setState(this.getInitialState());
-        },
-        render: function() {
-            return (
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("label", {className: "col-sm-2 control-label", htmlFor: this.props.id}, this.props.label), 
-                    React.createElement("div", {className: "col-sm-10"}, 
-                        React.createElement("textarea", {placeholder: this.props.placeholder, id: this.props.id, onChange: this.handleChange, value: this.state.value}), 
-                        React.createElement("span", {className: "help-block"}, this.props.help)
-                    )
-                )
-            )
-        }
-    });
-
-    var ButtonComponent = React.createClass({displayName: "ButtonComponent",
-        render: function() {
-            return (
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("div", {className: "col-sm-offset-2 col-sm-10"}, 
-                        React.createElement("button", {type: this.props.type, className: this.props.class}, this.props.value)
-                    )
-                )
-            )
-        }
-
     });
 
     var EventList = React.createClass({displayName: "EventList",

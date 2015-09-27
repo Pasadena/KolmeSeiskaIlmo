@@ -37,6 +37,19 @@ define(['dispatcher/AppDispatcher', 'api/CommonAPI'], function(AppDispatcher, Co
             }, function(request, status, error) {
                 console.error(status, error.toString());
             });
+        },
+
+        deleteEvent: function(eventId) {
+            var url = '/admin/events/delete/' +eventId;
+            CommonAPI.post([], url)
+            .then(function(data) {
+                AppDispatcher.handleAction({
+                    actionType: "DELETE_EVENT_SUCCESS",
+                    data: {data: data, eventId: eventId}
+                });
+            }, function(request, status, error) {
+                console.error(status, error.toString());
+            });
         }
     }
 

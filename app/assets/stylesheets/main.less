@@ -1,5 +1,17 @@
 .inlined-block {
-    display: inline-block;
+    display: inline-block !important;
+}
+
+.no-clear {
+    clear: none !important;
+}
+
+/**
+Modals
+**/
+
+.modal-large {
+    width: 50% !important;
 }
 
 .admin-section {
@@ -30,17 +42,19 @@
 
 .event-cabin-list-container {
     vertical-align: top;
+    width: 80%;
+    margin: 0 auto;
 }
 
 .event-cabin-list-available {
     vertical-align: top;
-    width: 30%;
+    width: 50%;
     .inlined-block
 }
 
 .event-cabin-list-selected {
     vertical-align: top;
-    width: 70%;
+    width: 50%;
     .inlined-block
 }
 
@@ -57,8 +71,17 @@
     }
 }
 
-.event-cabin-list-selected-item {
+.event-selected-cabins {
      display: table-row;
+     &-inputs {
+        display: table-cell;
+        width: 80%;
+        vertical-align: top;
+     }
+     &-delete {
+        display: table-cell;
+        vertical-align: top;
+     }
 }
 
 .event-cabin-list-selected-item-column {

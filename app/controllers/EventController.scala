@@ -52,7 +52,7 @@ object EventController extends Controller {
             case None => BadRequest(Json.obj("status" ->"KO", "message" -> "Unexpected error happened when saving event cabins!"))
           }
         }
-        case None => BadRequest(Json.obj("status" ->"KO", "message" -> "Unexpected error happened during event saving!"))
+        case None => BadRequest(Json.obj("status" ->"KO", "message" -> "Unexpected error happened during event parsing!"))
       }
     }
   }
@@ -80,7 +80,7 @@ object EventController extends Controller {
       case eventData => eventData.asOpt match {
         case Some(eventTuple) =>
           EventDAO.updateEvent(eventTuple._1, eventTuple._2)
-          Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully updated!"))
+          Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully updated!", "event" -> Json.toJson(EventDAO.findById(eventTuple._1.id.get))))
         case None => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened during event update!"))
       }
     }

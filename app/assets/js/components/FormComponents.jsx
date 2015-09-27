@@ -248,6 +248,43 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         }
     });
 
+    var DateInputWrapper = React.createClass({
+        getInitialState: function() {
+            return {value: this.props.value || ''};
+        },
+        componentDidMount: function() {
+            var id = this.props.id;
+            $('#' +id).datepicker({
+                dateFormat: 'd.m.yy',
+                onSelect: function(date) {
+                    this.setState({value: date});
+                }.bind(this)
+            });
+            if(this.props.attachToForm) {
+                this.props.attachToForm(this);
+            }
+        },
+        componentWillMount: function() {
+            if(this.props.attachToForm) {
+                this.props.attachToForm(this);
+            }
+        },
+        componentWillUnMount: function() {
+            this.props.detachFromForm(this);
+        },
+        handleChange: function(event) {
+            this.setState({value: event.target.value});
+        },
+        render: function() {
+            return(
+                <Input type={this.props.type} name={this.props.name} value={this.state.value} placeholder={this.props.placeholder} label={this.props.label} id={this.props.id}
+                    name={this.props.name} labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName} required={this.props.required} onChange={this.handleChange}>
+                    {this.props.children}
+                </Input>
+            );
+        }
+    });
+
     var InputWrapper = React.createClass({
         getInitialState: function() {
             return {value: this.props.value || '', isValid: true, serverErrors: null};
@@ -265,7 +302,7 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         },
         render: function() {
             return(
-                <Input type={this.props.type} value={this.state.value} placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name} labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName} required={this.props.required} onChange={this.handleChange}>
+                <Input type={this.props.type} name={this.props.name} value={this.state.value} placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name} labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName} required={this.props.required} onChange={this.handleChange}>
                     {this.props.children}
                 </Input>
             );
@@ -384,5 +421,5 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             )
         }
     });
-    return {InputComponent: InputComponent, TextAreaComponent: TextAreaComponent, ButtonComponent: ButtonComponent, Form: Form, FormFragment: FormFragment, MultiModelForm: MultiModelForm, InputWrapper: InputWrapper};
+    return {InputComponent: InputComponent, TextAreaComponent: TextAreaComponent, ButtonComponent: ButtonComponent, Form: Form, FormFragment: FormFragment, MultiModelForm: MultiModelForm, InputWrapper: InputWrapper, DateInputWrapper: DateInputWrapper};
 });
