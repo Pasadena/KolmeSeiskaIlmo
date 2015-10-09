@@ -5,6 +5,7 @@
 # Home page
 GET     /                               controllers.Application.index
 GET     /admin                          controllers.EventController.adminIndex
+GET     /foo                          controllers.RegistrationController.foo
 
 # Register page
 GET     /register/:id                       controllers.Application.register(id: Long)

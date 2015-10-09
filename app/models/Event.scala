@@ -118,12 +118,13 @@ object EventDAO {
   }
 
   def findEventDataById(id:Long)(implicit session: Session): EventData = {
-    val foo = for {
+    val eventDataJoin = for {
       event <- events if event.id === id
       eventCabin <- eventCabins if eventCabin.eventId === id
       cabin <- cabins if eventCabin.cabinId === cabin.id
     } yield (event, cabin, eventCabin.amount, eventCabin.id)
-    foo.list.groupBy(_._1).map {case (event, data) => EventData(event, data.map {case (event, cabin, amount, eventCabinId) => EventCabinData(eventCabinId.get, event.id.get, cabin, amount)})}.toList match {
+    val eventDataList = eventDataJoin.list
+    eventDataList.groupBy(_._1).map {case (event, data) => EventData(event, data.map {case (event, cabin, amount, eventCabinId) => EventCabinData(eventCabinId.get, event.id.get, cabin, amount)})}.toList match {
       case Nil => throw new RuntimeException("No matching value for id #id")
       case x :: xs => x
     }

@@ -14,6 +14,10 @@ import play.api.libs.json.Json._
 
 case class Registration(id: Option[Long], cabinId: Long, eventId: Long, timestamp: Option[Timestamp])
 
+case class RegisteredPerson(id: Option[Long], registrationId: Long, firstName: String, lastName: String, email: String, dateOfBirth: String, clubNumber: String, selectedDining: Int, contactPerson: Int)
+
+case class RegistrationData(registration: Registration, event: Event, cabin: Cabin)
+
 object Registration {
 
   def timestampToDateTime(t: Timestamp): DateTime = new DateTime(t.getTime)
@@ -31,6 +35,10 @@ object Registration {
   implicit val registrationFormat = Json.format[Registration]
 }
 
+object RegisteredPerson {
+  implicit val registeredPersonFormat = Json.format[RegisteredPerson]
+}
+
 class Registrations(tag: Tag) extends Table[Registration](tag, "REGISTRATION") {
   def id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
   def cabinId = column[Long]("CABIN_ID")
@@ -42,12 +50,6 @@ class Registrations(tag: Tag) extends Table[Registration](tag, "REGISTRATION") {
   def cabin = foreignKey("CABIN_FK", cabinId, TableQuery[Cabins])(_.id.get)
 
   def * = (id, cabinId, eventId, timestamp) <> ((Registration.apply _).tupled, Registration.unapply _)
-}
-
-case class RegisteredPerson(id: Option[Long], registrationId: Long, firstName: String, lastName: String, email: String, dateOfBirth: String, clubNumber: String, selectedDining: Int, contactPerson: Int)
-
-object RegisteredPerson {
-  implicit val registeredPersonFormat = Json.format[RegisteredPerson]
 }
 
 class RegisteredPersons(tag: Tag) extends Table[RegisteredPerson](tag, "REGISTERED_PERSONS") {
@@ -68,6 +70,7 @@ object RegistrationDAO {
 
   val registrations = TableQuery[Registrations]
   val registeredPersons = TableQuery[RegisteredPersons]
+  val events = TableQuery[Events]
   val cabins = TableQuery[Cabins]
 
   def saveRegistration(registration: Registration)(implicit session: Session): Long = {
@@ -80,6 +83,19 @@ object RegistrationDAO {
 
   def loadEventRegistrations(eventId: Long)(implicit session: Session): List[Registration] = {
     registrations.filter(_.eventId === eventId).list
+  }
+
+  def loadRegistrationWithEventAndCabin(registrationId: Long)(implicit session: Session): RegistrationData = {
+    val registrationData = for {
+      registration <- registrations if registration.id === registrationId
+      event <- events if event.id === registration.eventId
+      cabin <- cabins if cabin.id === registration.cabinId
+    } yield (registration, event, cabin)
+    val registrationDataList = registrationData.list
+    registrationDataList.headOption match {
+      case None => throw new RuntimeException("No matching registration data for id #id")
+      case Some(data) => RegistrationData(data._1, data._2, data._3)
+    }
   }
 
 }

@@ -1,0 +1,140 @@
+@(persons: List[RegisteredPerson], diningValuesMap: Map[Int, (String, Double)], registrationData: RegistrationData)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <style type="text/css">
+            body {
+                font-family: FreeSans;
+            }
+            article {
+                margin-left: 10%;
+            }
+            h1 {
+                /**margin: 0 auto;**/
+            }
+            hgroup {
+                margin-top: 5px;
+                margin-bottom: 5px;
+            }
+            div > label {
+                font-weight: bold;
+            }
+            .table {
+                display: table;
+            }
+            .table-row {
+                display: table-row;
+                margin-top: 5px;
+                margin-bottom: 5px;
+            }
+            .table-cell {
+                display: table-cell;
+                padding-left: 10px;
+            }
+        </style>
+
+    </head>
+    <body>
+        <article>
+            <header>
+                <div>
+                    <h1>Ilmoittautuminen tapahtumaan: @registrationData.event.name.</h1>
+                </div>
+            </header>
+            <section>
+                <p>Moikkamoi! Olette ilmoittautuneet tapahtumaan @registrationData.event.name. Ohessa yhteenveto ilmoittautumisen yhtydessä syötetyistä tiedoista,
+                    sekä maksuohjeet ilmoittautumisen maksamiseen. Mahdollisia kysymyksia ja muutospyyntöjä voi lähettää osoitteeseen <a href="mailto:teekkariristeily@@gmail.com">teekkariristeily@@gmail.com</a>
+                </p>
+            </section>
+            <section>
+                <hgroup>
+                    <h2>Yhteenveto ilmoittautumisesta:</h2>
+                </hgroup>
+                @for(person <- persons) {
+                    <section>
+                        <hgroup>
+                            <h3>@(persons.indexOf(person) +1). Henkilö</h3>
+                        </hgroup>
+                        <div class="table">
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <label>Etunimi:</label>
+                                </div>
+                                <div class="table-cell">
+                                    @person.firstName
+                                </div>
+                            </div>
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <label>Sukunimi:</label>
+                                </div>
+                                <div class="table-cell">
+                                    @person.lastName
+                                </div>
+                            </div>
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <label>Sähkäposti:</label>
+                                </div>
+                                <div class="table-cell">
+                                    @person.email
+                                </div>
+                            </div>
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <label>Syntymäaika:</label>
+                                </div>
+                                <div class="table-cell">
+                                    @person.dateOfBirth
+                                </div>
+                            </div>
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <label>Club-numero:</label>
+                                </div>
+                                <div class="table-cell">
+                                    @person.clubNumber
+                                </div>
+                            </div>
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <label>Valittu ruokailu:</label>
+                                </div>
+                                <div class="table-cell">
+                                    @diningValuesMap(person.selectedDining)._1
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                }
+            </section>
+            <section>
+                <hgroup>
+                    <h2>Maksuohjeet:</h2>
+                </hgroup>
+                <p style="font-weight: bold">Hinta koostuu seuraavista osioista:</p>
+                <p>Valittu hyttiluokka: <br/>
+                @registrationData.cabin.name : @registrationData.cabin.price €</p>
+                @for(person <- persons) {
+                    <section>
+                        <p>@person.firstName @person.lastName <br/>
+                        @diningValuesMap(person.selectedDining)._1 : @diningValuesMap(person.selectedDining)._2 €</p>
+                    </section>
+                }
+                <section>
+                    <p style="font-weight: bold">Maksun tiedot: <br/>
+                        Saaja: @play.Play.application().configuration().getString("pdf.payment.receiver") <br/>
+                        Tilinumero: @play.Play.application().configuration().getString("pdf.iban") <br/>
+                        BIC: @play.Play.application().configuration().getString("pdf.bic") <br/>
+                        Maksun viesti: Varaajan nimi / @registrationData.event.name <br/>
+                        Summa: @((persons.foldLeft(0.0)((sum, person) => sum + diningValuesMap(person.selectedDining)._2)) + registrationData.cabin.price) euroa <br/>
+                        Eräpäivä: 10.02.2015
+                    </p>
+                </section>
+            </section>
+        </article>
+    </body>
+</html>
