@@ -71,6 +71,16 @@ class EventCabins(tag: Tag) extends Table[EventCabin](tag, "EVENT_CABIN") {
 
   def * = (id, eventId, cabinId, amount) <> ((EventCabin.apply _).tupled, EventCabin.unapply _)
 
+  def maybe = (id, eventId, cabinId.?, amount.?).<>[Option[EventCabin], (Option[Long], Option[Long], Option[Long], Option[Int])](
+  { eventCabin =>
+    eventCabin match {
+      case (id, eventId, Some(cabinId), Some(amount)) => Some(EventCabin.apply(id, eventId, cabinId, amount))
+      case _ => None
+    }
+  },
+  { eventCabin => None
+  })
+
 }
 
 object EventDAO {
@@ -95,8 +105,8 @@ object EventDAO {
     //delete
     eventCabins.filter(cabin => cabin.eventId === copiedElement.id.get && !(cabin.cabinId inSet cabinsIds)).delete
     //update
-    cabins.filter(cabin => existingCabinsIds.contains(cabin.id)).foreach { existingCabin =>
-      eventCabins.update(existingCabin)
+    cabins.filter(cabin => existingCabinsIds.contains(cabin.cabinId)).foreach { existingCabin =>
+      eventCabins.filter(_.id === existingCabin.id).update(existingCabin.copy(existingCabin.id, existingCabin.eventId, existingCabin.cabinId, existingCabin.amount))
     }
     //create
     this.createEventCabins(event.id.get, cabins.filter(cabin => cabin.id == None))
@@ -119,12 +129,15 @@ object EventDAO {
 
   def findEventDataById(id:Long)(implicit session: Session): EventData = {
     val eventDataJoin = for {
-      event <- events if event.id === id
-      eventCabin <- eventCabins if eventCabin.eventId === id
-      cabin <- cabins if eventCabin.cabinId === cabin.id
-    } yield (event, cabin, eventCabin.amount, eventCabin.id)
+      ((event, eventCabin), cabin) <- events leftJoin eventCabins on (_.id === _.eventId) leftJoin cabins on (_._2.cabinId === _.id) if event.id === id
+    } yield (event, cabin.maybe, eventCabin.maybe)
     val eventDataList = eventDataJoin.list
-    eventDataList.groupBy(_._1).map {case (event, data) => EventData(event, data.map {case (event, cabin, amount, eventCabinId) => EventCabinData(eventCabinId.get, event.id.get, cabin, amount)})}.toList match {
+    val eventDataMap = eventDataList.groupBy(_._1)
+    val eventDatas = eventDataMap.map {case (event, data) => EventData(event, data.filter(item => item._2 != None).map {
+      case (event, Some(cabin), Some(eventCabin)) => EventCabinData(eventCabin.id.get, event.id.get, cabin, eventCabin.amount)
+      case _ => null
+    })}
+    eventDatas.toList match {
       case Nil => throw new RuntimeException("No matching value for id #id")
       case x :: xs => x
     }

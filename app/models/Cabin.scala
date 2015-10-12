@@ -32,6 +32,16 @@ class Cabins(tag: Tag) extends Table[Cabin](tag, "CABIN") {
   def price = column[BigDecimal]("PRICE")
 
   def * = (id, name, description, capacity, price) <> (Cabin.tupled, Cabin.unapply _)
+
+  def maybe = (id, name.?, description.?, capacity.?, price.?).<>[Option[Cabin], (Option[Long], Option[String], Option[String], Option[Int], Option[BigDecimal])](
+  { cabin =>
+    cabin match {
+      case (Some(id), Some(name), Some(description), Some(capacity), Some(price)) => Some(Cabin.apply(Some(id), name, description, capacity, price))
+      case _ => None
+    }
+  },
+  { cabin => None
+  })
 }
 
 object CabinDAO {
