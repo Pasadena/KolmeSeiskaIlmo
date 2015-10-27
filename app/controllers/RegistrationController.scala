@@ -51,6 +51,10 @@ object RegistrationController extends Controller {
     def writes(tuple: Tuple2[A, B]) = JsArray(Seq(aWrites.writes(tuple._1), bWrites.writes(tuple._2)))
   }
 
+  def loadEventRegisteredPersons(eventId: Long) = DBAction { implicit rs =>
+    Ok(Json.toJson(RegistrationDAO.loadRegistrationsWithPersons(eventId)))
+  }
+
   def register = DBAction(parse json) { implicit rs =>
     val jsResult = rs.body.validate[(List[RegisteredPerson], Registration)]
     jsResult match {

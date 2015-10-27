@@ -115,8 +115,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         },
         saveRegistration: function(registrations) {
             _.each(registrations, function(registration) {
-                registration["selectedDining"] = registration["selectedDining"] ? parseInt(registration[dinner]) : 0;
-                registration["contactPerson"] = 0;
+                registration["selectedDining"] = registration["selectedDining"] ? parseInt(registration["selectedDining"]) : 0;
+                if(registration.contactPerson != '1') {
+                    registration["contactPerson"] = 0;
+                }
                 registration["registrationId"] = -1;
             }, this);
 

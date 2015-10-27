@@ -1,5 +1,5 @@
-define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'store/CabinStore', 'actions/EventActions', 'react-bootstrap', 'actions/CabinActions'],
-function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, CabinActions) {
+define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'store/CabinStore', 'store/RegistrationStore', 'actions/EventActions', 'react-bootstrap', 'actions/CabinActions', 'actions/RegistrationActions'],
+function(React, $, FormComponents, EventStore, CabinStore, RegistrationStore, EventActions, RB, CabinActions, RegistrationActions) {
 
     var ButtonComponent = FormComponents.ButtonComponent;
     var InputComponent = FormComponents.InputComponent;
@@ -16,7 +16,9 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             message: messageData.message,
             messageStatus: messageData.messageStatus,
             modalOpen: EventStore.getModalState(),
-            availableCabins: CabinStore.getCabins()
+            availableCabins: CabinStore.getCabins(),
+            registrationList: RegistrationStore.getEventRegistrations(),
+            viewRegistrationsModalOpen: RegistrationStore.getRegistrationListModalStatus()
         };
     }
 
@@ -31,10 +33,12 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
         componentDidMount: function() {
             EventStore.addChangeListener(this._onChange);
             CabinStore.addChangeListener(this._onChange);
+            RegistrationStore.addChangeListener(this._onChange);
         },
         componentWillUnmount: function() {
             EventStore.removeChangeListener(this._onChange);
             CabinStore.removeChangeListener(this._onChange);
+            RegistrationStore.removeChangeListener(this._onChange);
         },
         _onChange: function() {
             this.setState(this.getInitialState());
@@ -48,20 +52,6 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             if(confirm('Delete event! Are you sure mate?')) {
                 EventActions.deleteEvent(eventData.id);
             }
-            {/**
-            var url = '/admin/events/delete/' +eventData.id;
-            $.ajax({
-                url: url,
-                type: 'POST',
-                success: function(data) {
-                    var messageClass = this.getStatusMessageClass(data);
-                    var existingEventsWithoutDeleted = _.filter(this.state.events, function(event) {return event.id != eventData.id});
-                    this.setState({events: existingEventsWithoutDeleted, message: data['message'], messageClass: messageClass});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(status, err.toString());
-                }.bind(this)
-            });**/}
         },
         loadEvent: function(eventData) {
             EventActions.loadEventData(eventData.id)
@@ -82,6 +72,12 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
         closeDialog: function() {
             EventActions.closeDialog();
         },
+        closeRegistrationListDialog: function() {
+            RegistrationActions.closeRegistrationListDialog();
+        },
+        viewEventRegistrations: function(event) {
+            RegistrationActions.getEventRegistrationList(event.id);
+        },
         render: function() {
             return (
                 <div>
@@ -90,10 +86,11 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
                         {this.state.message}
                     </div>
                     <RB.Panel header="Available events" bsStyle="info">
-                        <EventList data={this.state.events} deleteHandler={this.deleteListItem} editHandler={this.loadEvent}/>
+                        <EventList data={this.state.events} deleteHandler={this.deleteListItem} editHandler={this.loadEvent} viewRegistrationDataHandler={this.viewEventRegistrations}/>
                         <a className="btn btn-success" onClick={this.createEvent}>Create a new event</a>
                     </RB.Panel>
                     <EventForm event={this.state.selectedEvent} formSubmitHandler={this.submitEventForm} show={this.state.modalOpen} closeDialog={this.closeDialog} cabins={this.state.availableCabins}/>
+                    <EventRegistrationList show={this.state.viewRegistrationsModalOpen} close={this.closeRegistrationListDialog} registrations = {this.state.registrationList} />
                 </div>
             )
         }
@@ -222,7 +219,8 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
     var EventList = React.createClass({
         render: function() {
             return (
-                !this.props.data.length ? <EmptyTable /> :<EventTable data ={this.props.data} deleteHandler={this.props.deleteHandler} editHandler={this.props.editHandler}/>
+                !this.props.data.length ? <EmptyTable /> :<EventTable data ={this.props.data} deleteHandler={this.props.deleteHandler} editHandler={this.props.editHandler}
+                viewRegistrationDataHandler = {this.props.viewRegistrationDataHandler}/>
             )
         }
     });
@@ -233,9 +231,9 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             var editHandler = this.props.editHandler;
             var tableRows = this.props.data.map(function(event) {
                 return (
-                    <EventTableRow event = {event} key={event.id} deleteHandler={deleteHandler} editHandler={editHandler}/>
+                    <EventTableRow event = {event} key={event.id} deleteHandler={deleteHandler} editHandler={editHandler} viewRegistrationDataHandler = {this.props.viewRegistrationDataHandler}/>
                 );
-            });
+            }, this);
             return (
                 <table className="table table-condensed">
                     <thead>
@@ -264,6 +262,10 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             event.preventDefault();
             this.props.editHandler(this.props.event)
         },
+        viewRegistrationData: function(event) {
+            event.preventDefault();
+            this.props.viewRegistrationDataHandler(this.props.event);
+        },
         render: function() {
             return (
                 <tr>
@@ -274,12 +276,19 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
                     <td>
                         <div className="list-form">
                             <form onSubmit={this.deleteEvent}>
-                                <ButtonComponent type="submit" value="Delete" class="btn btn-danger" />
+                                <RB.ButtonInput type="submit" value="Delete" className="btn btn-danger" />
                             </form>
                         </div>
                         <div className="list-form">
                             <form onSubmit={this.editEvent}>
-                                <ButtonComponent type="submit" value="Edit" class="btn btn-default" />
+                                <RB.ButtonInput type="submit" value="Edit" className="btn btn-primary" />
+                            </form>
+                        </div>
+                        <div className="list-form">
+                            <form>
+                                <RB.ButtonToolbar>
+                                <RB.Button type="button" value="View registrations" className="btn btn-primary" onClick={this.viewRegistrationData}>View registrations</RB.Button>
+                                </RB.ButtonToolbar>
                             </form>
                         </div>
                     </td>
@@ -294,6 +303,119 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             return (
                 <div>There are no events to display!</div>
             )
+        }
+    });
+
+    var EventRegistrationList = React.createClass({
+        closeDialog: function(event) {
+            event.preventDefault();
+            this.dismiss();
+        },
+        dismiss: function() {
+            this.props.close();
+        },
+        render: function() {
+            var registrationItems = this.props.registrations.map(function(registration) {
+                return (
+                    <EventRegistrationRow key={'registration ' +registration.registration.id} registration={registration} />
+                );
+            }, this);
+            return (
+                <RB.Modal onRequestHide={this.dismiss} onHide={this.dismiss} show={this.props.show} bsStyle="primary" dialogClassName="modal-large">
+                    <RB.ModalHeader>
+                        <RB.Modal.Title>View registrations</RB.Modal.Title>
+                    </RB.ModalHeader>
+                    <RB.Modal.Body>
+                        <ul>
+                            {registrationItems}
+                        </ul>
+                    </RB.Modal.Body>
+                    <RB.ModalFooter>
+                        <RB.ButtonInput type="button" value="Cancel" className="btn" onClick={this.closeDialog}/>
+                    </RB.ModalFooter>
+                </RB.Modal>
+            );
+        }
+    });
+
+    var EventRegistrationRow = React.createClass({
+        getInitialState: function() {
+            return {expanded: false};
+        },
+        getResponsiblePerson: function(registration) {
+            return _.find(registration.persons, function(person) {
+                return person.contactPerson == 1;
+            });
+        },
+        viewPersons: function() {
+            this.setState({expanded: !this.state.expanded});
+        },
+        render: function() {
+            var registrationData = this.props.registration;
+            var responsiblePerson = this.getResponsiblePerson(registrationData);
+            var timeStampDate = new Date(registrationData.registration.timestamp);
+            var personInfoRows = (!this.state.expanded ? [] :  registrationData.persons).map(function(person, order) {
+                return (
+                    <EventRegistrationPersonListRow key = {'person ' +person.id} person={person} order={(order +1)}/>
+                );
+            });
+            var arrowClass = this.state.expanded ? "glyphicon glyphicon-arrow-down" : "glyphicon glyphicon-arrow-right";
+            return (
+                <li key={registrationData.registration.id} style={{listStyle: 'none'}}>
+                    <div style={{display: 'flex', flexDirection: 'row', borderBottom: '1px solid black'}}>
+                       <div style={{flex: '0.1 1 auto'}}>
+                            <span className={arrowClass} onClick={this.viewPersons} style={{cursor: 'pointer'}}></span>
+                        </div>
+                        <div style={{flex: '1 1 auto', width: '45%'}}>
+                            <span style={{fontWeight: 'bold'}}>Responsible person:</span> {responsiblePerson.firstName + ' ' + responsiblePerson.lastName}
+                        </div>
+                        <div style={{flex: '1 1 auto', width: '15%'}}>
+                            <span style={{fontWeight: 'bold'}}>Cabin:</span> {registrationData.cabin.name}
+                        </div>
+                        <div style={{flex: '1 1 auto', width: '40%'}}>
+                            <span style={{fontWeight: 'bold'}}>Registration time:</span> {timeStampDate.toLocaleDateString() + ' ' + timeStampDate.toLocaleTimeString()}
+                        </div>
+                    </div>
+                    <div>
+                    <ul style={{paddingLeft: '10px'}}>
+                        {personInfoRows}
+                    </ul>
+                    </div>
+                </li>
+            );
+        }
+    });
+
+    var EventRegistrationPersonListRow = React.createClass({
+        getInitialState: function() {
+            return {dinnerMap: {
+                    0: 'Päivällinen, 1. kattaus',
+                    1: 'Päivällinen, 2. kattaus',
+                    2: 'Meriaamiainen',
+                    3: 'Lounas'
+                }
+            };
+        },
+        render: function() {
+            return (
+                <li key={this.props.person.id} style={{display: 'flex', flexDirection: 'row'}}>
+                    <div style={{flex: '0.5 1 auto', fontWeight: 'bold'}}>
+                        {this.props.order}:
+                    </div>
+                    <div style={{flex: '1 1 auto', width: '30%'}}>
+                        <span style={{fontWeight: 'bold'}}>Name: </span>{this.props.person.firstName + ' ' + this.props.person.lastName}
+                    </div>
+                    <div style={{flex: '1 1 auto', width: '20%'}}>
+                        <span style={{fontWeight: 'bold'}}>Email: </span>{this.props.person.email}
+                    </div>
+                    <div style={{flex: '1 1 auto', width: '20%'}}>
+                        <span style={{fontWeight: 'bold'}}>DoB: </span>{this.props.person.dateOfBirth}
+                    </div>
+                    <div style={{flex: '1 1 auto', width: '25%'}}>
+                        <span style={{fontWeight: 'bold'}}>Dinner: </span>{this.state.dinnerMap[this.props.person.selectedDining]}
+                    </div>
+                </li>
+            );
         }
     });
 

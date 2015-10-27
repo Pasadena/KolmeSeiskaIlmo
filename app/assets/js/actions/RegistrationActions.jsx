@@ -14,6 +14,19 @@ define(['dispatcher/AppDispatcher', 'api/RegistrationAPI'], function(AppDispatch
                 data: data
             });
             RegistrationAPI.persistRegistrations(data);
+        },
+        getEventRegistrationList: function(eventId) {
+            AppDispatcher.handleAction({
+                actionType: "LOAD_EVENT_REGISTRATION_PERSONS",
+                data: eventId
+            });
+            RegistrationAPI.fetchEventRegistrationList(eventId)
+        },
+        closeRegistrationListDialog: function() {
+            AppDispatcher.handleAction({
+                actionType: "CLOSE_EVENT_REGISTRATION_PERSONS_DIALOG",
+                data: null
+            });
         }
     }
 

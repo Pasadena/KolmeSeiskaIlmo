@@ -1,5 +1,5 @@
-define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'store/CabinStore', 'actions/EventActions', 'react-bootstrap', 'actions/CabinActions'],
-function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, CabinActions) {
+define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'store/CabinStore', 'store/RegistrationStore', 'actions/EventActions', 'react-bootstrap', 'actions/CabinActions', 'actions/RegistrationActions'],
+function(React, $, FormComponents, EventStore, CabinStore, RegistrationStore, EventActions, RB, CabinActions, RegistrationActions) {
 
     var ButtonComponent = FormComponents.ButtonComponent;
     var InputComponent = FormComponents.InputComponent;
@@ -16,7 +16,9 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             message: messageData.message,
             messageStatus: messageData.messageStatus,
             modalOpen: EventStore.getModalState(),
-            availableCabins: CabinStore.getCabins()
+            availableCabins: CabinStore.getCabins(),
+            registrationList: RegistrationStore.getEventRegistrations(),
+            viewRegistrationsModalOpen: RegistrationStore.getRegistrationListModalStatus()
         };
     }
 
@@ -31,10 +33,12 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
         componentDidMount: function() {
             EventStore.addChangeListener(this._onChange);
             CabinStore.addChangeListener(this._onChange);
+            RegistrationStore.addChangeListener(this._onChange);
         },
         componentWillUnmount: function() {
             EventStore.removeChangeListener(this._onChange);
             CabinStore.removeChangeListener(this._onChange);
+            RegistrationStore.removeChangeListener(this._onChange);
         },
         _onChange: function() {
             this.setState(this.getInitialState());
@@ -48,20 +52,6 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             if(confirm('Delete event! Are you sure mate?')) {
                 EventActions.deleteEvent(eventData.id);
             }
-            {/**
-            var url = '/admin/events/delete/' +eventData.id;
-            $.ajax({
-                url: url,
-                type: 'POST',
-                success: function(data) {
-                    var messageClass = this.getStatusMessageClass(data);
-                    var existingEventsWithoutDeleted = _.filter(this.state.events, function(event) {return event.id != eventData.id});
-                    this.setState({events: existingEventsWithoutDeleted, message: data['message'], messageClass: messageClass});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(status, err.toString());
-                }.bind(this)
-            });**/}
         },
         loadEvent: function(eventData) {
             EventActions.loadEventData(eventData.id)
@@ -82,6 +72,12 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
         closeDialog: function() {
             EventActions.closeDialog();
         },
+        closeRegistrationListDialog: function() {
+            RegistrationActions.closeRegistrationListDialog();
+        },
+        viewEventRegistrations: function(event) {
+            RegistrationActions.getEventRegistrationList(event.id);
+        },
         render: function() {
             return (
                 React.createElement("div", null, 
@@ -90,10 +86,11 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
                         this.state.message
                     ), 
                     React.createElement(RB.Panel, {header: "Available events", bsStyle: "info"}, 
-                        React.createElement(EventList, {data: this.state.events, deleteHandler: this.deleteListItem, editHandler: this.loadEvent}), 
+                        React.createElement(EventList, {data: this.state.events, deleteHandler: this.deleteListItem, editHandler: this.loadEvent, viewRegistrationDataHandler: this.viewEventRegistrations}), 
                         React.createElement("a", {className: "btn btn-success", onClick: this.createEvent}, "Create a new event")
                     ), 
-                    React.createElement(EventForm, {event: this.state.selectedEvent, formSubmitHandler: this.submitEventForm, show: this.state.modalOpen, closeDialog: this.closeDialog, cabins: this.state.availableCabins})
+                    React.createElement(EventForm, {event: this.state.selectedEvent, formSubmitHandler: this.submitEventForm, show: this.state.modalOpen, closeDialog: this.closeDialog, cabins: this.state.availableCabins}), 
+                    React.createElement(EventRegistrationList, {show: this.state.viewRegistrationsModalOpen, close: this.closeRegistrationListDialog, registrations: this.state.registrationList})
                 )
             )
         }
@@ -222,7 +219,8 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
     var EventList = React.createClass({displayName: "EventList",
         render: function() {
             return (
-                !this.props.data.length ? React.createElement(EmptyTable, null) :React.createElement(EventTable, {data: this.props.data, deleteHandler: this.props.deleteHandler, editHandler: this.props.editHandler})
+                !this.props.data.length ? React.createElement(EmptyTable, null) :React.createElement(EventTable, {data: this.props.data, deleteHandler: this.props.deleteHandler, editHandler: this.props.editHandler, 
+                viewRegistrationDataHandler: this.props.viewRegistrationDataHandler})
             )
         }
     });
@@ -233,9 +231,9 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             var editHandler = this.props.editHandler;
             var tableRows = this.props.data.map(function(event) {
                 return (
-                    React.createElement(EventTableRow, {event: event, key: event.id, deleteHandler: deleteHandler, editHandler: editHandler})
+                    React.createElement(EventTableRow, {event: event, key: event.id, deleteHandler: deleteHandler, editHandler: editHandler, viewRegistrationDataHandler: this.props.viewRegistrationDataHandler})
                 );
-            });
+            }, this);
             return (
                 React.createElement("table", {className: "table table-condensed"}, 
                     React.createElement("thead", null, 
@@ -264,6 +262,10 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             event.preventDefault();
             this.props.editHandler(this.props.event)
         },
+        viewRegistrationData: function(event) {
+            event.preventDefault();
+            this.props.viewRegistrationDataHandler(this.props.event);
+        },
         render: function() {
             return (
                 React.createElement("tr", null, 
@@ -274,12 +276,19 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
                     React.createElement("td", null, 
                         React.createElement("div", {className: "list-form"}, 
                             React.createElement("form", {onSubmit: this.deleteEvent}, 
-                                React.createElement(ButtonComponent, {type: "submit", value: "Delete", class: "btn btn-danger"})
+                                React.createElement(RB.ButtonInput, {type: "submit", value: "Delete", className: "btn btn-danger"})
                             )
                         ), 
                         React.createElement("div", {className: "list-form"}, 
                             React.createElement("form", {onSubmit: this.editEvent}, 
-                                React.createElement(ButtonComponent, {type: "submit", value: "Edit", class: "btn btn-default"})
+                                React.createElement(RB.ButtonInput, {type: "submit", value: "Edit", className: "btn btn-primary"})
+                            )
+                        ), 
+                        React.createElement("div", {className: "list-form"}, 
+                            React.createElement("form", null, 
+                                React.createElement(RB.ButtonToolbar, null, 
+                                React.createElement(RB.Button, {type: "button", value: "View registrations", className: "btn btn-primary", onClick: this.viewRegistrationData}, "View registrations")
+                                )
                             )
                         )
                     )
@@ -294,6 +303,119 @@ function(React, $, FormComponents, EventStore, CabinStore, EventActions, RB, Cab
             return (
                 React.createElement("div", null, "There are no events to display!")
             )
+        }
+    });
+
+    var EventRegistrationList = React.createClass({displayName: "EventRegistrationList",
+        closeDialog: function(event) {
+            event.preventDefault();
+            this.dismiss();
+        },
+        dismiss: function() {
+            this.props.close();
+        },
+        render: function() {
+            var registrationItems = this.props.registrations.map(function(registration) {
+                return (
+                    React.createElement(EventRegistrationRow, {key: 'registration ' +registration.registration.id, registration: registration})
+                );
+            }, this);
+            return (
+                React.createElement(RB.Modal, {onRequestHide: this.dismiss, onHide: this.dismiss, show: this.props.show, bsStyle: "primary", dialogClassName: "modal-large"}, 
+                    React.createElement(RB.ModalHeader, null, 
+                        React.createElement(RB.Modal.Title, null, "View registrations")
+                    ), 
+                    React.createElement(RB.Modal.Body, null, 
+                        React.createElement("ul", null, 
+                            registrationItems
+                        )
+                    ), 
+                    React.createElement(RB.ModalFooter, null, 
+                        React.createElement(RB.ButtonInput, {type: "button", value: "Cancel", className: "btn", onClick: this.closeDialog})
+                    )
+                )
+            );
+        }
+    });
+
+    var EventRegistrationRow = React.createClass({displayName: "EventRegistrationRow",
+        getInitialState: function() {
+            return {expanded: false};
+        },
+        getResponsiblePerson: function(registration) {
+            return _.find(registration.persons, function(person) {
+                return person.contactPerson == 1;
+            });
+        },
+        viewPersons: function() {
+            this.setState({expanded: !this.state.expanded});
+        },
+        render: function() {
+            var registrationData = this.props.registration;
+            var responsiblePerson = this.getResponsiblePerson(registrationData);
+            var timeStampDate = new Date(registrationData.registration.timestamp);
+            var personInfoRows = (!this.state.expanded ? [] :  registrationData.persons).map(function(person, order) {
+                return (
+                    React.createElement(EventRegistrationPersonListRow, {key: 'person ' +person.id, person: person, order: (order +1)})
+                );
+            });
+            var arrowClass = this.state.expanded ? "glyphicon glyphicon-arrow-down" : "glyphicon glyphicon-arrow-right";
+            return (
+                React.createElement("li", {key: registrationData.registration.id, style: {listStyle: 'none'}}, 
+                    React.createElement("div", {style: {display: 'flex', flexDirection: 'row', borderBottom: '1px solid black'}}, 
+                       React.createElement("div", {style: {flex: '0.1 1 auto'}}, 
+                            React.createElement("span", {className: arrowClass, onClick: this.viewPersons, style: {cursor: 'pointer'}})
+                        ), 
+                        React.createElement("div", {style: {flex: '1 1 auto', width: '45%'}}, 
+                            React.createElement("span", {style: {fontWeight: 'bold'}}, "Responsible person:"), " ", responsiblePerson.firstName + ' ' + responsiblePerson.lastName
+                        ), 
+                        React.createElement("div", {style: {flex: '1 1 auto', width: '15%'}}, 
+                            React.createElement("span", {style: {fontWeight: 'bold'}}, "Cabin:"), " ", registrationData.cabin.name
+                        ), 
+                        React.createElement("div", {style: {flex: '1 1 auto', width: '40%'}}, 
+                            React.createElement("span", {style: {fontWeight: 'bold'}}, "Registration time:"), " ", timeStampDate.toLocaleDateString() + ' ' + timeStampDate.toLocaleTimeString()
+                        )
+                    ), 
+                    React.createElement("div", null, 
+                    React.createElement("ul", {style: {paddingLeft: '10px'}}, 
+                        personInfoRows
+                    )
+                    )
+                )
+            );
+        }
+    });
+
+    var EventRegistrationPersonListRow = React.createClass({displayName: "EventRegistrationPersonListRow",
+        getInitialState: function() {
+            return {dinnerMap: {
+                    0: 'Päivällinen, 1. kattaus',
+                    1: 'Päivällinen, 2. kattaus',
+                    2: 'Meriaamiainen',
+                    3: 'Lounas'
+                }
+            };
+        },
+        render: function() {
+            return (
+                React.createElement("li", {key: this.props.person.id, style: {display: 'flex', flexDirection: 'row'}}, 
+                    React.createElement("div", {style: {flex: '0.5 1 auto', fontWeight: 'bold'}}, 
+                        this.props.order, ":"
+                    ), 
+                    React.createElement("div", {style: {flex: '1 1 auto', width: '30%'}}, 
+                        React.createElement("span", {style: {fontWeight: 'bold'}}, "Name: "), this.props.person.firstName + ' ' + this.props.person.lastName
+                    ), 
+                    React.createElement("div", {style: {flex: '1 1 auto', width: '20%'}}, 
+                        React.createElement("span", {style: {fontWeight: 'bold'}}, "Email: "), this.props.person.email
+                    ), 
+                    React.createElement("div", {style: {flex: '1 1 auto', width: '20%'}}, 
+                        React.createElement("span", {style: {fontWeight: 'bold'}}, "DoB: "), this.props.person.dateOfBirth
+                    ), 
+                    React.createElement("div", {style: {flex: '1 1 auto', width: '25%'}}, 
+                        React.createElement("span", {style: {fontWeight: 'bold'}}, "Dinner: "), this.state.dinnerMap[this.props.person.selectedDining]
+                    )
+                )
+            );
         }
     });
 

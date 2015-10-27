@@ -18,6 +18,8 @@ case class RegisteredPerson(id: Option[Long], registrationId: Long, firstName: S
 
 case class RegistrationData(registration: Registration, event: Event, cabin: Cabin)
 
+case class RegistrationWithPersons(registration: Registration, cabin: Cabin, persons: Seq[RegisteredPerson])
+
 object Registration {
 
   def timestampToDateTime(t: Timestamp): DateTime = new DateTime(t.getTime)
@@ -37,6 +39,10 @@ object Registration {
 
 object RegisteredPerson {
   implicit val registeredPersonFormat = Json.format[RegisteredPerson]
+}
+
+object RegistrationWithPersons {
+  implicit val registrationWithPersonsFormat = Json.format[RegistrationWithPersons]
 }
 
 class Registrations(tag: Tag) extends Table[Registration](tag, "REGISTRATION") {
@@ -78,7 +84,7 @@ object RegistrationDAO {
   }
 
   def saveRegistrationPersons(persons: List[RegisteredPerson], registrationId: Long)(implicit session: Session) = {
-    for(person <- persons)  registeredPersons += person.copy(None, registrationId, person.firstName, person.lastName, person.email, person.dateOfBirth, person.clubNumber, person.selectedDining, 1)
+    for(person <- persons)  registeredPersons += person.copy(None, registrationId, person.firstName, person.lastName, person.email, person.dateOfBirth, person.clubNumber, person.selectedDining, person.contactPerson)
   }
 
   def loadEventRegistrations(eventId: Long)(implicit session: Session): List[Registration] = {
@@ -96,6 +102,15 @@ object RegistrationDAO {
       case None => throw new RuntimeException("No matching registration data for id #id")
       case Some(data) => RegistrationData(data._1, data._2, data._3)
     }
+  }
+
+  def loadRegistrationsWithPersons(eventId: Long)(implicit session:Session): List[RegistrationWithPersons] = {
+    val registrationList = for {
+      registration <- registrations if registration.eventId === eventId
+      cabin <- cabins if cabin.id === registration.cabinId
+      person <- registeredPersons if person.registrationId === registration.id
+    } yield (registration, cabin, person)
+    registrationList.list.groupBy(_._1).map { case (key, value) => RegistrationWithPersons(key, value.head._2, value.map(_._3))}.toList.sortWith(_.registration.timestamp.get.getTime() > _.registration.timestamp.get.getTime())
   }
 
 }

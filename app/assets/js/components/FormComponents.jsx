@@ -298,7 +298,11 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             this.props.detachFromForm(this);
         },
         handleChange: function(event) {
-            this.setState({value: event.target.value});
+            if(this.props.type == 'checkbox') {
+                this.setState({value: this.state.value == 1 ? 0 : 1});
+            } else {
+                this.setState({value: event.target.value});
+            }
         },
         render: function() {
             return(

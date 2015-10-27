@@ -25,6 +25,19 @@ define(['dispatcher/AppDispatcher', 'api/CommonAPI'], function(AppDispatcher, Co
             }, function(request, status, error) {
                 console.error(status, error.toString());
             });
+        },
+
+        fetchEventRegistrationList: function(eventId) {
+            var url = "/admin/events/registrations/" +eventId;
+            CommonAPI.get(url)
+            .then(function(data) {
+                AppDispatcher.handleAction({
+                    actionType: "LOAD_EVENT_REGISTRATION_PERSONS_SUCCESS",
+                    data: data
+                });
+            }, function(request, status, error) {
+                console.error(status, error.toString());
+            });
         }
 
     }
