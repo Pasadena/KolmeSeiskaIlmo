@@ -24,18 +24,24 @@ module.exports = function(grunt) {
         copy: {
           main: {
             files: [
-              {expand: true, src: ['node_modules/**/*', '!node_modules/grunt*/*'], dest: 'public/javascripts'}
+              {expand: true, src: ['node_modules/flux/**/*', 'node_modules/validator/**/*', 'node_modules/react-bootstrap/**/*'], dest: 'public/javascripts'}
             ]
           }
+        },
+        clean: {
+            build: {
+                src: ['public/javascripts/node_modules/**/*']
+            }
         }
     });
 
     grunt.loadNpmTasks('grunt-react');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.registerTask('default', ['react']);
 
-    grunt.registerTask('heroku', ['react', 'copy']);
+    grunt.registerTask('heroku', ['react', 'clean', 'copy']);
 
 };
