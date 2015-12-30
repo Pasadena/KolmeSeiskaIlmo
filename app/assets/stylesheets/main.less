@@ -127,18 +127,27 @@ Modals
         vertical-align: middle;
         font-size: 1.2em;
         box-shadow: 3px 5px 1em black;
-        margin-bottom: 5px;
+        margin-bottom: 2px;
     }
     &-body {
         padding: @card-padding;
         width: @card-width;
         height: @card-height * (2/3);
         border: 2px solid #C2C2DE;
-        border-radius: 10px;
+        border-radius: 5px;
         display: flex;
-        /**background-color: #CCCDE4;**/
         background-color: rgb(217, 237, 247);
         box-shadow: 3px 5px 1em black;
+        > ul {
+            list-style: none;
+            padding-left: 10px;
+        }
+    }
+    &-disabled {
+        background-color: lightgrey;
+        color: grey;
+        pointer-events: none;
+        opacity: 0.4;
     }
 }
 

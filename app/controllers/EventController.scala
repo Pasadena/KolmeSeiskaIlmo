@@ -36,7 +36,7 @@ object EventController extends Controller {
 
   def events = DBAction { implicit rs =>
     val events: List[Event] =  EventDAO.getAll()
-    Ok(Json.obj("events" -> Json.toJson(events)))
+    Ok(Json.obj("events" -> Json.toJson(events.sortWith((first, second) => second.dateOfEvent.compareTo(first.dateOfEvent) < 0))))
   }
 
   def createEvent = DBAction(parse json) { implicit rs =>

@@ -50,9 +50,17 @@ define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], fu
             window.location = "/register/" +this.props.event.id;
             {/*this.transitionTo("/register/", {id: this.props.event.id});*/}
         },
+        isEventInThePast: function() {
+            var now = new Date();
+            var registrationEnd = $.datepicker.parseDate('dd.mm.yy', this.props.event.registrationEndDate);
+            return (registrationEnd - now < 0);
+        },
         render: function() {
+            var cardDisabled = this.isEventInThePast();
+            var cardClasses = cardDisabled ? "card card-disabled" : "card";
+            var tooltip = cardDisabled ? "Registration period for this event has ended" : " ";
             return (
-                <div className="card" ref={this.props.event.id} onClick={this.registerToEvent}>
+                <div className={cardClasses} ref={this.props.event.id} onClick={this.registerToEvent} title={tooltip}>
                     <div className="card-header">
                         <span>{this.props.event.name}</span>
                     </div>
