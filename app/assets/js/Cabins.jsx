@@ -141,11 +141,11 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents', 'react-boo
     });
 
     var CabinListView = React.createClass({
-        editCabin: function(event, cabin) {
+        editCabin: function(cabin, event) {
             event.preventDefault();
             this.props.editCabinHandler(cabin);
         },
-        deleteCabin: function(event, cabin) {
+        deleteCabin: function(cabin, event) {
             event.preventDefault();
             this.props.deleteCabinHandler(cabin);
         },
@@ -173,10 +173,10 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents', 'react-boo
                                     <td>{cabin.price}</td>
                                     <td>
                                         <div className="list-form">
-                                            <ButtonComponent type="submit" value="Edit cabin" class="btn btn-success" onClick={this.editCabin.bind(null, event, cabin)} />
+                                            <ButtonComponent type="submit" value="Edit cabin" class="btn btn-success" onClick={this.editCabin.bind(this, cabin)} />
                                         </div>
                                         <div className="list-form">
-                                            <ButtonComponent type="submit" value="Delete" class="btn btn-danger" onClick={this.deleteCabin.bind(null, event, cabin)}/>
+                                            <ButtonComponent type="submit" value="Delete" class="btn btn-danger" onClick={this.deleteCabin.bind(this, cabin)}/>
                                         </div>
                                     </td>
                                 </tr>
@@ -219,7 +219,7 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents', 'react-boo
                 data: JSON.stringify(cabin),
                 success: function(data) {
                     this.props.onSuccess(data);
-                    this.props.closeDialog(event);
+                    this.props.closeDialog();
                 }.bind(this),
                 error: function(xhr, status, err) {
                     console.error(status, err.toString());
