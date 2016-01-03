@@ -11,7 +11,6 @@ import play.api.mvc.Controller
 object LoginController extends Controller {
 
   case class Credentials(userName: String, password: String)
-
   implicit val credentialsFormat = Json.format[Credentials]
 
   def login = DBAction { Ok(views.html.login())}
