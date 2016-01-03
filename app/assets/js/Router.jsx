@@ -1,4 +1,4 @@
-define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events', 'RegisterView'], function(React, $, _, Router, IndexView, AdminPage, CabinPage, EventPage, RegisterView) {
+define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events', 'RegisterView', 'LoginView'], function(React, $, _, Router, IndexView, AdminPage, CabinPage, EventPage, RegisterView, LoginView) {
     var Route = Router.Route
 
 
@@ -43,6 +43,7 @@ define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage
             <Route path="/admin" handler={AdminPage} />
             <Route path="/admin/cabins" handler={CabinPage} />
             <Route path="/admin/events" handler={EventPage} />
+            <Route path="/login" handler={LoginView} />
         </Route>
     );
 

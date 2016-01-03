@@ -7,6 +7,10 @@ GET     /                               controllers.Application.index
 GET     /admin                          controllers.EventController.adminIndex
 GET     /foo                          controllers.RegistrationController.foo
 
+# Login
+GET /login                              controllers.LoginController.login
+POST /login                             controllers.LoginController.logUserIn
+
 # Register page
 GET     /register/:id                       controllers.Application.register(id: Long)
 GET     /register/loadData/:id                   controllers.EventController.getSelectedEvent(id: Long)
