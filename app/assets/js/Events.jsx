@@ -405,10 +405,10 @@ function(React, $, FormComponents, EventStore, CabinStore, RegistrationStore, Ev
                     <div style={{flex: '1 1 auto', width: '30%'}}>
                         <span style={{fontWeight: 'bold'}}>Name: </span>{this.props.person.firstName + ' ' + this.props.person.lastName}
                     </div>
-                    <div style={{flex: '1 1 auto', width: '20%'}}>
+                    <div style={{flex: '1 1 auto', width: '25%'}}>
                         <span style={{fontWeight: 'bold'}}>Email: </span>{this.props.person.email}
                     </div>
-                    <div style={{flex: '1 1 auto', width: '20%'}}>
+                    <div style={{flex: '1 1 auto', width: '15%'}}>
                         <span style={{fontWeight: 'bold'}}>DoB: </span>{this.props.person.dateOfBirth}
                     </div>
                     <div style={{flex: '1 1 auto', width: '25%'}}>

@@ -405,10 +405,10 @@ function(React, $, FormComponents, EventStore, CabinStore, RegistrationStore, Ev
                     React.createElement("div", {style: {flex: '1 1 auto', width: '30%'}}, 
                         React.createElement("span", {style: {fontWeight: 'bold'}}, "Name: "), this.props.person.firstName + ' ' + this.props.person.lastName
                     ), 
-                    React.createElement("div", {style: {flex: '1 1 auto', width: '20%'}}, 
+                    React.createElement("div", {style: {flex: '1 1 auto', width: '25%'}}, 
                         React.createElement("span", {style: {fontWeight: 'bold'}}, "Email: "), this.props.person.email
                     ), 
-                    React.createElement("div", {style: {flex: '1 1 auto', width: '20%'}}, 
+                    React.createElement("div", {style: {flex: '1 1 auto', width: '15%'}}, 
                         React.createElement("span", {style: {fontWeight: 'bold'}}, "DoB: "), this.props.person.dateOfBirth
                     ), 
                     React.createElement("div", {style: {flex: '1 1 auto', width: '25%'}}, 

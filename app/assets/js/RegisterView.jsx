@@ -121,9 +121,16 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 }
                 registration["registrationId"] = -1;
             }, this);
+            this.updateContactPersonIfNoneSelected(registrations);
 
             var registration = {cabinId: this.props.selectedCabin.id, eventId: this.props.event.id};
             this.props.submitHandler([registrations, registration]);
+        },
+        updateContactPersonIfNoneSelected: function(registrations) {
+            var selectedContactPerson = _.findWhere(registrations, {contactPerson: '1'});
+            if(!selectedContactPerson) {
+                _.first(registrations).contactPerson = 1;
+            }
         },
         render: function() {
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
