@@ -10,9 +10,9 @@ import play.api.db.slick._
 /**
  * Created by spokos on 6/1/15.
  */
-object CabinController extends Controller {
+object CabinController extends Controller with Secured {
 
-  def cabinIndex = DBAction { implicit rs =>
+  def cabinIndex = isAuthenticated { implicit rs =>
     Ok(views.html.admin.cabins())
   }
 

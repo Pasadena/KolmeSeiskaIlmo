@@ -11,13 +11,13 @@ import play.api.db.slick.Config.driver.simple._
 /**
  * Created by spokos on 2/28/15.
  */
-object EventController extends Controller {
+object EventController extends Controller with Secured {
 
-  def index = DBAction { implicit rs =>
+  def index = isAuthenticated { implicit rs =>
     Ok(views.html.admin.events())
   }
 
-  def adminIndex = DBAction { implicit rs =>
+  def adminIndex = isAuthenticated { implicit rs =>
     Ok(views.html.admin.admin())
   }
 

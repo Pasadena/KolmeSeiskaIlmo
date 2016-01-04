@@ -3,7 +3,7 @@ package controllers
 import com.typesafe.config.ConfigFactory
 import play.api.db.slick.DBAction
 import play.api.libs.json.Json
-import play.api.mvc.Controller
+import play.api.mvc.{Security, Controller}
 
 /**
   * Created by spokos on 1/3/16.
@@ -23,7 +23,7 @@ object LoginController extends Controller {
         val credentialsValid = validateCredentials(credentials)
         credentialsValid match {
           //case true => Redirect(routes.EventController.adminIndex()).withSession("user" -> credentials.userName)
-          case true => Ok(Json.obj("status" -> "Ok"))
+          case true => Ok(Json.obj("status" -> "Ok")).withSession(Security.username -> credentials.userName)
           case false => BadRequest("Username of password incorrect!")
         }
       }
