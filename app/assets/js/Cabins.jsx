@@ -5,6 +5,7 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents', 'react-boo
     var TextAreaComponent = FormComponents.TextAreaComponent;
     var Form = FormComponents.Form;
     var Input = FormComponents.InputWrapper;
+    var Button = RB.Button;
 
     var CabinPageView = React.createClass({
         getInitialState: function() {
@@ -78,10 +79,15 @@ define(['react', 'jquery', 'underscore', 'components/FormComponents', 'react-boo
             event.preventDefault();
             this.setState({modalOpen: true});
         },
+        backToIndex: function(event) {
+            event.preventDefault();
+            window.location.href="/admin";
+        },
         render: function() {
             return (
                 <div>
                     <Alerts ref='alerts' />
+                    <Button bsStyle="primary" onClick={this.backToIndex}>Back</Button>
                     <div className="panel panel-default">
                         <div className="panel-heading">
                             <h3 className="panel-title">Cabins</h3>

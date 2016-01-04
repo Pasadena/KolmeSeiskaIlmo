@@ -1,5 +1,5 @@
-define(['react', 'jquery', 'components/FormComponents', 'store/EventStore', 'store/CabinStore', 'store/RegistrationStore', 'actions/EventActions', 'react-bootstrap', 'actions/CabinActions', 'actions/RegistrationActions'],
-function(React, $, FormComponents, EventStore, CabinStore, RegistrationStore, EventActions, RB, CabinActions, RegistrationActions) {
+define(['react', 'react-router', 'jquery', 'components/FormComponents', 'store/EventStore', 'store/CabinStore', 'store/RegistrationStore', 'actions/EventActions', 'react-bootstrap', 'actions/CabinActions', 'actions/RegistrationActions'],
+function(React, Router, $, FormComponents, EventStore, CabinStore, RegistrationStore, EventActions, RB, CabinActions, RegistrationActions) {
 
     var ButtonComponent = FormComponents.ButtonComponent;
     var InputComponent = FormComponents.InputComponent;
@@ -7,6 +7,7 @@ function(React, $, FormComponents, EventStore, CabinStore, RegistrationStore, Ev
     var Form = FormComponents.Form;
     var Input = FormComponents.InputWrapper;
     var DateField = FormComponents.DateInputWrapper;
+    var Button = RB.Button;
 
     function getEventPageState() {
         var messageData = EventStore.getMessageData();
@@ -23,6 +24,7 @@ function(React, $, FormComponents, EventStore, CabinStore, RegistrationStore, Ev
     }
 
     var EventSection = React.createClass({displayName: "EventSection",
+        mixins: [Router.Navigation],
         getInitialState: function() {
             return getEventPageState();
         },
@@ -78,10 +80,18 @@ function(React, $, FormComponents, EventStore, CabinStore, RegistrationStore, Ev
         viewEventRegistrations: function(event) {
             RegistrationActions.getEventRegistrationList(event.id);
         },
+        backToIndex: function(event) {
+            event.preventDefault();
+            window.location.href="/admin";
+            {/*this.transitionTo("/admin");*/}
+        },
         render: function() {
             return (
                 React.createElement("div", null, 
-                    React.createElement(RB.PageHeader, null, "Events:"), 
+                    React.createElement(RB.PageHeader, null, 
+                        React.createElement("span", {style: {'marginRight': '20px'}}, "Events"), 
+                        React.createElement(Button, {bsStyle: "primary", onClick: this.backToIndex}, "Back")
+                    ), 
                     React.createElement("div", {className: this.getStatusMessageClass(), role: "alert"}, 
                         this.state.message
                     ), 
