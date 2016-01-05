@@ -20,5 +20,5 @@ server.pid
 .idea/
 .project
 /node_modules/
-/public/javascripts
+#/public/javascripts
 Yhtenveto_teekkariristeily.pdf
