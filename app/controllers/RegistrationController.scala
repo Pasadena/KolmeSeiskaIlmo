@@ -86,25 +86,19 @@ object RegistrationController extends Controller {
     val outputStream = new java.io.FileOutputStream("Yhtenveto_teekkariristeily.pdf")
     outputStream.write(attachment)
 
-    System.out.println("Email sender" + configOptions.getString("smtp.user"))
-    System.out.println("Email password" + configOptions.getString("smtp.password"))
-
-    val allowedEmailRecipients = configOptions.getString("test.emails")
-    if (allowedEmailRecipients.split(",").toList.contains(contactPerson.email)) {
-      val email = Email(Messages("registration.email.title"), configOptions.getString("smtp.user"),
-        Seq(contactPerson.email),
-        attachments = Seq(
-          AttachmentData("Yhtenveto_teekkariristeily.pdf", attachment, "application/pdf", Some("Simple data"), Some(EmailAttachment.INLINE))
-        ),
-        bodyText = Some(views.txt.email(configOptions.getString("smtp.user")).toString())
-      )
-      try {
-        MailerPlugin.send(email)
-      } catch {
-        case e:Exception => {
-          System.out.println("Exception in mail sending " + e.getMessage)
-          registrationLogger.error("Failed to send email", e)
-        }
+    val email = Email(Messages("registration.email.title"), configOptions.getString("smtp.user"),
+      Seq(contactPerson.email),
+      attachments = Seq(
+        AttachmentData("Yhtenveto_teekkariristeily.pdf", attachment, "application/pdf", Some("Simple data"), Some(EmailAttachment.INLINE))
+      ),
+      bodyText = Some(views.txt.email(configOptions.getString("smtp.user")).toString())
+    )
+    try {
+      MailerPlugin.send(email)
+    } catch {
+      case e:Exception => {
+        System.out.println("Exception in mail sending " + e.getMessage)
+        registrationLogger.error("Failed to send email", e)
       }
     }
   }
