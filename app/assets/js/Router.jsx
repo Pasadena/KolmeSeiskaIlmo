@@ -4,7 +4,7 @@ define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage
 
     var App = React.createClass({
 
-        componentDidMount: function() {
+        componentWillMount: function() {
             $(document).ajaxStart(function() {
                 $('.overlay').show();
             });

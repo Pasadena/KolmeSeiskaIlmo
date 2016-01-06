@@ -12,9 +12,10 @@ define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], fu
             return getIndexPageState();
         },
         componentWillMount: function() {
-            EventActions.loadEvents();
+
         },
         componentDidMount: function() {
+            EventActions.loadEvents();
             EventStore.addChangeListener(this._onChange);
 
         },
