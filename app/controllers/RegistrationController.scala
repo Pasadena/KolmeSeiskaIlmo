@@ -86,6 +86,9 @@ object RegistrationController extends Controller {
     val outputStream = new java.io.FileOutputStream("Yhtenveto_teekkariristeily.pdf")
     outputStream.write(attachment)
 
+    System.out.println("Email sender" + configOptions.getString("smtp.user"))
+    System.out.println("Email password" + configOptions.getString("smtp.password"))
+
     val allowedEmailRecipients = configOptions.getString("test.emails")
     if (allowedEmailRecipients.split(",").toList.contains(contactPerson.email)) {
       val email = Email(Messages("registration.email.title"), configOptions.getString("smtp.user"),
