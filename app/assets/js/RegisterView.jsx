@@ -24,12 +24,13 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             return {event: event, selectedCabin: null, registrations: registrations, showNotification: RegistrationStore.getNotificationState()};
         },
         componentWillMount: function() {
-            EventActions.loadEventData(this.getParams().eventId);
-            RegistrationActions.getRegistrations(this.getParams().eventId);
+
         },
         componentDidMount: function() {
             EventStore.addChangeListener(this._onChange);
             RegistrationStore.addChangeListener(this._onChange);
+            EventActions.loadEventData(this.getParams().eventId);
+            RegistrationActions.getRegistrations(this.getParams().eventId);
         },
         componentWillUnmount: function() {
             EventStore.removeChangeListener(this._onChange);
@@ -193,8 +194,8 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         render: function() {
             var registrationForCabinTypes = _.countBy(this.props.registrations, function(item) { return item.cabinId; });
             return (
-                <Panel header="Registration counts:" bsStyle="info">
-                    <ul>
+                <Panel header="Registrations so far:" bsStyle="info">
+                    <ul style={{"listStyle": "none"}}>
                         {(this.props.event.cabins ? this.props.event.cabins : []).map(function(cabin) {
                             return (
                                 <li>{cabin.cabin.name} : {registrationForCabinTypes[cabin.cabin.id]} </li>
