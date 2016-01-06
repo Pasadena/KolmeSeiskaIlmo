@@ -98,7 +98,10 @@ object RegistrationController extends Controller {
       try {
         MailerPlugin.send(email)
       } catch {
-        case e:Exception => registrationLogger.error("Failed to send email", e)
+        case e:Exception => {
+          System.out.println("Exception in mail sending " + e.getMessage)
+          registrationLogger.error("Failed to send email", e)
+        }
       }
     }
   }
