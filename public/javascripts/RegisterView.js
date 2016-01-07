@@ -21,10 +21,11 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         getInitialState: function() {
             var event = EventStore.getSelectedEvent();
             var registrations = RegistrationStore.getRegistrations();
-            return {event: event, selectedCabin: null, registrations: registrations, showNotification: RegistrationStore.getNotificationState()};
+            return {event: event, selectedCabin: null, registrations: registrations,
+                showNotification: RegistrationStore.getNotificationState(), contactPerson: this.contactPerson};
         },
         componentWillMount: function() {
-
+            this.contactPerson = null;
         },
         componentDidMount: function() {
             EventStore.addChangeListener(this._onChange);
@@ -42,8 +43,9 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         updateSelectedCabin: function(selectedCabin) {
             this.setState({selectedCabin: selectedCabin});
         },
-        handleSubmit: function(registrationData) {
+        handleSubmit: function(registrationData, contactPerson) {
             RegistrationActions.saveRegistration({data: registrationData, url: "/register"})
+            this.contactPerson = contactPerson;
         },
         closeDialog: function() {
             this.setState({showNotification: false});
@@ -72,7 +74,8 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                         )
                     ), 
                     registrationSummaryComponent, 
-                    React.createElement(SuccessNotification, {close: this.closeDialog, show: this.state.showNotification})
+                    React.createElement(SuccessNotification, {close: this.closeDialog, show: this.state.showNotification, 
+                        contactPerson: this.state.contactPerson})
                 )
             );
         }
@@ -122,16 +125,23 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 }
                 registration["registrationId"] = -1;
             }, this);
-            this.updateContactPersonIfNoneSelected(registrations);
+            var contactPerson = this.getContactPersonFromList(registrations);
 
             var registration = {cabinId: this.props.selectedCabin.id, eventId: this.props.event.id};
-            this.props.submitHandler([registrations, registration]);
+            this.props.submitHandler([registrations, registration], contactPerson);
         },
-        updateContactPersonIfNoneSelected: function(registrations) {
+        getContactPersonFromList: function(registrations) {
             var selectedContactPerson = _.findWhere(registrations, {contactPerson: '1'});
-            if(!selectedContactPerson) {
-                _.first(registrations).contactPerson = 1;
+            if(selectedContactPerson) {
+               return selectedContactPerson;
+            } else {
+                return this.createContactPersonFromListHead(registrations);
             }
+        },
+        createContactPersonFromListHead: function(registrations) {
+            var firstPerson = _.first(registrations);
+            firstPerson.contactPerson = 1;
+            return firstPerson;
         },
         render: function() {
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
@@ -177,10 +187,14 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             this.props.close();
         },
         render: function() {
+            var contactPersonEmail = this.props.contactPerson != null ? this.props.contactPerson.email : "";
             return (
                 React.createElement(RB.Modal, {onRequestHide: this.dismiss, onHide: this.dismiss, show: this.props.show}, 
                     React.createElement("div", {className: "modal-header"}, "Registration successfull!"), 
-                    React.createElement("div", {className: "modal-body"}, React.createElement("p", null, "Congratulations! You have successfully registered to this event. Enjoy! ")), 
+                    React.createElement("div", {className: "modal-body"}, 
+                        React.createElement("p", null, "Congratulations! You have successfully registered to this event. Enjoy! "), 
+                        React.createElement("p", null, "Confirmation email containing payment details has been sent to following address: ", contactPersonEmail)
+                    ), 
                     React.createElement("div", {className: "modal-footer"}, React.createElement(Button, {onClick: this.dismiss}, "Okey dokey!"))
                 )
             );
