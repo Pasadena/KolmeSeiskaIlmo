@@ -60,13 +60,17 @@ object RegistrationController extends Controller {
     jsResult match {
       case registrationData => registrationData.asOpt match {
         case Some((list, registration)) => {
-          val registrationId = RegistrationDAO.saveRegistration(registration)
-          RegistrationDAO.saveRegistrationPersons(list, registrationId)
-          list.filter(_.contactPerson == 1) match {
-            case Nil => sendConfirmationMail(list(0), list, RegistrationDAO.loadRegistrationWithEventAndCabin(registrationId), rs.request.host)
-            case x :: xs => sendConfirmationMail(x, list, RegistrationDAO.loadRegistrationWithEventAndCabin(registrationId), rs.host)
+          if(RegistrationDAO.doesEventHaveRoomForSelectedRegistration(registration)) {
+            val registrationId = RegistrationDAO.saveRegistration(registration)
+            RegistrationDAO.saveRegistrationPersons(list, registrationId)
+            list.filter(_.contactPerson == 1) match {
+              case Nil => sendConfirmationMail(list(0), list, RegistrationDAO.loadRegistrationWithEventAndCabin(registrationId), rs.request.host)
+              case x :: xs => sendConfirmationMail(x, list, RegistrationDAO.loadRegistrationWithEventAndCabin(registrationId), rs.host)
+            }
+            Ok(Json.obj("status" -> "Ok", "message" -> "Registration succesfully saved"))
+          } else {
+            BadRequest(Json.obj("status" -> "KO", "message" -> "The selected cabin type was sold out during registration. Please select different cabin"))
           }
-          Ok(Json.obj("status" -> "Ok", "message" -> "Registration succesfully saved"))
         }
         case None => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened while parsing registration list"))
       }
