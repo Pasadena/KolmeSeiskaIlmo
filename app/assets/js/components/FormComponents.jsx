@@ -42,6 +42,12 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         getModel: function() {
             return this.state.model;
         },
+        preserveFieldUniqueness: function(component) {
+            this.props.preserveFieldUniqueness(component);
+        },
+        registerUniqueField: function(component) {
+            this.props.registerUniqueField(component);
+        },
         registerChildren: function(children) {
             var clonedChildren = React.Children.map(children, function(child) {
                 var childProps;
@@ -49,7 +55,10 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
                     child.props.children = this.registerChildren(child.props.children);
                 }
                 if(child.props && child.props.name) {
-                    return React.cloneElement(child, {attachToForm: this.attachToForm, detachFromForm: this.detachFromForm, validate: this.validate, children: child.props.children});
+                    var unique = this.props.uniqueFormFields ? $.inArray(child.props.name, this.props.uniqueFormFields) != -1 : false;
+                    var uniquenessHandler = unique ? this.preserveFieldUniqueness : null;
+                    var uniquenessRegisterer = unique ? this.registerUniqueField : null;
+                    return React.cloneElement(child, {attachToForm: this.attachToForm, detachFromForm: this.detachFromForm, validate: this.validate, children: child.props.children, preserveFieldUniqueness: uniquenessHandler, registerUniqueField: uniquenessRegisterer});
                 } else {
                     return child;
                 }
@@ -107,9 +116,24 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             Object.keys(errors).forEach(function(name, index) {
                 var component = this.elements[name];
                 component.setState({isValid: false, serverError: errors[name]});
-            });
+            }.bind(this));
             this.setState({isSubmitting: false}, this.validateForm)
-        }.bind(this),
+        },
+        getInputComponentByName: function(name, domTree) {
+            console.log(this.refs);
+            var matchingElement = React.Children.map(domTree, function(child) {
+                if(child.props && child.props.children) {
+                    var matchingChild = this.getInputComponentByName(name, child.props.children);
+                    return matchingChild;
+                } else {
+                    if(child.props && child.props.name == name) {
+                        return child;
+                    }
+                    return null;
+                }
+            }, this);
+            return matchingElement;
+        },
         render: function() {
             return (
                 <div>
@@ -137,9 +161,18 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         getModel: function() {
             return this.refs.wrapper.getModel();
         },
+        getComponentByName(name) {
+            return this.refs.wrapper.getInputComponentByName(name, this.refs.wrapper.children);
+        },
+        preserveFieldUniqueness: function(component) {
+            this.props.preserveFieldUniqueness(component);
+        },
+        registerUniqueField: function(component) {
+            this.props.registerUniqueField(component);
+        },
         render: function() {
             return (
-                <RegisteredComponentSection ref="wrapper">
+                <RegisteredComponentSection ref="wrapper" uniqueFormFields={this.props.uniqueFormFields} preserveFieldUniqueness={this.preserveFieldUniqueness} registerUniqueField={this.registerUniqueField}>
                     {this.props.children}
                 </RegisteredComponentSection>
             );
@@ -157,9 +190,11 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             };
         },
         componentWillMount: function() {
+            this.uniqueModelValues = [];
             this.fragments = this.getFragments(this.props.children);
         },
         componentWillUpdate: function(nextProps, nextState) {
+            this.uniqueModelValues = [];
             this.fragments = this.getFragments(nextProps.children);
         },
         getFragments: function(children) {
@@ -196,15 +231,23 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             }
             return fragmentValid;
         },
+        registerUniqueAttributeField: function(component) {
+            this.uniqueModelValues.push(component);
+        },
+        preserveFieldUniqueness: function(component) {
+            _.each(this.uniqueModelValues, function(field) {
+                field.setState({value: 0});
+            });
+        },
         render: function() {
             var index = 0,
             children = React.Children.map(this.props.children, function (child) {
                 if(child.type && (child.type.displayName == 'FormFragment')) {
-                    return React.cloneElement(child, { ref: (index++)});
+                    return React.cloneElement(child, { ref: (index++), uniqueFormFields: this.props.uniqueFormFields, preserveFieldUniqueness: this.preserveFieldUniqueness, registerUniqueField: this.registerUniqueAttributeField});
                 } else {
                     return child;
                 }
-            });
+            }, this);
             return (
                 <form onSubmit={this.submitForm} className='form-horizontal'>
                     {children}
@@ -293,20 +336,33 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             if(this.props.attachToForm) {
                 this.props.attachToForm(this);
             }
+            if(this.props.registerUniqueField) {
+                this.props.registerUniqueField(this);
+            }
         },
         componentWillUnMount: function() {
             this.props.detachFromForm(this);
         },
         handleChange: function(event) {
+            if(this.props.preserveFieldUniqueness) {
+                this.props.preserveFieldUniqueness(this);
+            }
             if(this.props.type == 'checkbox') {
+                $("#" +this.props.id).prop("checked", this.state.value ==1 ? "true": "false");
                 this.setState({value: this.state.value == 1 ? 0 : 1});
             } else {
                 this.setState({value: event.target.value});
             }
         },
         render: function() {
+            if(this.props.type == 'checkbox') {
+                $("#" +this.props.id).attr('checked', this.state.value == 1 ? true: false);
+            }
             return(
-                <Input type={this.props.type} name={this.props.name} value={this.state.value} placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name} labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName} required={this.props.required} onChange={this.handleChange}>
+                <Input type={this.props.type} name={this.props.name} value={this.state.value}
+                        placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name}
+                        labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName}
+                        required={this.props.required} onChange={this.handleChange}>
                     {this.props.children}
                 </Input>
             );

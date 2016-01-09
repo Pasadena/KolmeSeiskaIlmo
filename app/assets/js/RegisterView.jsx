@@ -148,6 +148,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             while(++i <= len) placesInCabin.push(i)
             var items = placesInCabin.map(function(order) {
                 var headerName = <h3>{order}. person:</h3>
+                var contactPersonId = "contactPerson" +order;
                 return (
                     <FormFragment key={order} ref={order}>
                         <Panel header={headerName} bsStyle="info">
@@ -163,16 +164,16 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                                 <option key={3} value="3">Breakfast</option>
                                 <option key={4} value="4">Lunch</option>
                             </Input>
-                            <Input type="checkbox" label="Contact person:" id="contactPerson" name="contactPerson" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
+                            <Input type="checkbox" label="Contact person:" id={contactPersonId} name="contactPerson" ref="name" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"}/>
                         </Panel>
                     </FormFragment>
                 );
-            });
+            }, this);
             var flattenedItems = _.flatten(items);
             return (
                 <div id="personList">
                     <h2>Fill passenger details: </h2>
-                    <MultiModelForm onSubmit={this.saveRegistration}>
+                    <MultiModelForm onSubmit={this.saveRegistration} uniqueFormFields={["contactPerson"]}>
                         {flattenedItems}
                         <ButtonInput type="submit" bsStyle="success" value="Save registration"/>
                     </MultiModelForm>
@@ -210,9 +211,9 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             return (
                 <Panel header="Registrations so far:" bsStyle="info">
                     <ul style={{"listStyle": "none"}}>
-                        {(this.props.event.cabins ? this.props.event.cabins : []).map(function(cabin) {
+                        {(this.props.event.cabins ? this.props.event.cabins : []).map(function(cabin, index) {
                             return (
-                                <li>{cabin.cabin.name} : {registrationForCabinTypes[cabin.cabin.id]} </li>
+                                <li key={index}>{cabin.cabin.name} : {registrationForCabinTypes[cabin.cabin.id]} </li>
                             );
                         })}
                     </ul>

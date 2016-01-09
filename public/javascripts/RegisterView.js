@@ -143,11 +143,16 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             firstPerson.contactPerson = 1;
             return firstPerson;
         },
+        updateSelectedContactPerson: function(event) {
+            var checkboxes = $(":checkbox");
+            checkboxes.attr('checked', false);
+        },
         render: function() {
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
             while(++i <= len) placesInCabin.push(i)
             var items = placesInCabin.map(function(order) {
                 var headerName = React.createElement("h3", null, order, ". person:")
+                var contactPersonId = "contactPerson" +order;
                 return (
                     React.createElement(FormFragment, {key: order, ref: order}, 
                         React.createElement(Panel, {header: headerName, bsStyle: "info"}, 
@@ -163,16 +168,16 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                                 React.createElement("option", {key: 3, value: "3"}, "Breakfast"), 
                                 React.createElement("option", {key: 4, value: "4"}, "Lunch")
                             ), 
-                            React.createElement(Input, {type: "checkbox", label: "Contact person:", id: "contactPerson", name: "contactPerson", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"})
+                            React.createElement(Input, {type: "checkbox", label: "Contact person:", id: contactPersonId, name: "contactPerson", ref: "name", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", externalChangeHandler: this.updateSelectedContactPerson.bind(null)})
                         )
                     )
                 );
-            });
+            }, this);
             var flattenedItems = _.flatten(items);
             return (
                 React.createElement("div", {id: "personList"}, 
                     React.createElement("h2", null, "Fill passenger details: "), 
-                    React.createElement(MultiModelForm, {onSubmit: this.saveRegistration}, 
+                    React.createElement(MultiModelForm, {onSubmit: this.saveRegistration, uniqueFormFields: ["contactPerson"]}, 
                         flattenedItems, 
                         React.createElement(ButtonInput, {type: "submit", bsStyle: "success", value: "Save registration"})
                     )
@@ -210,9 +215,9 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             return (
                 React.createElement(Panel, {header: "Registrations so far:", bsStyle: "info"}, 
                     React.createElement("ul", {style: {"listStyle": "none"}}, 
-                        (this.props.event.cabins ? this.props.event.cabins : []).map(function(cabin) {
+                        (this.props.event.cabins ? this.props.event.cabins : []).map(function(cabin, index) {
                             return (
-                                React.createElement("li", null, cabin.cabin.name, " : ", registrationForCabinTypes[cabin.cabin.id], " ")
+                                React.createElement("li", {key: index}, cabin.cabin.name, " : ", registrationForCabinTypes[cabin.cabin.id], " ")
                             );
                         })
                     )
