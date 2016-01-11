@@ -196,7 +196,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                         <p>Congratulations! You have successfully registered to this event. Enjoy! </p>
                         <p>Confirmation email containing payment details has been sent to following address: {contactPersonEmail}</p>
                     </div>
-                    <div className="modal-footer"><Button onClick={this.dismiss}>Okey dokey!</Button></div>
+                    <div className="modal-footer"><Button bsStyle="success" onClick={this.dismiss}>Okey dokey!</Button></div>
                 </RB.Modal>
             );
         }

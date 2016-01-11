@@ -1,4 +1,4 @@
-@(persons: List[RegisteredPerson], diningValuesMap: Map[Int, (String, Double)], registrationData: RegistrationData)
+@(persons: List[RegisteredPerson], diningValuesMap: Map[Int, (String, Double)], registrationData: RegistrationData, dueDate: String)
 
 <!DOCTYPE html>
 
@@ -131,7 +131,7 @@
                         BIC: @play.Play.application().configuration().getString("pdf.bic") <br/>
                         Maksun viesti: Varaajan nimi / @registrationData.event.name <br/>
                         Summa: @((persons.foldLeft(0.0)((sum, person) => sum + diningValuesMap(person.selectedDining)._2)) + registrationData.cabin.price) euroa <br/>
-                        Eräpäivä: 10.02.2015
+                        Eräpäivä: @(dueDate)
                     </p>
                 </section>
             </section>

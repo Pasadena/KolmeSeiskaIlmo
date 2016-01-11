@@ -196,7 +196,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                         React.createElement("p", null, "Congratulations! You have successfully registered to this event. Enjoy! "), 
                         React.createElement("p", null, "Confirmation email containing payment details has been sent to following address: ", contactPersonEmail)
                     ), 
-                    React.createElement("div", {className: "modal-footer"}, React.createElement(Button, {onClick: this.dismiss}, "Okey dokey!"))
+                    React.createElement("div", {className: "modal-footer"}, React.createElement(Button, {bsStyle: "success", onClick: this.dismiss}, "Okey dokey!"))
                 )
             );
         }

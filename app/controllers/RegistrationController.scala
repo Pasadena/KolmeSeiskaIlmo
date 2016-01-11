@@ -1,21 +1,21 @@
 package controllers
 
-import java.io.{FileOutputStream, File}
-import java.util.Date
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import com.typesafe.config.ConfigFactory
+import it.innove.play.pdf.PdfGenerator
 import models._
+import org.apache.commons.mail.EmailAttachment
 import org.joda.time.DateTime
 import play.api.Logger
-import play.api.data.validation.ValidationError
-import play.api.mvc._
-import play.api.libs.json._
-import play.api.db.slick._
-import play.api.libs.mailer._
 import play.api.Play.current
+import play.api.data.validation.ValidationError
+import play.api.db.slick._
 import play.api.i18n.Messages
-import it.innove.play.pdf.PdfGenerator
-import org.apache.commons.mail.EmailAttachment
+import play.api.libs.json._
+import play.api.libs.mailer._
+import play.api.mvc._
 
 /**
  * Created by spokos on 8/4/15.
@@ -85,8 +85,10 @@ object RegistrationController extends Controller {
     val diningsMap: Map[Int, (String, Double)] = Map(0 -> ("Päivällinen, 1. kattaus", 32.0), 1 -> ("Päivällinen, 1. kattaus", 32.0), 2 -> ("Meriaamiainen", 7.5), 3 -> ("Lounas", 16.0))
     val configOptions = ConfigFactory.load()
     val fonts = List("fonts/FreeSans.ttf")
+    val dueDate = LocalDate.now.plusDays(14)
+    val dueDateFormatted =  dueDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
     PdfGenerator.loadLocalFonts(fonts.toArray)
-    val attachment = PdfGenerator.toBytes(views.html.test.render(allPersonsInCabin, diningsMap, registrationData), host)
+    val attachment = PdfGenerator.toBytes(views.html.test.render(allPersonsInCabin, diningsMap, registrationData, dueDateFormatted), host)
     val outputStream = new java.io.FileOutputStream("Yhtenveto_teekkariristeily.pdf")
     outputStream.write(attachment)
 
@@ -95,7 +97,7 @@ object RegistrationController extends Controller {
       attachments = Seq(
         AttachmentData("Yhtenveto_teekkariristeily.pdf", attachment, "application/pdf", Some("Simple data"), Some(EmailAttachment.INLINE))
       ),
-      bodyText = Some(views.txt.email(configOptions.getString("smtp.user")).toString())
+      bodyText = Some(views.txt.email().toString())
     )
     try {
       MailerPlugin.send(email)
@@ -108,11 +110,13 @@ object RegistrationController extends Controller {
   }
 
   def foo = DBAction { implicit rs =>
+    val dueDate = LocalDate.now.plusDays(14)
+    val dueDateFormatted =  dueDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
     val persons = List(RegisteredPerson(None, -1, "testiEtunimi", "testisukunimi", "foo@bar.fi", "23.03.2015", "111", 1, 1),
       RegisteredPerson(None, -1, "TestingFirst", "TestingLast", "baz@baz.fi", "05.03.2005", "111", 2, 0))
     val diningsMap: Map[Int, (String, Double)] = Map(0 -> ("Päivällinen, 1. kattaus", 32.0), 1 -> ("Päivällinen, 1. kattaus", 32.0), 2 -> ("Meriaamiainen", 7.5), 3 -> ("Lounas", 16.0))
     Ok(views.html.test(persons, diningsMap, RegistrationData(Registration(None, 1, 1, None), Event(Some(1), "Foobar", "Bazquuz", new DateTime(), new DateTime(), new DateTime()),
-    Cabin(Some(1), "A4", "Arara", 4, 100.0))))
+    Cabin(Some(1), "A4", "Arara", 4, 100.0)), dueDateFormatted))
   }
 
 }
