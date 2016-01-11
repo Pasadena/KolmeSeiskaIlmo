@@ -399,10 +399,10 @@ function(React, Router, $, FormComponents, EventStore, CabinStore, RegistrationS
     var EventRegistrationPersonListRow = React.createClass({
         getInitialState: function() {
             return {dinnerMap: {
-                    0: 'Päivällinen, 1. kattaus',
-                    1: 'Päivällinen, 2. kattaus',
-                    2: 'Meriaamiainen',
-                    3: 'Lounas'
+                    1: 'Päivällinen, 1. kattaus',
+                    2: 'Päivällinen, 2. kattaus',
+                    3: 'Meriaamiainen',
+                    4: 'Lounas'
                 }
             };
         },
