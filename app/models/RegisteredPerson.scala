@@ -115,16 +115,12 @@ object RegistrationDAO {
   }
 
   def doesEventHaveRoomForSelectedRegistration(registration: Registration)(implicit session:Session): Boolean = {
-    val registrationCounts = for {
-      event <- events if event.id === registration.eventId
-      eventCabin <- eventCabins if eventCabin.eventId === event.id && eventCabin.cabinId === registration.cabinId
-      registration <- registrations if registration.eventId === event.id
-    } yield (eventCabin.amount, registration)
-
-    val registrationsHavingSameCabin = registrationCounts.list
-    registrationsHavingSameCabin match {
+    val occupiedCabinCount = registrations.filter(existingRegistration => existingRegistration.cabinId === registration.cabinId
+        && existingRegistration.eventId === registration.eventId).list.size
+    val foo = eventCabins.filter(eventCabin => eventCabin.eventId === registration.eventId && eventCabin.cabinId === registration.cabinId).list
+    foo match {
       case Nil => true
-      case x :: xs => x._1 > registrationsHavingSameCabin.size
+      case x :: xs => x.amount > occupiedCabinCount
     }
   }
 }
