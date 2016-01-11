@@ -1,15 +1,24 @@
-define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage', 'Cabins', 'Events', 'RegisterView', 'LoginView'], function(React, $, _, Router, IndexView, AdminPage, CabinPage, EventPage, RegisterView, LoginView) {
+define(['react', 'jquery', 'underscore', 'react-router', 'react-bootstrap', 'IndexView', 'AdminPage', 'Cabins', 'Events', 'RegisterView', 'LoginView'], function(React, $, _, Router, RB, IndexView, AdminPage, CabinPage, EventPage, RegisterView, LoginView) {
     var Route = Router.Route
 
 
     var App = React.createClass({
 
+        getInitialState: function() {
+            return {showErrorModal: false, errorMessage: ""};
+        },
         componentWillMount: function() {
+            var context = this;
             $(document).ajaxStart(function() {
                 $('.overlay').show();
             });
             $(document).ajaxComplete(function() {
                 $('.overlay').hide();
+            });
+            $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
+                $('.overlay').hide();
+                var errorText = jqxhr && jqxhr.responseJSON ? jqxhr.responseJSON.message : "";
+                context.setState({showErrorModal: true, errorMessage: errorText});
             });
         },
         render: function() {
@@ -18,6 +27,7 @@ define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage
                     <div className="overlay" style={{display: 'none'}} >
                         <div id="spinner" className="loading"/>
                     </div>
+                    <ErrorNotification show={this.state.showErrorModal} errorMessage={this.state.errorMessage} />
                     <Router.RouteHandler />
                 </div>
             );
@@ -33,6 +43,28 @@ define(['react', 'jquery', 'underscore', 'react-router', 'IndexView', 'AdminPage
             );
         }
     });
+
+    var ErrorNotification = React.createClass({
+        dismiss: function(event) {
+            window.location.href="/";
+        },
+        render: function() {
+            return (
+                <RB.Modal onRequestHide={this.dismiss} onHide={this.dismiss} show={this.props.show}>
+                    <div className="modal-header">A Unexpected error happened during registration!</div>
+                    <div className="modal-body">
+                        <p>WhoopsieDaisies! Something seems to be gone wrong!</p>
+                        <p>Server returned the following message: {this.props.errorMessage}</p>
+                        <p style={{fontWeight: 'bold'}}>If the problem persists, contact us at &nbsp;
+                            <a href="mailto:teekkariristeily@gmail.com">teekkariristeily@gmail.com</a>
+                        </p>
+                    </div>
+                    <div className="modal-footer"><RB.Button onClick={this.dismiss}>Back to front page!</RB.Button></div>
+                </RB.Modal>
+            );
+        }
+    });
+
 
 
     var routes = (

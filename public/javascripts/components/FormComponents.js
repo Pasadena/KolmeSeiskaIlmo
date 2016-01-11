@@ -235,7 +235,6 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             this.uniqueModelValues.push(component);
         },
         preserveFieldUniqueness: function(component) {
-            {/**$(":checkbox").attr('checked', false);**/}
             _.each(this.uniqueModelValues, function(field) {
                 field.setState({value: 0});
             });
@@ -244,8 +243,7 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             var index = 0,
             children = React.Children.map(this.props.children, function (child) {
                 if(child.type && (child.type.displayName == 'FormFragment')) {
-                    var clonedChild = React.cloneElement(child, { ref: (index++), uniqueFormFields: this.props.uniqueFormFields, preserveFieldUniqueness: this.preserveFieldUniqueness, registerUniqueField: this.registerUniqueAttributeField});
-                    return clonedChild;
+                    return React.cloneElement(child, { ref: (index++), uniqueFormFields: this.props.uniqueFormFields, preserveFieldUniqueness: this.preserveFieldUniqueness, registerUniqueField: this.registerUniqueAttributeField});
                 } else {
                     return child;
                 }

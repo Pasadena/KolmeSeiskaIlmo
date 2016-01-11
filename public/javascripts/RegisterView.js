@@ -143,10 +143,6 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             firstPerson.contactPerson = 1;
             return firstPerson;
         },
-        updateSelectedContactPerson: function(event) {
-            var checkboxes = $(":checkbox");
-            checkboxes.attr('checked', false);
-        },
         render: function() {
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
             while(++i <= len) placesInCabin.push(i)
@@ -168,7 +164,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                                 React.createElement("option", {key: 3, value: "3"}, "Breakfast"), 
                                 React.createElement("option", {key: 4, value: "4"}, "Lunch")
                             ), 
-                            React.createElement(Input, {type: "checkbox", label: "Contact person:", id: contactPersonId, name: "contactPerson", ref: "name", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", externalChangeHandler: this.updateSelectedContactPerson.bind(null)})
+                            React.createElement(Input, {type: "checkbox", label: "Contact person:", id: contactPersonId, name: "contactPerson", ref: "name", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"})
                         )
                     )
                 );

@@ -164,7 +164,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                                 <option key={3} value="3">Breakfast</option>
                                 <option key={4} value="4">Lunch</option>
                             </Input>
-                            <Input type="checkbox" label="Contact person:" id={contactPersonId} name="contactPerson" ref="name" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"}/>
+                            <Input type="checkbox" label="Contact person:" id={contactPersonId} name="contactPerson" ref="name" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
                         </Panel>
                     </FormFragment>
                 );
