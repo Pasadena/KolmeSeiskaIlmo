@@ -73,7 +73,6 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                             passengerListComponent
                         )
                     ), 
-                    registrationSummaryComponent, 
                     React.createElement(SuccessNotification, {close: this.closeDialog, show: this.state.showNotification, 
                         contactPerson: this.state.contactPerson})
                 )
