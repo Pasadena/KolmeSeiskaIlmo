@@ -181,7 +181,9 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     React.createElement("h2", null, "Täytä henkilötiedot: "), 
                     React.createElement(MultiModelForm, {onSubmit: this.saveRegistration, uniqueFormFields: ["contactPerson"]}, 
                         flattenedItems, 
-                        React.createElement(ButtonInput, {type: "submit", bsStyle: "success", value: "Ilmoittaudu!"})
+                        React.createElement("div", {style: {marginLeft: "15px"}}, 
+                            React.createElement(ButtonInput, {type: "submit", bsStyle: "success", value: "Ilmoittaudu!"})
+                        )
                     )
                 )
             );

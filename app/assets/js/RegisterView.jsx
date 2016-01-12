@@ -181,7 +181,9 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     <h2>Täytä henkilötiedot: </h2>
                     <MultiModelForm onSubmit={this.saveRegistration} uniqueFormFields={["contactPerson"]}>
                         {flattenedItems}
-                        <ButtonInput type="submit" bsStyle="success" value="Ilmoittaudu!"/>
+                        <div style={{marginLeft: "15px"}}>
+                            <ButtonInput type="submit" bsStyle="success" value="Ilmoittaudu!"/>
+                        </div>
                     </MultiModelForm>
                 </div>
             );
