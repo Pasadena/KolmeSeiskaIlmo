@@ -68,10 +68,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
              }
             return (
                 React.createElement("div", null, 
-                    React.createElement("h2", null, "Register to event: ", eventName, " "), 
+                    React.createElement("h2", null, "Ilmoittaudu tapahtumaan ", eventName, " "), 
                     React.createElement(RB.Well, {bsSize: "small"}, 
-                        React.createElement("p", null, "When is it: ", eventDate), 
-                        React.createElement("p", null, "When can I sign: ", registrationStarts, " - ", registrationEnds ), 
+                        React.createElement("p", null, "Tapahtuma-aika: ", eventDate), 
+                        React.createElement("p", null, "Ilmoittautumisaika: ", registrationStarts, " - ", registrationEnds ), 
                         React.createElement("p", null, description)
                     ), 
                     selectCabinComponent, 
@@ -98,7 +98,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     return item.cabinId == cabin.cabin.id ? memo + 1 : memo;
                 }, 0);
                 var numberOfAvailableCabins = totalAmountOfCabins - totalAmountOfOccupiedCabins;
-                var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " available ) ";
+                var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " vapaana ) ";
                 var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.id ? true : null;
                 var cabinSelectionDisabled =  numberOfAvailableCabins <= 0 ? true : false;
                 var radioClass = cabinSelectionDisabled ? "disabled-cabin" : null;
@@ -110,7 +110,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                      );
             }, this);
             return (
-                React.createElement(Panel, {header: React.createElement("h3", null, "Available cabins"), bsStyle: "info"}, 
+                React.createElement(Panel, {header: React.createElement("h3", null, "Valitse hyttiluokka"), bsStyle: "info"}, 
                     React.createElement(ListGroup, null, 
                         cabinButtons
                     )
@@ -153,24 +153,24 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
             while(++i <= len) placesInCabin.push(i)
             var items = placesInCabin.map(function(order) {
-                var headerName = React.createElement("h3", null, order, ". person:")
+                var headerName = React.createElement("h3", null, order, ". henkilö:")
                 var contactPersonId = "contactPerson" +order;
                 return (
                     React.createElement(FormFragment, {key: order, ref: order}, 
                         React.createElement(Panel, {header: headerName, bsStyle: "info"}, 
-                            React.createElement(RB.Well, {bsSize: "large", bsStyle: "danger"}, "* marks required field"), 
-                            React.createElement(Input, {type: "text", placeholder: "Insert first name", label: "First name:*", id: "firstNameField", name: "firstName", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
-                            React.createElement(Input, {type: "text", placeholder: "Insert last name", label: "Last name:*", id: "lastNameField", name: "lastName", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
-                            React.createElement(Input, {type: "email", placeholder: "Insert email", label: "Email:*", id: "emailField", name: "email", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
-                            React.createElement(Input, {type: "text", placeholder: "Insert date of birth", label: "Date Of Birth:*", id: "dobField", name: "dateOfBirth", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
-                            React.createElement(Input, {type: "text", placeholder: "Insert Club One-number", label: "Club-number:", id: "clubNumberField", name: "clubNumber", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"}), 
-                            React.createElement(Input, {type: "select", name: "selectedDining", label: "Dining:*", placeholder: "Select the type of dining:", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}, 
-                                React.createElement("option", {key: 1, value: "0"}, "Dinner, first serving"), 
-                                React.createElement("option", {key: 2, value: "1"}, "Dinner, second serving"), 
-                                React.createElement("option", {key: 3, value: "2"}, "Breakfast"), 
-                                React.createElement("option", {key: 4, value: "3"}, "Lunch")
+                            React.createElement(RB.Well, {bsSize: "large", bsStyle: "danger"}, "* = pakollinen tieto"), 
+                            React.createElement(Input, {type: "text", placeholder: "Etunimi", label: "Etunimi:*", id: "firstNameField", name: "firstName", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
+                            React.createElement(Input, {type: "text", placeholder: "Sukunimi", label: "Sukunimi:*", id: "lastNameField", name: "lastName", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
+                            React.createElement(Input, {type: "email", placeholder: "Sähköpostiosoite", label: "Sähköpostiosoite:*", id: "emailField", name: "email", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
+                            React.createElement(Input, {type: "text", placeholder: "Syntymäaika", label: "Syntymäaika:*", id: "dobField", name: "dateOfBirth", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
+                            React.createElement(Input, {type: "text", placeholder: "Club One-numero", label: "Club One-numero:", id: "clubNumberField", name: "clubNumber", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"}), 
+                            React.createElement(Input, {type: "select", name: "selectedDining", label: "Ruokailu:*", placeholder: "Valitse ruokailu:", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}, 
+                                React.createElement("option", {key: 1, value: "0"}, "Buffet-illallinen, 1. kattaus"), 
+                                React.createElement("option", {key: 2, value: "1"}, "Buffet-illallinen, 2. kattaus"), 
+                                React.createElement("option", {key: 3, value: "2"}, "Meriaamiainen"), 
+                                React.createElement("option", {key: 4, value: "3"}, "Buffet-lounas")
                             ), 
-                            React.createElement(Input, {type: "checkbox", label: "Contact person:", id: contactPersonId, name: "contactPerson", ref: "name", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"})
+                            React.createElement(Input, {type: "checkbox", label: "Hytin vastuuhenkilö:", id: contactPersonId, name: "contactPerson", ref: "name", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"})
                         )
                     )
                 );
@@ -178,10 +178,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var flattenedItems = _.flatten(items);
             return (
                 React.createElement("div", {id: "personList"}, 
-                    React.createElement("h2", null, "Fill passenger details: "), 
+                    React.createElement("h2", null, "Täytä henkilötiedot: "), 
                     React.createElement(MultiModelForm, {onSubmit: this.saveRegistration, uniqueFormFields: ["contactPerson"]}, 
                         flattenedItems, 
-                        React.createElement(ButtonInput, {type: "submit", bsStyle: "success", value: "Save registration"})
+                        React.createElement(ButtonInput, {type: "submit", bsStyle: "success", value: "Ilmoittaudu!"})
                     )
                 )
             );
@@ -197,10 +197,12 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var contactPersonEmail = this.props.contactPerson != null ? this.props.contactPerson.email : "";
             return (
                 React.createElement(RB.Modal, {onRequestHide: this.dismiss, onHide: this.dismiss, show: this.props.show}, 
-                    React.createElement("div", {className: "modal-header"}, "Registration successfull!"), 
+                    React.createElement("div", {className: "modal-header"}, "Homma done!"), 
                     React.createElement("div", {className: "modal-body"}, 
-                        React.createElement("p", null, "Congratulations! You have successfully registered to this event. Enjoy! "), 
-                        React.createElement("p", null, "Confirmation email containing payment details has been sent to following address: ", contactPersonEmail)
+                        React.createElement("p", null, "Onneksi olkoon! Ilmoittautumisesi on vastaanotettu! "), 
+                        React.createElement("p", null, "Saat pian vahvistusviestin ja maksuohjeet seuraavaan sähköpostiosoitteeseen: ", contactPersonEmail), 
+                        React.createElement("p", null, "Mikäli et saa vahvistusviestiä vuorokauden kuluessa, ota yhteyttä osoitteeseen  ", 
+                         React.createElement("a", {href: "mailto:teekkariristeily@gmail.com"}, "teekkariristeily@gmail.com"))
                     ), 
                     React.createElement("div", {className: "modal-footer"}, React.createElement(Button, {bsStyle: "success", onClick: this.dismiss}, "Okey dokey!"))
                 )

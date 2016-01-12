@@ -35,7 +35,7 @@ define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], fu
             return (
                 React.createElement("section", null, 
                     React.createElement("hgroup", null, 
-                        React.createElement("h2", null, "Available events: ")
+                        React.createElement("h2", null, "Avoimet ilmoittautumiset: ")
                     ), 
                     React.createElement("div", null, 
                         eventList
@@ -68,10 +68,10 @@ define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], fu
                     React.createElement("div", {className: "card-body"}, 
                         React.createElement("ul", null, 
                             React.createElement("li", null, 
-                                "Event date: ", this.props.event.dateOfEvent
+                                "Päivä: ", this.props.event.dateOfEvent
                             ), 
                             React.createElement("li", null, 
-                                "Registration open: ", this.props.event.registrationStartDate, " - ", this.props.event.registrationEndDate
+                                "Ilmoittautumisaika ", this.props.event.registrationStartDate, " - ", this.props.event.registrationEndDate
                             )
                         )
                     )

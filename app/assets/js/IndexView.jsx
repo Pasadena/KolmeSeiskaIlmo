@@ -35,7 +35,7 @@ define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], fu
             return (
                 <section>
                     <hgroup>
-                        <h2>Available events: </h2>
+                        <h2>Avoimet ilmoittautumiset: </h2>
                     </hgroup>
                     <div>
                         {eventList}
@@ -68,10 +68,10 @@ define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], fu
                     <div className="card-body">
                         <ul>
                             <li>
-                                Event date: {this.props.event.dateOfEvent}
+                                Päivä: {this.props.event.dateOfEvent}
                             </li>
                             <li>
-                                Registration open: {this.props.event.registrationStartDate} - {this.props.event.registrationEndDate}
+                                Ilmoittautumisaika {this.props.event.registrationStartDate} - {this.props.event.registrationEndDate}
                             </li>
                         </ul>
                     </div>

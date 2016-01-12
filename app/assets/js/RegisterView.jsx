@@ -68,10 +68,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
              }
             return (
                 <div>
-                    <h2>Register to event: {eventName} </h2>
+                    <h2>Ilmoittaudu tapahtumaan {eventName} </h2>
                     <RB.Well bsSize="small">
-                        <p>When is it: {eventDate}</p>
-                        <p>When can I sign: {registrationStarts} - {registrationEnds }</p>
+                        <p>Tapahtuma-aika: {eventDate}</p>
+                        <p>Ilmoittautumisaika: {registrationStarts} - {registrationEnds }</p>
                         <p>{description}</p>
                     </RB.Well>
                     {selectCabinComponent}
@@ -98,7 +98,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     return item.cabinId == cabin.cabin.id ? memo + 1 : memo;
                 }, 0);
                 var numberOfAvailableCabins = totalAmountOfCabins - totalAmountOfOccupiedCabins;
-                var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " available ) ";
+                var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " vapaana ) ";
                 var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.id ? true : null;
                 var cabinSelectionDisabled =  numberOfAvailableCabins <= 0 ? true : false;
                 var radioClass = cabinSelectionDisabled ? "disabled-cabin" : null;
@@ -110,7 +110,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                      );
             }, this);
             return (
-                <Panel header={<h3>Available cabins</h3>} bsStyle="info">
+                <Panel header={<h3>Valitse hyttiluokka</h3>} bsStyle="info">
                     <ListGroup>
                         {cabinButtons}
                     </ListGroup>
@@ -153,24 +153,24 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var placesInCabin = [], i = 0, len = !this.props.selectedCabin ? 1 : this.props.selectedCabin.capacity;
             while(++i <= len) placesInCabin.push(i)
             var items = placesInCabin.map(function(order) {
-                var headerName = <h3>{order}. person:</h3>
+                var headerName = <h3>{order}. henkilö:</h3>
                 var contactPersonId = "contactPerson" +order;
                 return (
                     <FormFragment key={order} ref={order}>
                         <Panel header={headerName} bsStyle="info">
-                            <RB.Well bsSize="large" bsStyle="danger">* marks required field</RB.Well>
-                            <Input type="text" placeholder="Insert first name" label="First name:*" id="firstNameField" name="firstName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
-                            <Input type="text" placeholder="Insert last name" label="Last name:*" id="lastNameField" name="lastName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
-                            <Input type="email" placeholder="Insert email" label="Email:*" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
-                            <Input type="text" placeholder="Insert date of birth" label="Date Of Birth:*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
-                            <Input type="text" placeholder="Insert Club One-number" label="Club-number:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
-                            <Input type="select" name="selectedDining" label="Dining:*" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
-                                <option key={1} value="0">Dinner, first serving</option>
-                                <option key={2} value="1">Dinner, second serving</option>
-                                <option key={3} value="2">Breakfast</option>
-                                <option key={4} value="3">Lunch</option>
+                            <RB.Well bsSize="large" bsStyle="danger">* = pakollinen tieto</RB.Well>
+                            <Input type="text" placeholder="Etunimi" label="Etunimi:*" id="firstNameField" name="firstName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
+                            <Input type="text" placeholder="Sukunimi" label="Sukunimi:*" id="lastNameField" name="lastName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
+                            <Input type="email" placeholder="Sähköpostiosoite" label="Sähköpostiosoite:*" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
+                            <Input type="text" placeholder="Syntymäaika" label="Syntymäaika:*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
+                            <Input type="text" placeholder="Club One-numero" label="Club One-numero:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
+                            <Input type="select" name="selectedDining" label="Ruokailu:*" placeholder="Valitse ruokailu:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
+                                <option key={1} value="0">Buffet-illallinen, 1. kattaus</option>
+                                <option key={2} value="1">Buffet-illallinen, 2. kattaus</option>
+                                <option key={3} value="2">Meriaamiainen</option>
+                                <option key={4} value="3">Buffet-lounas</option>
                             </Input>
-                            <Input type="checkbox" label="Contact person:" id={contactPersonId} name="contactPerson" ref="name" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
+                            <Input type="checkbox" label="Hytin vastuuhenkilö:" id={contactPersonId} name="contactPerson" ref="name" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
                         </Panel>
                     </FormFragment>
                 );
@@ -178,10 +178,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var flattenedItems = _.flatten(items);
             return (
                 <div id="personList">
-                    <h2>Fill passenger details: </h2>
+                    <h2>Täytä henkilötiedot: </h2>
                     <MultiModelForm onSubmit={this.saveRegistration} uniqueFormFields={["contactPerson"]}>
                         {flattenedItems}
-                        <ButtonInput type="submit" bsStyle="success" value="Save registration"/>
+                        <ButtonInput type="submit" bsStyle="success" value="Ilmoittaudu!"/>
                     </MultiModelForm>
                 </div>
             );
@@ -197,10 +197,12 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var contactPersonEmail = this.props.contactPerson != null ? this.props.contactPerson.email : "";
             return (
                 <RB.Modal onRequestHide={this.dismiss} onHide={this.dismiss} show={this.props.show}>
-                    <div className="modal-header">Registration successfull!</div>
+                    <div className="modal-header">Homma done!</div>
                     <div className="modal-body">
-                        <p>Congratulations! You have successfully registered to this event. Enjoy! </p>
-                        <p>Confirmation email containing payment details has been sent to following address: {contactPersonEmail}</p>
+                        <p>Onneksi olkoon! Ilmoittautumisesi on vastaanotettu! </p>
+                        <p>Saat pian vahvistusviestin ja maksuohjeet seuraavaan sähköpostiosoitteeseen: {contactPersonEmail}</p>
+                        <p>Mikäli et saa vahvistusviestiä vuorokauden kuluessa, ota yhteyttä osoitteeseen &nbsp;
+                         <a href="mailto:teekkariristeily@gmail.com">teekkariristeily@gmail.com</a></p>
                     </div>
                     <div className="modal-footer"><Button bsStyle="success" onClick={this.dismiss}>Okey dokey!</Button></div>
                 </RB.Modal>
