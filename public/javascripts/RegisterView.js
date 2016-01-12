@@ -58,6 +58,9 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
              }
              var eventName = this.state.event != null ? this.state.event.name : "";
              var description = this.state.event != null ? this.state.event.description : "";
+             var eventDate = this.state.event != null ? this.state.event.dateOfEvent : "";
+             var registrationStarts = this.state.event != null ? this.state.event.registrationStartDate : "";
+             var registrationEnds = this.state.event != null ? this.state.event.registrationEndDate : "";
              var selectCabinComponent, registrationSummaryComponent;
              if(this.state.event) {
                 selectCabinComponent = (React.createElement(SelectCabinComponent, {event: this.state.event, registrations: this.state.registrations, selectedCabin: this.state.selectedCabin, cabinSelectHandler: this.updateSelectedCabin}));
@@ -66,7 +69,11 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             return (
                 React.createElement("div", null, 
                     React.createElement("h2", null, "Register to event: ", eventName, " "), 
-                    React.createElement(RB.Well, {bsSize: "small"}, description), 
+                    React.createElement(RB.Well, {bsSize: "small"}, 
+                        React.createElement("p", null, "When is it: ", eventDate), 
+                        React.createElement("p", null, "When can I sign: ", registrationStarts, " - ", registrationEnds ), 
+                        React.createElement("p", null, description)
+                    ), 
                     selectCabinComponent, 
                     React.createElement(RB.Fade, {in: this.state.selectedCabin ? true : false}, 
                         React.createElement("div", null, 

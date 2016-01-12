@@ -58,6 +58,9 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
              }
              var eventName = this.state.event != null ? this.state.event.name : "";
              var description = this.state.event != null ? this.state.event.description : "";
+             var eventDate = this.state.event != null ? this.state.event.dateOfEvent : "";
+             var registrationStarts = this.state.event != null ? this.state.event.registrationStartDate : "";
+             var registrationEnds = this.state.event != null ? this.state.event.registrationEndDate : "";
              var selectCabinComponent, registrationSummaryComponent;
              if(this.state.event) {
                 selectCabinComponent = (<SelectCabinComponent event={this.state.event} registrations = {this.state.registrations} selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>);
@@ -66,7 +69,11 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             return (
                 <div>
                     <h2>Register to event: {eventName} </h2>
-                    <RB.Well bsSize="small">{description}</RB.Well>
+                    <RB.Well bsSize="small">
+                        <p>When is it: {eventDate}</p>
+                        <p>When can I sign: {registrationStarts} - {registrationEnds }</p>
+                        <p>{description}</p>
+                    </RB.Well>
                     {selectCabinComponent}
                     <RB.Fade in={this.state.selectedCabin ? true : false}>
                         <div>
