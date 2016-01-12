@@ -65,7 +65,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
              }
             return (
                 React.createElement("div", null, 
-                    React.createElement(PageHeader, null, "Register to event: ", eventName, " "), 
+                    React.createElement("h2", null, "Register to event: ", eventName, " "), 
                     React.createElement(RB.Well, {bsSize: "small"}, description), 
                     selectCabinComponent, 
                     React.createElement(RB.Fade, {in: this.state.selectedCabin ? true : false}, 
@@ -157,7 +157,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                             React.createElement(Input, {type: "text", placeholder: "Insert last name", label: "Last name:*", id: "lastNameField", name: "lastName", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
                             React.createElement(Input, {type: "email", placeholder: "Insert email", label: "Email:*", id: "emailField", name: "email", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
                             React.createElement(Input, {type: "text", placeholder: "Insert date of birth", label: "Date Of Birth:*", id: "dobField", name: "dateOfBirth", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
-                            React.createElement(Input, {type: "text", placeholder: "Insert Club-number", label: "Club-number:", id: "clubNumberField", name: "clubNumber", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"}), 
+                            React.createElement(Input, {type: "text", placeholder: "Insert Club One-number", label: "Club-number:", id: "clubNumberField", name: "clubNumber", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"}), 
                             React.createElement(Input, {type: "select", name: "selectedDining", label: "Dining:*", placeholder: "Select the type of dining:", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}, 
                                 React.createElement("option", {key: 1, value: "0"}, "Dinner, first serving"), 
                                 React.createElement("option", {key: 2, value: "1"}, "Dinner, second serving"), 

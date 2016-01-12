@@ -65,7 +65,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
              }
             return (
                 <div>
-                    <PageHeader>Register to event: {eventName} </PageHeader>
+                    <h2>Register to event: {eventName} </h2>
                     <RB.Well bsSize="small">{description}</RB.Well>
                     {selectCabinComponent}
                     <RB.Fade in={this.state.selectedCabin ? true : false}>
@@ -157,7 +157,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                             <Input type="text" placeholder="Insert last name" label="Last name:*" id="lastNameField" name="lastName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="email" placeholder="Insert email" label="Email:*" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert date of birth" label="Date Of Birth:*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
-                            <Input type="text" placeholder="Insert Club-number" label="Club-number:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
+                            <Input type="text" placeholder="Insert Club One-number" label="Club-number:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
                             <Input type="select" name="selectedDining" label="Dining:*" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
                                 <option key={1} value="0">Dinner, first serving</option>
                                 <option key={2} value="1">Dinner, second serving</option>

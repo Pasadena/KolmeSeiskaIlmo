@@ -35,7 +35,7 @@ define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], fu
             return (
                 React.createElement("section", null, 
                     React.createElement("hgroup", null, 
-                        React.createElement("h1", null, "Available events: ")
+                        React.createElement("h2", null, "Available events: ")
                     ), 
                     React.createElement("div", null, 
                         eventList

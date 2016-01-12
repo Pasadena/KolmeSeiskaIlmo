@@ -23,12 +23,15 @@ define(['react', 'jquery', 'underscore', 'react-router', 'react-bootstrap', 'Ind
         },
         render: function() {
             return (
-                React.createElement("div", {id: "mainSection"}, 
+                React.createElement("div", {id: "content"}, 
                     React.createElement("div", {className: "overlay", style: {display: 'none'}}, 
                         React.createElement("div", {id: "spinner", className: "loading"})
                     ), 
                     React.createElement(ErrorNotification, {show: this.state.showErrorModal, errorMessage: this.state.errorMessage}), 
-                    React.createElement(Router.RouteHandler, null)
+                    React.createElement(Header, null), 
+                    React.createElement("div", {id: "main", className: "main"}, 
+                        React.createElement(Router.RouteHandler, null)
+                    )
                 )
             );
         }
@@ -40,6 +43,14 @@ define(['react', 'jquery', 'underscore', 'react-router', 'react-bootstrap', 'Ind
                 React.createElement("div", null, 
                     "The requested page does not exist sucker!"
                 )
+            );
+        }
+    });
+
+    var Header = React.createClass({displayName: "Header",
+        render: function() {
+            return (
+                React.createElement("div", {className: "logo-block"})
             );
         }
     });

@@ -23,12 +23,15 @@ define(['react', 'jquery', 'underscore', 'react-router', 'react-bootstrap', 'Ind
         },
         render: function() {
             return (
-                <div id="mainSection">
+                <div id="content">
                     <div className="overlay" style={{display: 'none'}} >
                         <div id="spinner" className="loading"/>
                     </div>
                     <ErrorNotification show={this.state.showErrorModal} errorMessage={this.state.errorMessage} />
-                    <Router.RouteHandler />
+                    <Header />
+                    <div id="main" className="main">
+                        <Router.RouteHandler />
+                    </div>
                 </div>
             );
         }
@@ -40,6 +43,14 @@ define(['react', 'jquery', 'underscore', 'react-router', 'react-bootstrap', 'Ind
                 <div>
                     The requested page does not exist sucker!
                 </div>
+            );
+        }
+    });
+
+    var Header = React.createClass({
+        render: function() {
+            return (
+                <div className="logo-block"></div>
             );
         }
     });
