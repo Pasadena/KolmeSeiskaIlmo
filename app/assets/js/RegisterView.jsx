@@ -209,7 +209,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         render: function() {
             var registrationForCabinTypes = _.countBy(this.props.registrations, function(item) { return item.cabinId; });
             return (
-                <Panel header="Registrations so far:" bsStyle="info">
+                <Panel header={<h3>Registrations so far:</h3>} bsStyle="info">
                     <ul style={{"listStyle": "none"}}>
                         {(this.props.event.cabins ? this.props.event.cabins : []).map(function(cabin, index) {
                             return (
