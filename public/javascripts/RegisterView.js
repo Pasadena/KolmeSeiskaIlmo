@@ -131,7 +131,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             this.props.submitHandler([registrations, registration], contactPerson);
         },
         getContactPersonFromList: function(registrations) {
-            var selectedContactPerson = _.findWhere(registrations, {contactPerson: '1'});
+            var selectedContactPerson = _.findWhere(registrations, {contactPerson: 1});
             if(selectedContactPerson) {
                return selectedContactPerson;
             } else {
