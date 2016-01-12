@@ -159,10 +159,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                             <Input type="text" placeholder="Insert date of birth" label="Date Of Birth:*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Insert Club-number" label="Club-number:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
                             <Input type="select" name="selectedDining" label="Dining:*" placeholder="Select the type of dining:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
-                                <option key={1} value="1">Dinner, first serving</option>
-                                <option key={2} value="2">Dinner, second serving</option>
-                                <option key={3} value="3">Breakfast</option>
-                                <option key={4} value="4">Lunch</option>
+                                <option key={1} value="0">Dinner, first serving</option>
+                                <option key={2} value="1">Dinner, second serving</option>
+                                <option key={3} value="2">Breakfast</option>
+                                <option key={4} value="3">Lunch</option>
                             </Input>
                             <Input type="checkbox" label="Contact person:" id={contactPersonId} name="contactPerson" ref="name" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
                         </Panel>

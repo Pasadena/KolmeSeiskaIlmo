@@ -159,10 +159,10 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                             React.createElement(Input, {type: "text", placeholder: "Insert date of birth", label: "Date Of Birth:*", id: "dobField", name: "dateOfBirth", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
                             React.createElement(Input, {type: "text", placeholder: "Insert Club-number", label: "Club-number:", id: "clubNumberField", name: "clubNumber", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"}), 
                             React.createElement(Input, {type: "select", name: "selectedDining", label: "Dining:*", placeholder: "Select the type of dining:", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}, 
-                                React.createElement("option", {key: 1, value: "1"}, "Dinner, first serving"), 
-                                React.createElement("option", {key: 2, value: "2"}, "Dinner, second serving"), 
-                                React.createElement("option", {key: 3, value: "3"}, "Breakfast"), 
-                                React.createElement("option", {key: 4, value: "4"}, "Lunch")
+                                React.createElement("option", {key: 1, value: "0"}, "Dinner, first serving"), 
+                                React.createElement("option", {key: 2, value: "1"}, "Dinner, second serving"), 
+                                React.createElement("option", {key: 3, value: "2"}, "Breakfast"), 
+                                React.createElement("option", {key: 4, value: "3"}, "Lunch")
                             ), 
                             React.createElement(Input, {type: "checkbox", label: "Contact person:", id: contactPersonId, name: "contactPerson", ref: "name", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"})
                         )
