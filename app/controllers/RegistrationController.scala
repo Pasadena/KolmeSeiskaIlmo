@@ -108,7 +108,7 @@ object RegistrationController extends Controller {
     }
   }
 
-  val diningsMap:Map[Int, (String, Double)] = Map(0 -> ("Päivällinen, 1. kattaus", 32.0), 1 -> ("Päivällinen, 2. kattaus", 32.0), 2 -> ("Meriaamiainen", 7.5), 3 -> ("Lounas", 16.0))
+  val diningsMap:Map[Int, (String, Double)] = Map(0 -> ("Päivällinen, 1. kattaus", 33.0), 1 -> ("Päivällinen, 2. kattaus", 33.0), 2 -> ("Meriaamiainen", 10.5), 3 -> ("Lounas", 25.0))
 
   def foo = DBAction { implicit rs =>
     val dueDate = LocalDate.now.plusDays(14)
