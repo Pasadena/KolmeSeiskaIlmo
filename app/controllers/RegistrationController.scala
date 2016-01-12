@@ -60,7 +60,12 @@ object RegistrationController extends Controller {
     jsResult match {
       case registrationData => registrationData.asOpt match {
         case Some((list, registration)) => {
-          if(RegistrationDAO.doesEventHaveRoomForSelectedRegistration(registration)) {
+          if (!EventDAO.isEventRegistrationInProgress(registration.eventId)) {
+            BadRequest(Json.obj("status" -> "KO", "message" -> "Registration is not currently in progress"))
+          }
+          else if (!RegistrationDAO.doesEventHaveRoomForSelectedRegistration(registration)) {
+            BadRequest(Json.obj("status" -> "KO", "message" -> "The selected cabin type was sold out during registration. Please select different cabin"))
+          } else {
             val registrationId = RegistrationDAO.saveRegistration(registration)
             RegistrationDAO.saveRegistrationPersons(list, registrationId)
             list.filter(_.contactPerson == 1) match {
@@ -68,8 +73,6 @@ object RegistrationController extends Controller {
               case x :: xs => sendConfirmationMail(x, list, RegistrationDAO.loadRegistrationWithEventAndCabin(registrationId), rs.host)
             }
             Ok(Json.obj("status" -> "Ok", "message" -> "Registration succesfully saved"))
-          } else {
-            BadRequest(Json.obj("status" -> "KO", "message" -> "The selected cabin type was sold out during registration. Please select different cabin"))
           }
         }
         case None => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened while parsing registration list"))

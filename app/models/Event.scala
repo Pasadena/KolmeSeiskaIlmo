@@ -152,4 +152,12 @@ object EventDAO {
   private def deleteEventCabins(eventId: Long)(implicit session: Session) = {
     eventCabins.filter(_.eventId === eventId).delete
   }
+
+  def isEventRegistrationInProgress(eventId: Long)(implicit session: Session): Boolean = {
+    val eventsMatchingId = events.filter(_.id === eventId).list
+    eventsMatchingId.headOption match {
+      case None => true
+      case Some(event) => event.registrationStartDate.isBeforeNow && event.registrationEndDate.isAfterNow
+    }
+  }
 }
