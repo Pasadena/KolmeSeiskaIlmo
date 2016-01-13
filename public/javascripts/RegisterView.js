@@ -22,7 +22,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var event = EventStore.getSelectedEvent();
             var registrations = RegistrationStore.getRegistrations();
             return {event: event, selectedCabin: null, registrations: registrations,
-                showNotification: RegistrationStore.getNotificationState(), contactPerson: this.contactPerson};
+                showNotification: RegistrationStore.getNotificationState(), contactPerson: this.contactPerson, alerts: []};
         },
         componentWillMount: function() {
             this.contactPerson = null;
@@ -41,7 +41,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             this.setState(this.getInitialState());
         },
         updateSelectedCabin: function(selectedCabin) {
-            this.setState({selectedCabin: selectedCabin});
+            this.setState({selectedCabin: selectedCabin, alerts: []});
         },
         handleSubmit: function(registrationData, contactPerson) {
             RegistrationActions.saveRegistration({data: registrationData, url: "/register"})
@@ -51,10 +51,14 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             this.setState({showNotification: false});
             this.context.router.transitionTo("/");
         },
+        addAlert: function(alert) {
+            this.state.alerts.push(alert);
+            this.setState({alerts: this.state.alerts})
+        },
         render: function() {
             var passengerListComponent;
              if(this.state.selectedCabin) {
-                passengerListComponent = React.createElement(PassengerListComponent, {selectedCabin: this.state.selectedCabin, event: this.state.event, submitHandler: this.handleSubmit});
+                passengerListComponent = React.createElement(PassengerListComponent, {selectedCabin: this.state.selectedCabin, event: this.state.event, submitHandler: this.handleSubmit, alertHandler: this.addAlert});
              }
              var eventName = this.state.event != null ? this.state.event.name : "";
              var description = this.state.event != null ? this.state.event.description : "";
@@ -66,6 +70,13 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 selectCabinComponent = (React.createElement(SelectCabinComponent, {event: this.state.event, registrations: this.state.registrations, selectedCabin: this.state.selectedCabin, cabinSelectHandler: this.updateSelectedCabin}));
                 registrationSummaryComponent = (React.createElement(RegistrationSummaryView, {event: this.state.event, registrations: this.state.registrations}));
              }
+             var alerts = _.map(this.state.alerts, function(alert) {
+                return (
+                    React.createElement(RB.Alert, {bsStyle: "danger"}, 
+                        alert
+                    )
+                );
+             });
             return (
                 React.createElement("div", null, 
                     React.createElement("h2", null, "Ilmoittaudu tapahtumaan ", eventName, " "), 
@@ -75,9 +86,11 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                         React.createElement("p", null, description)
                     ), 
                     selectCabinComponent, 
+
                     React.createElement(RB.Fade, {in: this.state.selectedCabin ? true : false}, 
                         React.createElement("div", null, 
-                            passengerListComponent
+                            passengerListComponent, 
+                            alerts
                         )
                     ), 
                     React.createElement(SuccessNotification, {close: this.closeDialog, show: this.state.showNotification, 
@@ -124,17 +137,24 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             router: React.PropTypes.func
         },
         saveRegistration: function(registrations) {
-            _.each(registrations, function(registration) {
+            var filledRegistrations = _.filter(registrations, function(item) {
+                return item.emptyPerson != 1;
+            });
+            if(filledRegistrations.length == 0) {
+                this.props.alertHandler("Ahoy! Ilmoittautumisen tulee sisältää vähintää yhden henkilön tiedot.");
+                return false;
+            }
+            _.each(filledRegistrations, function(registration) {
                 registration["selectedDining"] = registration["selectedDining"] ? parseInt(registration["selectedDining"]) : 0;
                 if(registration.contactPerson != '1') {
                     registration["contactPerson"] = 0;
                 }
                 registration["registrationId"] = -1;
             }, this);
-            var contactPerson = this.getContactPersonFromList(registrations);
+            var contactPerson = this.getContactPersonFromList(filledRegistrations);
 
             var registration = {cabinId: this.props.selectedCabin.id, eventId: this.props.event.id};
-            this.props.submitHandler([registrations, registration], contactPerson);
+            this.props.submitHandler([filledRegistrations, registration], contactPerson);
         },
         getContactPersonFromList: function(registrations) {
             var selectedContactPerson = _.findWhere(registrations, {contactPerson: 1});
@@ -159,7 +179,8 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     React.createElement(FormFragment, {key: order, ref: order}, 
                         React.createElement(Panel, {header: headerName, bsStyle: "info"}, 
                             React.createElement(RB.Well, {bsSize: "large", bsStyle: "danger"}, "* = pakollinen tieto"), 
-                            React.createElement(Input, {type: "text", placeholder: "Etunimi", label: "Etunimi:*", id: "firstNameField", name: "firstName", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
+                            React.createElement(Input, {type: "text", placeholder: "Etunimi", label: "Etunimi:*", id: "firstNameField", name: "firstName", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", 
+                                required: "true"}), 
                             React.createElement(Input, {type: "text", placeholder: "Sukunimi", label: "Sukunimi:*", id: "lastNameField", name: "lastName", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
                             React.createElement(Input, {type: "email", placeholder: "Sähköpostiosoite", label: "Sähköpostiosoite:*", id: "emailField", name: "email", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
                             React.createElement(Input, {type: "text", placeholder: "Syntymäaika", label: "Syntymäaika:*", id: "dobField", name: "dateOfBirth", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4", required: "true"}), 
@@ -170,7 +191,8 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                                 React.createElement("option", {key: 3, value: "2"}, "Meriaamiainen"), 
                                 React.createElement("option", {key: 4, value: "3"}, "Buffet-lounas")
                             ), 
-                            React.createElement(Input, {type: "checkbox", label: "Hytin vastuuhenkilö:", id: contactPersonId, name: "contactPerson", ref: "name", labelClassName: "col-sm-2 control-label", wrapperClassName: "col-xs-4"})
+                            React.createElement(Input, {type: "checkbox", label: "Hytin vastuuhenkilö:", id: contactPersonId, name: "contactPerson", ref: "name", labelClassName: "col-sm-6 control-label", wrapperClassName: "col-xs-6"}), 
+                            React.createElement(Input, {type: "checkbox", label: "Jätä paikka tyhjäksi", id: "emptyPerson", name: "emptyPerson", labelClassName: "col-sm-6 control-label", wrapperClassName: "col-xs-6", disableForm: "true"})
                         )
                     )
                 );

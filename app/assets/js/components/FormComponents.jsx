@@ -27,6 +27,11 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
                 this.children = this.registerChildren(nextProps.children);
             }
         },
+        componentDidUpdate: function(prevProps, prevState) {
+            {/**_.each(this.elements, function(element) {
+                element.setDisabled(false);
+            });**/}
+        },
         componentWillReceiveProps: function(nextProps) {
             if(nextProps.model) {
                 this.bindExistingValuesToFields(nextProps.model);
@@ -48,6 +53,13 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         registerUniqueField: function(component) {
             this.props.registerUniqueField(component);
         },
+        disableFragment: function(component) {
+            _.each(this.elements, function(element) {
+                if(component.props.name != element.props.name) {
+                    element.setDisabled(!element.state.disabled);
+                }
+            });
+        },
         registerChildren: function(children) {
             var clonedChildren = React.Children.map(children, function(child) {
                 var childProps;
@@ -58,7 +70,10 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
                     var unique = this.props.uniqueFormFields ? $.inArray(child.props.name, this.props.uniqueFormFields) != -1 : false;
                     var uniquenessHandler = unique ? this.preserveFieldUniqueness : null;
                     var uniquenessRegisterer = unique ? this.registerUniqueField : null;
-                    return React.cloneElement(child, {attachToForm: this.attachToForm, detachFromForm: this.detachFromForm, validate: this.validate, children: child.props.children, preserveFieldUniqueness: uniquenessHandler, registerUniqueField: uniquenessRegisterer});
+                    var disableFormHandler = child.props.disableForm ? this.disableFragment : null;
+                    return React.cloneElement(child, {attachToForm: this.attachToForm, detachFromForm: this.detachFromForm, validate: this.validate,
+                        children: child.props.children, preserveFieldUniqueness: uniquenessHandler,
+                        registerUniqueField: uniquenessRegisterer, disableForm: disableFormHandler});
                 } else {
                     return child;
                 }
@@ -330,7 +345,7 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
 
     var InputWrapper = React.createClass({
         getInitialState: function() {
-            return {value: this.props.value || '', isValid: true, serverErrors: null};
+            return {value: this.props.value || '', isValid: true, serverErrors: null, disabled: this.props.disabled || false};
         },
         componentWillMount: function() {
             if(this.props.attachToForm) {
@@ -353,6 +368,12 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
             } else {
                 this.setState({value: event.target.value});
             }
+            if(this.props.disableForm) {
+                this.props.disableForm(this);
+            }
+        },
+        setDisabled: function(disabled) {
+            this.setState({disabled: disabled});
         },
         render: function() {
             if(this.props.type == 'checkbox') {
@@ -362,7 +383,7 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
                 <Input type={this.props.type} name={this.props.name} value={this.state.value}
                         placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name}
                         labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName}
-                        required={this.props.required} onChange={this.handleChange}>
+                        required={this.props.required} onChange={this.handleChange} disabled={this.state.disabled}>
                     {this.props.children}
                 </Input>
             );
