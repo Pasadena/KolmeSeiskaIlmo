@@ -49,7 +49,8 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
         },
         closeDialog: function() {
             this.setState({showNotification: false});
-            this.context.router.transitionTo("/");
+            {/**this.context.router.transitionTo("/");**/}
+            window.location = "http://teekkariristeily.net";
         },
         addAlert: function(alert) {
             this.state.alerts.push(alert);
