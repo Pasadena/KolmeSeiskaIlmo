@@ -183,7 +183,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                                 required="true" />
                             <Input type="text" placeholder="Sukunimi" label="Sukunimi:*" id="lastNameField" name="lastName" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="email" placeholder="Sähköpostiosoite" label="Sähköpostiosoite:*" id="emailField" name="email" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
-                            <Input type="text" placeholder="Syntymäaika" label="Syntymäaika:*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
+                            <Input type="text" placeholder="pp.kk.vvvv" label="Syntymäaika (pp.kk.vvvv):*" id="dobField" name="dateOfBirth" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true"/>
                             <Input type="text" placeholder="Club One-numero" label="Club One-numero:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4"/>
                             <Input type="select" name="selectedDining" label="Ruokailu:*" placeholder="Valitse ruokailu:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" required="true">
                                 <option key={1} value="0">Buffet-illallinen, 1. kattaus</option>
