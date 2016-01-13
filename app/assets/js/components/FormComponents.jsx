@@ -383,7 +383,8 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
                 <Input type={this.props.type} name={this.props.name} value={this.state.value}
                         placeholder={this.props.placeholder} label={this.props.label} id={this.props.id} name={this.props.name}
                         labelClassName={this.props.labelClassName} wrapperClassName={this.props.wrapperClassName}
-                        required={this.props.required} onChange={this.handleChange} disabled={this.state.disabled}>
+                        required={this.props.required} onChange={this.handleChange} disabled={this.state.disabled}
+                        maxLength={this.props.maxlength}>
                     {this.props.children}
                 </Input>
             );
