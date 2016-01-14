@@ -84,7 +84,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     React.createElement(RB.Well, {bsSize: "small"}, 
                         React.createElement("p", null, "Tapahtuma-aika: ", eventDate), 
                         React.createElement("p", null, "Ilmoittautumisaika: ", registrationStarts, " - ", registrationEnds ), 
-                        React.createElement("p", null, description)
+                        React.createElement("p", null, React.createElement("pre", null, description))
                     ), 
                     selectCabinComponent, 
 
