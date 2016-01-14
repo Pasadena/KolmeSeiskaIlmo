@@ -14,7 +14,7 @@ import play.api.libs.json.Json._
 
 case class Registration(id: Option[Long], cabinId: Long, eventId: Long, timestamp: Option[Timestamp])
 
-case class RegisteredPerson(id: Option[Long], registrationId: Long, firstName: String, lastName: String, email: String, dateOfBirth: String, clubNumber: String, selectedDining: Int, contactPerson: Int)
+case class RegisteredPerson(id: Option[Long], registrationId: Long, firstName: String, lastName: String, email: String, dateOfBirth: String, clubNumber: String, nationality: Option[String], selectedDining: Int, contactPerson: Int)
 
 case class RegistrationData(registration: Registration, event: Event, cabin: Cabin)
 
@@ -66,10 +66,11 @@ class RegisteredPersons(tag: Tag) extends Table[RegisteredPerson](tag, "REGISTER
   def email = column[String]("EMAIL")
   def dateOfBirth= column[String]("DATE_OF_BIRTH")
   def clubNumber = column[String]("CLUB_NUMBER")
+  def nationality = column[String]("NATIONALITY")
   def selectedDining = column[Int]("SELECTED_DINING")
   def contactPerson = column[Int]("CONTACT_PERSON")
 
-  def * = (id, registrationId, firstName, lastName, email, dateOfBirth, clubNumber, selectedDining, contactPerson) <> ((RegisteredPerson.apply _).tupled, RegisteredPerson.unapply _)
+  def * = (id, registrationId, firstName, lastName, email, dateOfBirth, clubNumber, nationality.?, selectedDining, contactPerson) <> ((RegisteredPerson.apply _).tupled, RegisteredPerson.unapply _)
 }
 
 object RegistrationDAO {
@@ -85,7 +86,8 @@ object RegistrationDAO {
   }
 
   def saveRegistrationPersons(persons: List[RegisteredPerson], registrationId: Long)(implicit session: Session) = {
-    for(person <- persons)  registeredPersons += person.copy(None, registrationId, person.firstName, person.lastName, person.email, person.dateOfBirth, person.clubNumber, person.selectedDining, person.contactPerson)
+    for(person <- persons)  registeredPersons += person.copy(None, registrationId, person.firstName, person.lastName, person.email,
+      person.dateOfBirth, person.clubNumber, person.nationality, person.selectedDining, person.contactPerson)
   }
 
   def loadEventRegistrations(eventId: Long)(implicit session: Session): List[Registration] = {

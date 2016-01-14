@@ -116,8 +116,8 @@ object RegistrationController extends Controller {
   def foo = DBAction { implicit rs =>
     val dueDate = LocalDate.now.plusDays(14)
     val dueDateFormatted =  dueDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
-    val persons = List(RegisteredPerson(None, -1, "testiEtunimi", "testisukunimi", "foo@bar.fi", "23.03.2015", "111", 1, 1),
-      RegisteredPerson(None, -1, "TestingFirst", "TestingLast", "baz@baz.fi", "05.03.2005", "111", 2, 2))
+    val persons = List(RegisteredPerson(None, -1, "testiEtunimi", "testisukunimi", "foo@bar.fi", "23.03.2015", "111", Some("Suomi"), 1, 1),
+      RegisteredPerson(None, -1, "TestingFirst", "TestingLast", "baz@baz.fi", "05.03.2005", "111", Some("Suomi"), 2, 2))
     Ok(views.html.test(persons, diningsMap, RegistrationData(Registration(None, 1, 1, None), Event(Some(1), "Foobar", "Bazquuz", new DateTime(), new DateTime(), new DateTime()),
     Cabin(Some(1), "A4", "Arara", 4, 100.0)), dueDateFormatted))
   }

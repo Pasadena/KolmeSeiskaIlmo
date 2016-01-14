@@ -93,6 +93,17 @@
                             </div>
                             <div class="table-row">
                                 <div class="table-cell">
+                                    <label>Kansallisuus:</label>
+                                </div>
+                                <div class="table-cell">
+                                    @person.nationality match {
+                                        case Some(nationality) => { @nationality }
+                                        case None => { }
+                                    }
+                                </div>
+                            </div>
+                            <div class="table-row">
+                                <div class="table-cell">
                                     <label>Club-numero:</label>
                                 </div>
                                 <div class="table-cell">
