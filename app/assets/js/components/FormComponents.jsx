@@ -176,7 +176,7 @@ define(['react', 'jquery', '../node_modules/validator/validator', 'underscore', 
         getModel: function() {
             return this.refs.wrapper.getModel();
         },
-        getComponentByName(name) {
+        getComponentByName: function(name) {
             return this.refs.wrapper.getInputComponentByName(name, this.refs.wrapper.children);
         },
         preserveFieldUniqueness: function(component) {
