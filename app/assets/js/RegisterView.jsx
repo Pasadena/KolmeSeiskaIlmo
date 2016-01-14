@@ -84,7 +84,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                     <RB.Well bsSize="small">
                         <p>Tapahtuma-aika: {eventDate}</p>
                         <p>Ilmoittautumisaika: {registrationStarts} - {registrationEnds }</p>
-                        <p>{description}</p>
+                        <p><pre>{description}</pre></p>
                     </RB.Well>
                     {selectCabinComponent}
 
