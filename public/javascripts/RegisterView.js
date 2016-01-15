@@ -113,7 +113,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
                 }, 0);
                 var numberOfAvailableCabins = totalAmountOfCabins - totalAmountOfOccupiedCabins;
                 var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " vapaana ) ";
-                var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.id ? true : false;
+                var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.cabin.id ? true : false;
                 var cabinSelectionDisabled =  numberOfAvailableCabins <= 0 ? true : false;
                 var radioClass = cabinSelectionDisabled ? "disabled-cabin" : null;
                 return (
