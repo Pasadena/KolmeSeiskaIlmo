@@ -202,7 +202,7 @@ define(['react','react-router', 'jquery', 'components/FormComponents', 'undersco
             var flattenedItems = _.flatten(items);
             return (
                 <div id="personList">
-                    <h2>Täytä henkilötiedot: </h2>
+                    <h2>Täytä hytin {this.props.selectedCabin.name} henkilötiedot: </h2>
                     <MultiModelForm onSubmit={this.saveRegistration} uniqueFormFields={["contactPerson"]}>
                         {flattenedItems}
                         <div style={{marginLeft: "15px"}}>
