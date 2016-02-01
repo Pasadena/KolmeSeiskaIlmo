@@ -30,7 +30,9 @@ libraryDependencies ++= Seq(
   "org.webjars" % "react-bootstrap" % "0.19.1",
   "com.typesafe.play" %% "play-mailer" % "2.4.1",
   "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
-  "it.innove" % "play2-pdf" % "1.0.0"
+  "it.innove" % "play2-pdf" % "1.0.0",
+  "org.apache.poi" % "poi" % "3.8",
+  "org.apache.poi" % "poi-ooxml" % "3.9"
 )
 
 playRunHooks <+= baseDirectory.map(base => GruntHook(base))

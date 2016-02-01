@@ -34,6 +34,7 @@ POST /admin/events/delete/:id           controllers.EventController.deleteEvent(
 GET /admin/events/:id                   controllers.EventController.getSelectedEvent(id: Long)
 POST /admin/events/:id                  controllers.EventController.updateEvent(id: Long)
 GET /admin/events/registrations/:id     controllers.RegistrationController.loadEventRegisteredPersons(id: Long)
+GET /admin/event/excel/:id              controllers.EventController.downloadRegistrationExcel(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)

@@ -300,6 +300,14 @@ function(React, Router, $, FormComponents, EventStore, CabinStore, RegistrationS
                                 React.createElement(RB.Button, {type: "button", value: "View registrations", className: "btn btn-primary", onClick: this.viewRegistrationData}, "View registrations")
                                 )
                             )
+                        ), 
+                        React.createElement("div", {className: "list-form"}, 
+                            React.createElement("form", null, 
+                                React.createElement(RB.ButtonToolbar, null, 
+                                    React.createElement(RB.Button, {type: "button", value: "Download registrations", className: "btn btn-primary", 
+                                    href: '/admin/event/excel/' +this.props.event.id}, "Get Excel")
+                                )
+                            )
                         )
                     )
                 )

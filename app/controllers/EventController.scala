@@ -1,5 +1,6 @@
 package controllers
 
+import _root_.util.ExcelUtils
 import models._
 import play.api.data.validation.ValidationError
 import play.api.db.slick.DBAction
@@ -71,5 +72,12 @@ object EventController extends Controller with Secured {
         case None => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened during event update!"))
       }
     }
+  }
+
+  def downloadRegistrationExcel(eventId: Long) = DBAction {  implicit rs =>
+    val registrationsForEvent = RegistrationDAO.loadRegistrationsWithPersons(eventId)
+    val event = EventDAO.findById(eventId)
+    val registrationFile = ExcelUtils.generateExcelFronRegisteredPersons(registrationsForEvent, event._1)
+    Ok.sendFile(registrationFile, false, (_) => s"Yhteenveto ${event._1.name}.xlsx")
   }
 }

@@ -301,6 +301,14 @@ function(React, Router, $, FormComponents, EventStore, CabinStore, RegistrationS
                                 </RB.ButtonToolbar>
                             </form>
                         </div>
+                        <div className="list-form">
+                            <form>
+                                <RB.ButtonToolbar>
+                                    <RB.Button type="button" value="Download registrations" className="btn btn-primary"
+                                    href={'/admin/event/excel/' +this.props.event.id}>Get Excel</RB.Button>
+                                </RB.ButtonToolbar>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             )
