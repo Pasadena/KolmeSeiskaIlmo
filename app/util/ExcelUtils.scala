@@ -70,8 +70,9 @@ object ExcelUtils {
 
   private def createRegistrationRows(sheet: XSSFSheet, workBook: XSSFWorkbook, registration: RegistrationWithPersons, nextAvailableRow: Int, registrationIndex: Int): Int = {
     val dataStyle = this.createBorderedCellStyle(workBook)
+    var currentRow = nextAvailableRow
     registration.persons foreach { person =>
-      val personRow = sheet.createRow(nextAvailableRow)
+      val personRow = sheet.createRow(currentRow)
 
       this.createRegistrationDataCell(personRow, 0, registrationIndex.toString, dataStyle)
       this.createRegistrationDataCell(personRow, 1, registration.cabin.name, dataStyle)
@@ -86,8 +87,9 @@ object ExcelUtils {
       this.createRegistrationDataCell(personRow, 10, if(person.selectedDining == 1) "1" else "0", dataStyle)
       this.createRegistrationDataCell(personRow, 11, if(person.selectedDining == 2) "1" else "0", dataStyle)
       this.createRegistrationDataCell(personRow, 12, if(person.selectedDining == 3) "1" else "0", dataStyle)
+      currentRow += 1
     }
-    nextAvailableRow +1
+    nextAvailableRow +registration.persons.size
   }
 
   private def createRegistrationDataCell(row: XSSFRow, cellIndex: Int, value: String, cellStyle: CellStyle) = {
