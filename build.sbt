@@ -8,11 +8,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
-  //jdbc,
   cache,
   ws,
-  //"com.typesafe.slick" %% "slick" % "2.1.0",
-  //"com.typesafe.play" %% "play-slick" % "0.8.0",
   "com.typesafe.play" %% "play-slick" % "2.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "2.0.0",
   "org.webjars" %% "webjars-play" % "2.4.0-2",
@@ -41,6 +38,4 @@ libraryDependencies += evolutions
 PlayKeys.playRunHooks += GruntHook(baseDirectory.value)
 
 routesGenerator := InjectedRoutesGenerator
-
-//playRunHooks <+= baseDirectory.map(base => GruntHook(base))
 
