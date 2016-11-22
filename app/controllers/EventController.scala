@@ -3,16 +3,19 @@ package controllers
 import _root_.util.ExcelUtils
 import models._
 import play.api.data.validation.ValidationError
-import play.api.db.slick.DBAction
-import play.api.mvc.Controller
+import play.api.mvc._
 import play.api.libs.json._
 import play.api.db.slick._
-import play.api.db.slick.Config.driver.simple._
+
+import javax.inject._
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import slick.driver.JdbcProfile
 
 /**
  * Created by spokos on 2/28/15.
  */
-object EventController extends Controller with Secured {
+class EventController @Inject()(eventDAO: EventDAO)(registrationDAO: RegistrationDAO)(dbConfigProvider: DatabaseConfigProvider) extends Controller with Secured {
 
   def index = isAuthenticated { implicit rs =>
     Ok(views.html.admin.events())
@@ -22,62 +25,58 @@ object EventController extends Controller with Secured {
     Ok(views.html.admin.admin())
   }
 
-  def events = DBAction { implicit rs =>
-    val events: List[Event] =  EventDAO.getAll()
-    Ok(Json.obj("events" -> Json.toJson(events.sortWith((first, second) => second.dateOfEvent.compareTo(first.dateOfEvent) < 0))))
+  def events: Action[AnyContent] = Action.async{ implicit rs =>
+    eventDAO.getAll().map(events => Ok(Json.obj("events" ->
+      Json.toJson(events.sortWith((first, second) => second.dateOfEvent.compareTo(first.dateOfEvent) < 0)))))
   }
 
-  def createEvent = DBAction(parse json) { implicit rs =>
-    val jsResult = rs.body.validate[(Event, List[EventCabin])]
-    jsResult match {
-      case event => event.asOpt match {
-        case Some(x) => {
-          EventDAO.create(x._1) match {
-            case Some(id) => {
-              EventDAO.createEventCabins(id, x._2)
-              Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully saved", "event" -> Json.toJson(EventDAO.findById(id))))
-            }
-            case None => BadRequest(Json.obj("status" ->"KO", "message" -> "Unexpected error happened when saving event cabins!"))
-          }
-        }
-        case None => BadRequest(Json.obj("status" ->"KO", "message" -> "Unexpected error happened during event parsing!"))
+
+  def createEvent(): Action[JsValue] = Action.async(BodyParsers.parse.json) { implicit rs =>
+    parsePost[(Event, List[EventCabin])](this, {
+      case eventData => {
+        eventDAO.createEventAndCabins(eventData._1, eventData._2)
+          .map(event => Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully saved", "event" -> Json.toJson(event))))
       }
-    }
+    })
   }
 
-  def deleteEvent(id: Long) = DBAction {  implicit rs =>
-    (EventDAO.delete(id) == 1) match {
+  def deleteEvent(id: Long) = Action.async {  implicit rs =>
+    eventDAO.delete(id).map(deleteStatus => deleteStatus == 1 match {
       case true => Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully deleted"))
       case false => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened during event delete!"))
-    }
+    })
   }
 
-  def getEvent(id: Long) = DBAction { implicit re =>
-    val event = EventDAO.findById(id)
-    Ok(Json.obj("event" -> Json.toJson(event)))
+
+  def getEvent(id: Long) = Action.async { implicit re =>
+    eventDAO.findById(id).map(event => Ok(Json.obj("event" -> Json.toJson(event))))
   }
 
-  def getSelectedEvent(id: Long) = DBAction { implicit re =>
-    val event = EventDAO.findEventDataById(id)
-    Ok(Json.obj("event" -> Json.toJson(event)))
+  def getSelectedEvent(id: Long) = Action.async  { implicit re =>
+    eventDAO.findEventDataById(id).map(eventData =>
+      Ok(Json.obj("event" -> Json.toJson(eventData))))
   }
 
-  def updateEvent(id: Long) = DBAction(parse json) {  implicit rs =>
-    val jsResult = rs.body.validate[(Event, List[EventCabin])]
-    jsResult match {
-      case eventData => eventData.asOpt match {
-        case Some(eventTuple) =>
-          EventDAO.updateEvent(eventTuple._1, eventTuple._2)
-          Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully updated!", "event" -> Json.toJson(EventDAO.findById(eventTuple._1.id.get))))
-        case None => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened during event update!"))
+
+  def updateEvent(id: Long) = Action.async(BodyParsers.parse.json) {  implicit rs =>
+    parsePost[(Event, List[EventCabin])](this, {
+      eventData => {
+        eventDAO.updateEvent(eventData._1, eventData._2).map(res =>
+          Ok(Json.obj("status" -> "Ok", "message" -> "Event succesfully saved", "event" -> Json.toJson(eventData._1)))
+        )
       }
-    }
+    })
   }
 
-  def downloadRegistrationExcel(eventId: Long) = DBAction {  implicit rs =>
-    val registrationsForEvent = RegistrationDAO.loadRegistrationsWithPersons(eventId)
-    val event = EventDAO.findById(eventId)
-    val registrationFile = ExcelUtils.generateExcelFronRegisteredPersons(registrationsForEvent, event._1)
-    Ok.sendFile(registrationFile, false, (_) => s"Yhteenveto ${event._1.name}.xlsx")
+  def downloadRegistrationExcel(eventId: Long) = Action.async {  implicit rs =>
+    val eventData = for {
+      registrations <- registrationDAO.loadRegistrationsWithPersons(eventId)
+      event <- eventDAO.findById(eventId)
+    } yield (registrations, event)
+    eventData.map(data => {
+      val registrationsWithPersons = data._1.groupBy(_._1).map { case (key, value) => RegistrationWithPersons(key, value.head._2, value.map(_._3)) }.toList
+      val registrationFile = ExcelUtils.generateExcelFronRegisteredPersons(registrationsWithPersons, data._2)
+      Ok.sendFile(registrationFile, false, (_) => s"Yhteenveto ${data._2.name}.xlsx")
+    })
   }
 }

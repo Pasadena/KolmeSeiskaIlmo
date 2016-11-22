@@ -5,7 +5,7 @@
 # Home page
 GET     /                               controllers.Application.index
 GET     /admin                          controllers.EventController.adminIndex
-GET     /foo                          controllers.RegistrationController.foo
+#GET     /foo                          controllers.RegistrationController.foo
 
 # Login
 GET /login                              controllers.LoginController.login
@@ -39,4 +39,4 @@ GET /admin/event/excel/:id              controllers.EventController.downloadRegi
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)
 GET     /webjars/*file                  controllers.WebJarAssets.at(file)
-GET /javascriptRoutes                   controllers.Application.javascriptRoutes
+#GET /javascriptRoutes                   controllers.Application.javascriptRoutes

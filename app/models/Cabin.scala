@@ -1,11 +1,15 @@
 package models
 
-import play.api.db._
-import play.api.db.slick.Config.driver.simple._
-import play.api.Play.current
-import play.api.db.DB
+import javax.inject.Inject
+
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import slick.driver.JdbcProfile
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
+import slick.driver.PostgresDriver.api._
+
 
 /**
  * Created by spokos on 2/16/15.
@@ -31,51 +35,58 @@ class Cabins(tag: Tag) extends Table[Cabin](tag, "CABIN") {
   def capacity = column[Int]("CAPACITY")
   def price = column[BigDecimal]("PRICE")
 
-  def * = (id, name, description, capacity, price) <> (Cabin.tupled, Cabin.unapply _)
+  def * = (id, name, description, capacity, price) <> (Cabin.tupled, Cabin.unapply)
 
   def maybe = (id, name.?, description.?, capacity.?, price.?).<>[Option[Cabin], (Option[Long], Option[String], Option[String], Option[Int], Option[BigDecimal])](
-  { cabin =>
-    cabin match {
-      case (Some(id), Some(name), Some(description), Some(capacity), Some(price)) => Some(Cabin.apply(Some(id), name, description, capacity, price))
-      case _ => None
-    }
-  },
-  { cabin => None
-  })
+      { cabin =>
+        cabin match {
+          case (Some(id), Some(name), Some(description), Some(capacity), Some(price)) => Some(Cabin.apply(Some(id), name, description, capacity, price))
+          case _ => None
+        }
+      },
+      { cabin => None
+      })
 }
 
-object CabinDAO {
+class CabinDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends HasDatabaseConfigProvider[JdbcProfile] {
 
-    val cabins = TableQuery[Cabins]
+  val cabins = TableQuery[Cabins]
 
-    def getAll()(implicit session:Session): List[Cabin] = {
-      cabins.list
+  def getCabinTable(): TableQuery[Cabins] = cabins
+
+  def getAll(): Future[Seq[Cabin]] = {
+    db.run(cabins.result)
+  }
+
+  def createCabin(cabin:Cabin): Future[Cabin] = {
+    val insertQuery = cabins returning cabins.map(_.id) into ((cabin, id) => cabin.copy(id = id))
+    val action = insertQuery += cabin
+    db.run(action)
+  }
+
+  def updateCabin(cabin:Cabin): Future[Cabin] = db.run {
+    cabins.filter(_.id === cabin.id.get).update(cabin).map {
+      case _ => cabin
     }
+  }
 
-    def createCabin(cabin:Cabin)(implicit session:Session) = {
-      cabins returning cabins.map(_.id) += cabin
-    }
+  def deleteCabin(id: Long) = {
+    db.run( cabins.filter(_.id === id).delete)
+  }
 
-    def updateCabin(cabin:Cabin)(implicit session:Session) = {
-      val toUpdateCabin = cabin.copy(cabin.id, cabin.name, cabin.description, cabin.capacity, cabin.price)
-      cabins.filter(_.id === cabin.id.get).update(toUpdateCabin)
-    }
 
-    def deleteCabin(id: Long)(implicit session:Session) = {
-      val toDeleteObject = cabins.filter(_.id === id)
-      toDeleteObject.delete
-    }
-
-    def findById(id: Long)(implicit session:Session): Cabin = {
-      cabins.filter(_.id === id).firstOption match {
+  def findById(id: Long): Future[Cabin] = {
+    db.run( cabins.filter(_.id === id).result.headOption.map { res:Option[Cabin] =>
+      res match {
         case Some(item) => item
         case None => throw new IllegalArgumentException("No cabin with id " + id + " found!")
       }
-    }
+    })
+  }
 
-    def findByIdList(idList: List[Long])(implicit session:Session): List[Cabin] = {
-      cabins.filter(cabin => cabin.id inSet idList).list
-    }
+  def findByIdList(idList: List[Long]): Future[Seq[Cabin]] = {
+    db.run( cabins.filter(cabin => cabin.id inSet idList).result )
+  }
 
 }
 

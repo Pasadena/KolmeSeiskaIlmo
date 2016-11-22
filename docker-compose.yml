@@ -1,0 +1,21 @@
+version: '2'
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: dev
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+  web:
+    build: .
+    #command: bin/bash
+    entrypoint: "/bin/bash"
+    volumes:
+      - /Users/spokos/Documents/Hobby/KolmeSeiskaIlmo/:/home/app
+    ports:
+      - "5432:5432"
+      - "9000:9000"
+      - "9999:9999"
+    depends_on:
+      - db

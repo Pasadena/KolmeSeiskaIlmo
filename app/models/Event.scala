@@ -2,18 +2,26 @@ package models
 
 import java.sql.Date
 import java.text.SimpleDateFormat
+import javax.inject.Inject
 
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import play.api.db.slick.Config.driver.simple._
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.json._
+import slick.driver.JdbcProfile
+import slick.driver.PostgresDriver.api._
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+//import play.api.db.DB
+import play.api.Play.current
 
 /**
  * Created by spokos on 3/25/15.
  */
 case class Event(id: Option[Long], name: String, description: String, dateOfEvent: DateTime, registrationStartDate: DateTime, registrationEndDate: DateTime)
 
-case class EventData(event: Event, cabins: List[EventCabinData])
+case class EventData(event: Event, cabins: Seq[EventCabinData])
 
 case class EventCabinData(id: Long, eventId: Long, cabin: Cabin, cabinCount: Int)
 
@@ -83,81 +91,91 @@ class EventCabins(tag: Tag) extends Table[EventCabin](tag, "EVENT_CABIN") {
 
 }
 
-object EventDAO {
+class EventDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends HasDatabaseConfigProvider[JdbcProfile] {
+  import driver.api._
 
   val events = TableQuery[Events]
   val eventCabins = TableQuery[EventCabins]
   val cabins = TableQuery[Cabins]
 
-  def getAll()(implicit session: Session): List[Event] = {
-    events.list
+  def getAll(): Future[Seq[Event]] = {
+    db.run(events.result)
   }
 
-  def create(event: Event)(implicit session: Session): Option[Long]= {
-    (events returning events.map(_.id)) += event
+  def create(event: Event): Future[Event]= {
+    val insertQuery = events returning events.map(_.id) into ((event, id) => event.copy(id = id))
+    val action = insertQuery += event
+    db.run(action)
   }
 
-  def updateEvent(event: Event, cabins: List[EventCabin])(implicit session: Session): Unit = {
+  def findById(id: Long): Future[Event] = {
+    db.run(events.filter(_.id === id).result.headOption.map { res =>
+      res match {
+        case None => throw new RuntimeException("No matching value for id #id")
+        case Some(event) => event
+      }
+    })
+  }
+
+  def findEventCabinData(event: Event): Future[Seq[EventCabinData]] = {
+    val action = for {
+      (eventCabin, cabin) <- eventCabins join cabins on (_.cabinId === _.id) if eventCabin.eventId === event.id.get
+    } yield (eventCabin.id.get, eventCabin.eventId.get, cabin, eventCabin.amount)
+    db.run(action.result.map(list => list.map(parts => EventCabinData(parts._1, parts._2, parts._3, parts._4))) )
+  }
+
+  def updateEvent(event: Event, cabinsForEvent: List[EventCabin]) = {
     val copiedElement = event.copy(event.id, event.name, event.description, event.dateOfEvent, event.registrationStartDate, event.registrationEndDate)
-    events.filter(_.id === copiedElement.id.get).update(copiedElement)
-    val cabinsIds = cabins.foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)
-    val existingCabinsIds = eventCabins.filter(cabin => cabin.eventId === copiedElement.id.get).foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)
+
+    val cabinsIds = cabinsForEvent.foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)
+
+    //try {
+    val updatedEvent = db.run( events.filter(_.id === copiedElement.id.get).update(copiedElement) )
+
     //delete
-    eventCabins.filter(cabin => cabin.eventId === copiedElement.id.get && !(cabin.cabinId inSet cabinsIds)).delete
-    //update
-    cabins.filter(cabin => existingCabinsIds.contains(cabin.cabinId)).foreach { existingCabin =>
-      eventCabins.filter(_.id === existingCabin.id).update(existingCabin.copy(existingCabin.id, existingCabin.eventId, existingCabin.cabinId, existingCabin.amount))
-    }
-    //create
-    this.createEventCabins(event.id.get, cabins.filter(cabin => cabin.id == None))
+    db.run( eventCabins.filter(cabin => cabin.eventId === copiedElement.id.get && !(cabin.cabinId inSet cabinsIds)).delete )
+
+    cabinsForEvent.foreach(cabin => db.run( eventCabins.insertOrUpdate(cabin.copy(cabin.id, cabin.eventId, cabin.cabinId, cabin.amount)) ))
+    updatedEvent
   }
 
-  def createEventCabins(eventId: Long, cabins: List[EventCabin])(implicit session: Session) = {
-    for (cabin <- cabins) (eventCabins returning eventCabins.map(_.id) += cabin.copy(None, Some(eventId), cabin.cabinId, cabin.amount))
+  def createEventAndCabins(event: Event, eventCabins: List[EventCabin]): Future[Event] = {
+    for {
+      savedEvent <- create(event)
+      savedCabins <- createEventCabins(savedEvent.id.get, eventCabins)
+    } yield savedEvent
   }
 
-  def getEventCabins(eventId: Long)(implicit session: Session): List[EventCabin] = {
-    eventCabins.filter(_.eventId === eventId).list
+  def createEventCabins(eventId: Long, cabins: List[EventCabin]) = {
+    val toBeInserted = cabins.map { cabin => eventCabins.insertOrUpdate(cabin.copy(None, Some(eventId), cabin.cabinId, cabin.amount)) }
+    val inOneGo = DBIO.sequence(toBeInserted)
+    db.run(inOneGo)
   }
 
-  def findById(id:Long)(implicit session: Session): (Event, List[EventCabin]) = {
-    events.filter(event => event.id === id).firstOption match {
-      case Some(event) => (event, this.getEventCabins(id))
-      case None => throw new RuntimeException("No matching value for id #id")
-    }
+  def getEventCabins(eventId: Long): Future[Seq[EventCabin]] = {
+    db.run( eventCabins.filter(_.eventId === eventId).result )
   }
 
-  def findEventDataById(id:Long)(implicit session: Session): EventData = {
-    val eventDataJoin = for {
-      ((event, eventCabin), cabin) <- events leftJoin eventCabins on (_.id === _.eventId) leftJoin cabins on (_._2.cabinId === _.id) if event.id === id
-    } yield (event, cabin.maybe, eventCabin.maybe)
-    val eventDataList = eventDataJoin.list
-    val eventDataMap = eventDataList.groupBy(_._1)
-    val eventDatas = eventDataMap.map {case (event, data) => EventData(event, data.filter(item => item._2 != None).map {
-      case (event, Some(cabin), Some(eventCabin)) => EventCabinData(eventCabin.id.get, event.id.get, cabin, eventCabin.amount)
-      case _ => null
-    })}
-    eventDatas.toList match {
-      case Nil => throw new RuntimeException("No matching value for id #id")
-      case x :: xs => x
-    }
+  def findEventDataById(id:Long): Future[EventData] = {
+    for {
+      event <- findById(id)
+      cabinData <- findEventCabinData(event)
+    } yield EventData(event, cabinData)
   }
 
-  def delete(id: Long)(implicit session: Session) = {
+  def delete(id: Long): Future[Int] = {
     this.deleteEventCabins(id)
-    val toDeleteEvent = events.filter(_.id === id)
-    toDeleteEvent.delete
+    db.run( events.filter(_.id === id).delete )
   }
 
-  private def deleteEventCabins(eventId: Long)(implicit session: Session) = {
-    eventCabins.filter(_.eventId === eventId).delete
+  private def deleteEventCabins(eventId: Long) = {
+    db.run( eventCabins.filter(_.eventId === eventId).delete )
   }
 
-  def isEventRegistrationInProgress(eventId: Long)(implicit session: Session): Boolean = {
-    val eventsMatchingId = events.filter(_.id === eventId).list
-    eventsMatchingId.headOption match {
+  def isEventRegistrationInProgress(eventId: Long): Future[Boolean] = {
+    db.run(events.filter(_.id === eventId).result.headOption map {
       case None => true
       case Some(event) => event.registrationStartDate.isBeforeNow && event.registrationEndDate.isAfterNow
-    }
+    })
   }
 }

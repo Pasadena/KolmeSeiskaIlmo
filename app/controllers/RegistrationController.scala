@@ -9,100 +9,93 @@ import models._
 import org.apache.commons.mail.EmailAttachment
 import org.joda.time.DateTime
 import play.api.Logger
-import play.api.Play.current
 import play.api.data.validation.ValidationError
-import play.api.db.slick._
 import play.api.i18n.Messages
-import play.api.libs.json._
+import play.api.libs.json.{JsValue, Json, _}
 import play.api.libs.mailer._
+import javax.inject._
+import play.api.libs.mailer._
+
+import slick.driver.JdbcProfile
 import play.api.mvc._
+import play.api.db.slick._
+import javax.inject._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
  * Created by spokos on 8/4/15.
  */
-object RegistrationController extends Controller {
+class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDAO: EventDAO)(mailerClient: MailerClient)(pdfGenerator: PdfGenerator)(dbConfigProvider: DatabaseConfigProvider) extends Controller {
 
   val registrationLogger = Logger(this.getClass)
 
-  implicit def tuple3Reads[A, B, C](implicit aFormat: Format[A], bFormat: Format[B], cFormat: Format[C]): Reads[Tuple3[A, B, C]] = Reads[Tuple3[A, B, C]] {
-    case JsArray(arr) if arr.size == 3 => for {
-      a <- aFormat.reads(arr(0))
-      b <- bFormat.reads(arr(1))
-      c <- cFormat.reads(arr(2))
-
-    } yield (a, b, c)
-    case _ => JsError(Seq(JsPath() -> Seq(ValidationError("Expected array of two elements"))))
+  def loadEventRegisteredPersons(eventId: Long): Action[AnyContent] = Action.async { implicit rs =>
+    registrationDAO.loadRegistrationsWithPersons(eventId).map(data => Ok(Json.toJson(groupRegistrationData(data))))
   }
 
-  implicit def tuple3Writes[A, B, C](implicit aWrites: Writes[A], bWrites: Writes[B], cWrites: Format[C]): Writes[Tuple3[A, B, C]] = new Writes[Tuple3[A, B, C]] {
-    def writes(tuple: Tuple3[A, B, C]) = JsArray(Seq(aWrites.writes(tuple._1), bWrites.writes(tuple._2), cWrites.writes(tuple._3)))
+  private def groupRegistrationData(registrationPartials: Seq[(Registration, Cabin, RegisteredPerson)]): Seq[RegistrationWithPersons] = {
+    registrationPartials.groupBy(_._1)
+    .map { case (key, value) => RegistrationWithPersons(key, value.head._2, value.map(_._3)) }
+      .toList.sortWith(_.registration.timestamp.get.getTime > _.registration.timestamp.get.getTime)
   }
 
-  implicit def tuple2Reads[A, B](implicit aFormat: Format[A], bFormat: Format[B]): Reads[Tuple2[A, B]] = Reads[Tuple2[A, B]] {
-    case JsArray(arr) if arr.size == 2 => for {
-      a <- aFormat.reads(arr(0))
-      b <- bFormat.reads(arr(1))
-
-    } yield (a, b)
-    case _ => JsError(Seq(JsPath() -> Seq(ValidationError("Expected array of two elements"))))
-  }
-
-  implicit def tuple2Writes[A, B](implicit aWrites: Writes[A], bWrites: Writes[B]): Writes[Tuple2[A, B]] = new Writes[Tuple2[A, B]] {
-    def writes(tuple: Tuple2[A, B]) = JsArray(Seq(aWrites.writes(tuple._1), bWrites.writes(tuple._2)))
-  }
-
-  def loadEventRegisteredPersons(eventId: Long) = DBAction { implicit rs =>
-    Ok(Json.toJson(RegistrationDAO.loadRegistrationsWithPersons(eventId)))
-  }
-
-  def register = DBAction(parse json) { implicit rs =>
-    val jsResult = rs.body.validate[(List[RegisteredPerson], Registration)]
-    jsResult match {
-      case registrationData => registrationData.asOpt match {
-        case Some((list, registration)) => {
-          if (!EventDAO.isEventRegistrationInProgress(registration.eventId)) {
-            BadRequest(Json.obj("status" -> "KO", "message" -> "Registration is not currently in progress"))
-          }
-          else if (!RegistrationDAO.doesEventHaveRoomForSelectedRegistration(registration)) {
-            BadRequest(Json.obj("status" -> "KO", "message" -> "The selected cabin type was sold out during registration. Please select different cabin"))
-          } else {
-            val registrationId = RegistrationDAO.saveRegistration(registration)
-            RegistrationDAO.saveRegistrationPersons(list, registrationId)
-            list.filter(_.contactPerson == 1) match {
-              case Nil => sendConfirmationMail(list(0), list, RegistrationDAO.loadRegistrationWithEventAndCabin(registrationId), rs.request.host)
-              case x :: xs => sendConfirmationMail(x, list, RegistrationDAO.loadRegistrationWithEventAndCabin(registrationId), rs.host)
+  def register() = Action.async(BodyParsers.parse.json) { implicit rs =>
+    parsePost[(List[RegisteredPerson], Registration)](this, {
+      registrationData => {
+        eventDAO.isEventRegistrationInProgress(registrationData._2.eventId).flatMap {
+          case false => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "Registration is not currently in progress")))
+          case true => {
+            registrationDAO.doesEventHaveRoomForSelectedRegistration(registrationData._2).flatMap {
+              case false => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "The selected cabin type was sold out during registration. Please select different cabin")))
+              case true => {
+                registrationDAO.saveRegistrationData(registrationData._2, registrationData._1)
+                  .flatMap(savedData => registrationDAO.loadRegistrationWithEventAndCabin(savedData._1.id.get)
+                    .map(registrationDetails => {
+                      sendConfirmationMail(registrationData._1, registrationDetails, rs.host)
+                      Ok(Json.obj("status" -> "Ok", "message" -> "Registration succesfully saved"))
+                    })
+                  )
+              }
             }
-            Ok(Json.obj("status" -> "Ok", "message" -> "Registration succesfully saved"))
           }
         }
-        case None => BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened while parsing registration list"))
       }
-    }
+    })
   }
 
-  def loadRegistrations(eventId: Long) = DBAction { implicit rs =>
-    Ok(Json.obj("registrations" -> Json.toJson(RegistrationDAO.loadEventRegistrations(eventId))))
+  def loadRegistrations(eventId: Long): Action[AnyContent] = Action.async { implicit rs =>
+    registrationDAO.loadEventRegistrations(eventId).map(registrations =>  Ok(Json.obj("registrations" -> Json.toJson(registrations))))
   }
 
-  def sendConfirmationMail(contactPerson: RegisteredPerson, allPersonsInCabin: List[RegisteredPerson], registrationData: RegistrationData, host: String) = {
+  private def getContactPersonFromList(persons: List[RegisteredPerson]) = persons.filter(_.contactPerson == 1) match {
+    case Nil => persons.head
+    case x :: xs => x
+  }
+
+  def sendConfirmationMail(allPersonsInCabin: List[RegisteredPerson], registrationData: RegistrationData, host: String) = {
+    import scala.collection.JavaConverters._
     val configOptions = ConfigFactory.load()
     val fonts = List("fonts/FreeSans.ttf")
+
     val dueDate = LocalDate.now.plusDays(14)
     val dueDateFormatted =  dueDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
-    PdfGenerator.loadLocalFonts(fonts.toArray)
-    val attachment = PdfGenerator.toBytes(views.html.test.render(allPersonsInCabin, diningsMap, registrationData, dueDateFormatted), host)
+    pdfGenerator.loadLocalFonts(fonts.asJava)
+    val attachment = pdfGenerator.toBytes(views.html.test.render(allPersonsInCabin, diningsMap, registrationData, dueDateFormatted), host)
     val outputStream = new java.io.FileOutputStream("Yhtenveto_teekkariristeily.pdf")
     outputStream.write(attachment)
 
-    val email = Email(Messages("registration.email.title"), configOptions.getString("smtp.user"),
-      Seq(contactPerson.email),
+    val email = Email(
+      subject = "registration.email.title", from= configOptions.getString("play.mailer.user"),
+      to = Seq(getContactPersonFromList(allPersonsInCabin).email),
       attachments = Seq(
         AttachmentData("Yhtenveto_teekkariristeily.pdf", attachment, "application/pdf", Some("Simple data"), Some(EmailAttachment.INLINE))
       ),
       bodyText = Some(views.txt.email().toString())
     )
     try {
-      MailerPlugin.send(email)
+      mailerClient.send(email)
     } catch {
       case e:Exception => {
         System.out.println("Exception in mail sending " + e.getMessage)
@@ -113,13 +106,13 @@ object RegistrationController extends Controller {
 
   val diningsMap:Map[Int, (String, Double)] = Map(0 -> ("Päivällinen, 1. kattaus", 33.0), 1 -> ("Päivällinen, 2. kattaus", 33.0), 2 -> ("Meriaamiainen", 10.5), 3 -> ("Lounas", 25.0))
 
-  def foo = DBAction { implicit rs =>
+  /**def foo = Action.async { implicit rs =>
     val dueDate = LocalDate.now.plusDays(14)
     val dueDateFormatted =  dueDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
     val persons = List(RegisteredPerson(None, -1, "testiEtunimi", "testisukunimi", "foo@bar.fi", "23.03.2015", "111", Some("Suomi"), 1, 1),
       RegisteredPerson(None, -1, "TestingFirst", "TestingLast", "baz@baz.fi", "05.03.2005", "111", Some("Suomi"), 2, 2))
     Ok(views.html.test(persons, diningsMap, RegistrationData(Registration(None, 1, 1, None), Event(Some(1), "Foobar", "Bazquuz", new DateTime(), new DateTime(), new DateTime()),
     Cabin(Some(1), "A4", "Arara", 4, 100.0)), dueDateFormatted))
-  }
+  }**/
 
 }

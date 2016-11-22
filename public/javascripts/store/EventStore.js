@@ -17,7 +17,7 @@ define(['dispatcher/AppDispatcher', 'AmdEvents'], function(AppDispatcher, Events
     }
 
     function addEvent(data) {
-        var payloadEvent = data['event'][0];
+        var payloadEvent = data['event'];
         var existingEvent = _.find(events, function(event) {
             return event.id == payloadEvent.id;
         });

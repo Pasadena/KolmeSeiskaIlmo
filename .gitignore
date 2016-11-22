@@ -23,3 +23,5 @@ server.pid
 #/public/javascripts/node_modules
 Yhtenveto_teekkariristeily.pdf
 .env
+DockerTests.rtf
+public/javascripts/node_modules/

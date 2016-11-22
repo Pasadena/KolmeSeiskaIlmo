@@ -7,8 +7,8 @@ import views.html.helper.FieldConstructor
  */
 object FieldHelpers {
 
-  import views.html.TwitterInputs
+  /**import views.html.TwitterInputs
 
-  implicit val fieldConstructor = FieldConstructor(TwitterInputs.f)
+  implicit val fieldConstructor = FieldConstructor(TwitterInputs.f)**/
 
 }
