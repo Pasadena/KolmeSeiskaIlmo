@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/kolmeseiskailmo -Dhttp.port=${PORT} -Dplay.evolutions.db.default.autoApply=true -Dconfig.resource=production.conf
+web: target/universal/stage/bin/kolmeseiskailmo -Dhttp.port=${PORT} -Dplay.evolutions.db.default.autoApply=true-Dplay.evolutions.db.default.autoApplyDowns=true -Dconfig.resource=production.conf
