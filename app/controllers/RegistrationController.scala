@@ -106,13 +106,13 @@ class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDA
 
   val diningsMap:Map[Int, (String, Double)] = Map(0 -> ("Päivällinen, 1. kattaus", 33.0), 1 -> ("Päivällinen, 2. kattaus", 33.0), 2 -> ("Meriaamiainen", 10.5), 3 -> ("Lounas", 25.0))
 
-  /**def foo = Action.async { implicit rs =>
+  def foo(): Action[AnyContent] = Action.async { implicit rs =>
     val dueDate = LocalDate.now.plusDays(14)
     val dueDateFormatted =  dueDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
     val persons = List(RegisteredPerson(None, -1, "testiEtunimi", "testisukunimi", "foo@bar.fi", "23.03.2015", "111", Some("Suomi"), 1, 1),
       RegisteredPerson(None, -1, "TestingFirst", "TestingLast", "baz@baz.fi", "05.03.2005", "111", Some("Suomi"), 2, 2))
-    Ok(views.html.test(persons, diningsMap, RegistrationData(Registration(None, 1, 1, None), Event(Some(1), "Foobar", "Bazquuz", new DateTime(), new DateTime(), new DateTime()),
-    Cabin(Some(1), "A4", "Arara", 4, 100.0)), dueDateFormatted))
-  }**/
+    Future.successful(Ok(views.html.test(persons, diningsMap, RegistrationData(Registration(None, 1, 1, None), Event(Some(1), "Foobar", "Bazquuz", new DateTime(), new DateTime(), new DateTime()),
+    Cabin(Some(1), "A4", "Arara", 4, 100.0)), dueDateFormatted)))
+  }
 
 }
