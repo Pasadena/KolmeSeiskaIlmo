@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/kolmeseiskailmo -Dhttp.port=${PORT} -DapplyEvolutions.default=false -Dconfig.resource=production.conf -Dslick.dbs.default.db.url=${DATABASE_URL}
+web: target/universal/stage/bin/kolmeseiskailmo -Dhttp.port=${PORT} -DapplyEvolutions.default=false -Dconfig.resource=production.conf
