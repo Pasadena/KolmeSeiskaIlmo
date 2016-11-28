@@ -144,11 +144,18 @@ function(React, Router, $, FormComponents, EventStore, CabinStore, RegistrationS
                             <RB.Modal.Title>{modalTitle}</RB.Modal.Title>
                         </RB.ModalHeader>
                         <RB.Modal.Body>
-                            <Input type="text" name="name" placeholder="Insert event name" label="Event name:" id="nameField" errorMessage='Name is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
-                            <Input type="textarea" name="description" placeholder="Insert event description" label="Event description:" id="descriptionField" labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
-                            <DateField type="text" name="dateOfEvent" label="Event date:" id="eventDate" errorMessage='Event date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
-                            <DateField type="text" name="registrationStartDate" label="Registration starts:" id="startField" errorMessage='Start date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
-                            <DateField type="text" name="registrationEndDate" label="Registration ends:" id="endField" errorMessage='End date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <Input type="text" name="name" placeholder="Insert event name" label="Event name:" id="nameField"
+                              errorMessage='Name is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <Input type="textarea" name="description" placeholder="Insert event description"
+                              abel="Event description:" id="descriptionField" labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <DateField type="text" name="dateOfEvent" label="Event date:" id="eventDate"
+                              errorMessage='Event date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <DateField type="text" name="registrationStartDate" label="Registration starts:" id="startField"
+                              errorMessage='Start date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <DateField type="text" name="registrationEndDate" label="Registration ends:" id="endField"
+                              errorMessage='End date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                            <Input type="checkbox" label="Is dining optional:" name="diningOptional"
+                              labelClassName="col-sm-6 control-label" wrapperClassName="col-xs-6"/>
                             <h4>Event's cabins</h4>
                             <EventCabinsView cabins={this.props.cabins} selectedCabins={this.state.selectedCabins} event={this.props.event} ref="cabinSelect"/>
                         </RB.Modal.Body>

@@ -19,7 +19,7 @@ import play.api.Play.current
 /**
  * Created by spokos on 3/25/15.
  */
-case class Event(id: Option[Long], name: String, description: String, dateOfEvent: DateTime, registrationStartDate: DateTime, registrationEndDate: DateTime)
+case class Event(id: Option[Long], name: String, description: String, dateOfEvent: DateTime, registrationStartDate: DateTime, registrationEndDate: DateTime, diningOptional: Boolean = false)
 
 case class EventData(event: Event, cabins: Seq[EventCabinData])
 
@@ -55,8 +55,9 @@ class Events(tag: Tag) extends Table[Event](tag, "EVENT") {
   def dateOfEvent = column[DateTime]("DATE_OF_EVENT")
   def registrationStartDate = column[DateTime]("REGISTRATION_START_DATE")
   def registrationEndDate = column[DateTime]("REGISTRATION_END_DATE")
+  def diningOptional = column[Boolean]("DINING_OPTIONAL")
 
-  def * = (id, name, description, dateOfEvent, registrationStartDate, registrationEndDate) <> ((Event.apply _).tupled, Event.unapply _)
+  def * = (id, name, description, dateOfEvent, registrationStartDate, registrationEndDate, diningOptional) <> ((Event.apply _).tupled, Event.unapply _)
 
 }
 
@@ -125,7 +126,7 @@ class EventDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
   }
 
   def updateEvent(event: Event, cabinsForEvent: List[EventCabin]) = {
-    val copiedElement = event.copy(event.id, event.name, event.description, event.dateOfEvent, event.registrationStartDate, event.registrationEndDate)
+    val copiedElement = event.copy(event.id, event.name, event.description, event.dateOfEvent, event.registrationStartDate, event.registrationEndDate, event.diningOptional)
 
     val cabinsIds = cabinsForEvent.foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)
 
