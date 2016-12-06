@@ -1,7 +1,9 @@
 {
   "name": "KolmeSeiskaIlmo",
   "version": "0.1.0",
-  "scripts": {},
+  "scripts": {
+      "postinstall" : "webpack"
+  },
   "dependencies": {
     "css-loader": "^0.26.1",
     "events": "^1.1.1",
