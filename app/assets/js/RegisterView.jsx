@@ -110,11 +110,12 @@ var SelectCabinComponent = React.createClass({
             var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " vapaana ) ";
             var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.cabin.id ? true : false;
             var cabinSelectionDisabled =  numberOfAvailableCabins <= 0 ? true : false;
-            var radioClass = cabinSelectionDisabled ? "disabled-cabin" : null;
+            var radioClass = cabinSelectionDisabled ? "radio disabled-cabin" : "radio";
             return (
                 <ListGroupItem key={cabin.id}>
                   <Radio name={cabin.cabin.name} value={cabin.cabin.name}
-                    onChange={this.selectCabin.bind(null, cabin.cabin)} checked={selected}>{label}</Radio>
+                    onChange={this.selectCabin.bind(null, cabin.cabin)} checked={selected}
+                    disabled={cabinSelectionDisabled} bsClass={radioClass}>{label}</Radio>
                 </ListGroupItem>
                  );
         }, this);
