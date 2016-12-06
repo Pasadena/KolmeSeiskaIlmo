@@ -35,7 +35,6 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += evolutions
 
-PlayKeys.playRunHooks += GruntHook(baseDirectory.value)
+PlayKeys.playRunHooks += WebpackHook(baseDirectory.value)
 
 routesGenerator := InjectedRoutesGenerator
-

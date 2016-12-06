@@ -115,7 +115,10 @@
                                     <label>Valittu ruokailu:</label>
                                 </div>
                                 <div class="table-cell">
-                                    @diningValuesMap(person.selectedDining)._1
+                                    @diningValuesMap.getOrElse(person.selectedDining, null) match {
+                                        case (name, price) => { @name }
+                                        case _ => { Ei valittua ruokailua }
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -132,7 +135,11 @@
                 @for(person <- persons) {
                     <section>
                         <p>@person.firstName @person.lastName <br/>
-                        @diningValuesMap(person.selectedDining)._1 : @diningValuesMap(person.selectedDining)._2 €</p>
+                        @diningValuesMap.getOrElse(person.selectedDining, null) match {
+                            case (name, price) => { @name : @price € }
+                            case _ => { Ei valittua ruokailua }
+                        }
+                        </p>
                     </section>
                 }
                 <section>
@@ -141,7 +148,7 @@
                         Tilinumero: @play.Play.application().configuration().getString("pdf.iban") <br/>
                         BIC: @play.Play.application().configuration().getString("pdf.bic") <br/>
                         Maksun viesti: Varaajan nimi / @registrationData.event.name <br/>
-                        Summa: @((persons.foldLeft(0.0)((sum, person) => sum + diningValuesMap(person.selectedDining)._2)) + registrationData.cabin.price) euroa <br/>
+                        Summa: @((persons.foldLeft(0.0)((sum, person) => sum + diningValuesMap.getOrElse(person.selectedDining, ("", 0.0))._2)) + registrationData.cabin.price) euroa <br/>
                         Eräpäivä: @(dueDate)
                     </p>
                 </section>

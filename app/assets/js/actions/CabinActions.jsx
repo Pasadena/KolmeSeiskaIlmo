@@ -1,16 +1,14 @@
-define(['dispatcher/AppDispatcher', 'api/CabinAPI'], function(AppDispatcher, CabinAPI) {
+import AppDispatcher from './../dispatcher/AppDispatcher';
+import CabinAPI from './../api/CabinAPI';
 
-    var CabinActions = {
+const CabinActions = {
+  fetchCabins: function() {
+      AppDispatcher.handleAction({
+          actionType: "LOAD_CABINS",
+          data: null
+      });
+      CabinAPI.fetchCabins();
+  }
+}
 
-        fetchCabins: function() {
-            AppDispatcher.handleAction({
-                actionType: "LOAD_CABINS",
-                data: null
-            });
-            CabinAPI.fetchCabins();
-        }
-    }
-
-    return CabinActions;
-
-});
+export default CabinActions;

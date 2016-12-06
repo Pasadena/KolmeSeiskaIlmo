@@ -5,7 +5,7 @@
 # Home page
 GET     /                               controllers.Application.index
 GET     /admin                          controllers.EventController.adminIndex
-#GET     /foo                          controllers.RegistrationController.foo
+GET     /foo                          controllers.RegistrationController.foo
 
 # Login
 GET /login                              controllers.LoginController.login

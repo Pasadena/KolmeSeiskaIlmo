@@ -1,12 +1,11 @@
-define(function(require){
-    var Dispatcher = require('flux').Dispatcher;
+import { Dispatcher } from 'flux';
+Dispatcher.prototype.handleAction = function(action) {
+    this.dispatch({
+        source: "VIEW_ACTION",
+        action: action
+    });
+}
 
-    Dispatcher.prototype.handleAction = function(action) {
-        this.dispatch({
-            source: "VIEW_ACTION",
-            action: action
-        });
-    }
+const AppDispatcher = new Dispatcher();
 
-    return new Dispatcher();
-});
+export default AppDispatcher;

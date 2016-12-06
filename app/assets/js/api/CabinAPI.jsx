@@ -1,18 +1,18 @@
-define(['dispatcher/AppDispatcher', 'api/CommonAPI'], function(AppDispatcher, CommonAPI) {
+import AppDispatcher from './../dispatcher/AppDispatcher';
+import CommonAPI from './CommonAPI';
 
-    var CabinAPI = {
-
-        fetchCabins: function() {
-            CommonAPI.get("/admin/loadCabins")
-            .then(function(data) {
-                AppDispatcher.handleAction({
-                    actionType: "LOAD_CABINS_SUCCESS",
-                    data: data
-                });
-            }, function(request, status, error) {
-                console.error(status, error.toString());
+const CabinAPI = {
+    fetchCabins: function() {
+        CommonAPI.get("/admin/loadCabins")
+        .then(function(data) {
+            AppDispatcher.handleAction({
+                actionType: "LOAD_CABINS_SUCCESS",
+                data: data
             });
-        }
+        }, function(request, status, error) {
+            console.error(status, error.toString());
+        });
     }
-    return CabinAPI;
-});
+}
+
+export default CabinAPI;

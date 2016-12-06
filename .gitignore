@@ -24,4 +24,5 @@ server.pid
 Yhtenveto_teekkariristeily.pdf
 .env
 DockerTests.rtf
-
+/public/bundle.js
+/public/bundle.js.map

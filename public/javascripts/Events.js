@@ -124,6 +124,7 @@ function(React, Router, $, FormComponents, EventStore, CabinStore, RegistrationS
             });
             var eventId = this.props.event ? this.props.event.id : null;
             model.id = eventId;
+            model.diningOptional = model.diningOptional == 1 ? true : false;
 
             this.props.formSubmitHandler(model, eventCabins);
             this.setState({selectedEvent: {}, availableCabins: this.state.availableCabins, selectedCabins: []});
@@ -147,7 +148,7 @@ function(React, Router, $, FormComponents, EventStore, CabinStore, RegistrationS
                             React.createElement(Input, {type: "text", name: "name", placeholder: "Insert event name", label: "Event name:", id: "nameField", 
                               errorMessage: "Name is mandatory", required: "true", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
                             React.createElement(Input, {type: "textarea", name: "description", placeholder: "Insert event description", 
-                              abel: "Event description:", id: "descriptionField", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
+                              label: "Event description:", id: "descriptionField", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
                             React.createElement(DateField, {type: "text", name: "dateOfEvent", label: "Event date:", id: "eventDate", 
                               errorMessage: "Event date is mandatory", required: "true", labelClassName: "col-sm-3 control-label", wrapperClassName: "col-xs-6"}), 
                             React.createElement(DateField, {type: "text", name: "registrationStartDate", label: "Registration starts:", id: "startField", 
