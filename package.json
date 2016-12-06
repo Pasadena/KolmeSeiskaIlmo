@@ -2,7 +2,7 @@
   "name": "KolmeSeiskaIlmo",
   "version": "0.1.0",
   "scripts": {
-      "postinstall" : "webpack"
+      "heroku-postbuild": "webpack --config ./webpack.production.config.js"
   },
   "dependencies": {
     "css-loader": "^0.26.1",

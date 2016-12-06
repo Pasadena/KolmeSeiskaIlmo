@@ -1,4 +1,5 @@
 var path = require('path');
+var webpack = require('webpack');
 
 module.exports = {
   entry: "./index.jsx",
@@ -7,12 +8,11 @@ module.exports = {
     publicPath: "assets",
     filename: "bundle.js"
   },
-  devtool: 'source-map',
-  watch: true,
   resolve: {
       root: path.resolve(__dirname),
       extensions: ['', '.js', '.jsx', '.json']
   },
+  devtoll: 'cheap-module-source-map',
   module: {
    loaders: [
      {
@@ -32,5 +32,12 @@ module.exports = {
  resolve: {
    extensions: ['', '.js', '.jsx']
  },
- noParse: /lie\.js$/
+ noParse: /lie\.js$/,
+ plugins: [
+  new webpack.DefinePlugin({
+    'process.env': {
+      'NODE_ENV': JSON.stringify('production')
+    }
+  })
+]
 }
