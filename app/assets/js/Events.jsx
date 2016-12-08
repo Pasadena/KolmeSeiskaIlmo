@@ -126,19 +126,20 @@ var EventForm = React.createClass({
         var eventId = this.props.event ? this.props.event.id : null;
         model.id = eventId;
         model.diningOptional = model.diningOptional == "on" ? true : false;
-        if(model.dateOfEvent.format) {
-          model.dateOfEvent = model.dateOfEvent.format("DD.MM.YYYY");
-        }
 
-        if(model.registrationEndDate.format) {
-          model.registrationEndDate = model.registrationEndDate.format("DD.MM.YYYY");
-        }
+        model.dateOfEvent = this.getFormattedDate(model.dateOfEvent);
+        model.registrationEndDate = this.getFormattedDate(model.registrationEndDate);
+        model.registrationStartDate = this.getFormattedDate(model.registrationStartDate);
 
-        if(model.registrationStartDate.format) {
-          model.registrationStartDate = model.registrationStartDate.format("DD.MM.YYYY");
-        }
         this.props.formSubmitHandler(model, eventCabins);
         this.setState({selectedEvent: {}, availableCabins: this.state.availableCabins, selectedCabins: []});
+    },
+    getFormattedDate(dateToFormat) {
+        if(dateToFormat.toDate) {
+            return dateToFormat.toDate();
+        } else {
+            return moment(dateToFormat, "DD.MM.YYYY HH:mm").toDate();
+        }
     },
     dismiss: function() {
         this.props.close();
@@ -303,32 +304,14 @@ var EventTableRow = React.createClass({
                 <td>{this.props.event.registrationStartDate}</td>
                 <td>{this.props.event.registrationEndDate}</td>
                 <td>
-                    <div className="list-form">
-                        <form onSubmit={this.deleteEvent}>
-                            <Button type="submit" bsStyle="danger">Delete</Button>
-                        </form>
-                    </div>
-                    <div className="list-form">
-                        <form onSubmit={this.editEvent}>
-                            <Button type="submit" bsStyle="primary">Edit</Button>
-                        </form>
-                    </div>
-                    <div className="list-form">
-                        <form>
-                            <ButtonToolbar>
-                              <Button type="button" value="View registrations" bsStyle="primary"
-                                onClick={this.viewRegistrationData}>View registrations</Button>
-                            </ButtonToolbar>
-                        </form>
-                    </div>
-                    <div className="list-form">
-                        <form>
-                            <ButtonToolbar>
-                                <Button type="button" value="Download registrations" bsStyle="primary"
-                                href={'/admin/event/excel/' +this.props.event.id}>Get Excel</Button>
-                            </ButtonToolbar>
-                        </form>
-                    </div>
+                    <ButtonToolbar>
+                        <Button type="submit" bsStyle="danger" onClick={this.deleteEvent}>Delete</Button>
+                        <Button type="submit" bsStyle="primary" onClick={this.editEvent}>Edit</Button>
+                        <Button type="button" value="View registrations" bsStyle="primary"
+                            onClick={this.viewRegistrationData}>View registrations</Button>
+                        <Button type="button" value="Download registrations" bsStyle="primary"
+                            href={'/admin/event/excel/' +this.props.event.id}>Get Excel</Button>
+                    </ButtonToolbar>
                 </td>
             </tr>
         )

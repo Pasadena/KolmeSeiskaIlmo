@@ -3,6 +3,7 @@ import { Router, withRouter } from 'react-router';
 import $ from 'jquery';
 import {FormFragment, MultiModelForm, InputWrapper, Form, SelectWrapper, CheckboxWrapper} from './components/FormComponents';
 import _ from 'underscore';
+import moment from 'moment';
 import {Panel, RBInput, ListGroup, ListGroupItem, PageHeader, Modal, ButtonInput, Button, Alert, Well, Fade, Radio} from 'react-bootstrap';
 import EventStore from './store/EventStore';
 import RegistrationStore from './store/RegistrationStore';
@@ -51,28 +52,28 @@ var RegisterView = React.createClass({
         this.state.alerts.push(alert);
         this.setState({alerts: this.state.alerts})
     },
+    isRegistrationOpen(event) {
+        if(event) {
+            let now = moment().toDate();
+            let registrationStart = moment(event.registrationStartDate, "DD.MM.YYYY HH:mm").toDate();
+            let registrationEnd = moment(event.registrationEndDate, "DD.MM.YYYY HH:mm").toDate();
+            return registrationStart <= now && registrationEnd >= now;
+        }
+        return false;
+    },
     render: function() {
-        var passengerListComponent;
-         if(this.state.selectedCabin) {
-            passengerListComponent = <PassengerListComponent selectedCabin={this.state.selectedCabin} event={this.state.event} submitHandler={this.handleSubmit} alertHandler={this.addAlert}/>;
-         }
          var eventName = this.state.event != null ? this.state.event.name : "";
          var description = this.state.event != null ? this.state.event.description : "";
          var eventDate = this.state.event != null ? this.state.event.dateOfEvent : "";
          var registrationStarts = this.state.event != null ? this.state.event.registrationStartDate : "";
          var registrationEnds = this.state.event != null ? this.state.event.registrationEndDate : "";
-         var selectCabinComponent, registrationSummaryComponent;
-         if(this.state.event) {
-            selectCabinComponent = (<SelectCabinComponent event={this.state.event} registrations = {this.state.registrations} selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>);
-            registrationSummaryComponent = (<RegistrationSummaryView event={this.state.event} registrations={this.state.registrations}/>);
-         }
-         var alerts = _.map(this.state.alerts, function(alert) {
-            return (
-                <Alert bsStyle="danger">
-                    {alert}
-                </Alert>
-            );
-         });
+
+         let isRegistrationOpen = this.isRegistrationOpen(this.state.event);
+         let registrationNotOpenNotification = this.getRegistrationNotOpenNotification(this.state.event,
+             isRegistrationOpen);
+        let selectCabinComponent = this.getCabinSelectContent(this.state.event, isRegistrationOpen);
+        let passengerListComponent = this.getPassengerListComponent(this.state.event,
+            this.state.selectedCabin, isRegistrationOpen);
         return (
             <div>
                 <h2>Ilmoittaudu tapahtumaan {eventName} </h2>
@@ -81,20 +82,62 @@ var RegisterView = React.createClass({
                     <p>Ilmoittautumisaika: {registrationStarts} - {registrationEnds }</p>
                     <pre>{description}</pre>
                 </Well>
-                {selectCabinComponent}
-
+                { registrationNotOpenNotification }
+                { selectCabinComponent }
+                { passengerListComponent }
+                <SuccessNotification close={this.closeDialog} show={this.state.showNotification}
+                    contactPerson={this.state.contactPerson}/>
+            </div>
+        );
+    },
+    getCabinSelectContent(event, isRegistrationOpen) {
+        if(event && isRegistrationOpen) {
+            return <SelectCabinComponent event={event} registrations = {this.state.registrations}
+                selectedCabin={this.state.selectedCabin} cabinSelectHandler={this.updateSelectedCabin}/>
+        }
+        return null;
+    },
+    getRegistrationNotOpenNotification(event, isRegistrationOpen) {
+        if(event && !isRegistrationOpen) {
+            return <RegistrationNotOpenNotification event={event} />;
+        }
+        return null;
+    },
+    getPassengerListComponent(event, selectedCabin, isRegistrationOpen) {
+        if(event && selectedCabin && isRegistrationOpen) {
+            let passengerListComponent = <PassengerListComponent selectedCabin={selectedCabin} event={event}
+                submitHandler={this.handleSubmit} alertHandler={this.addAlert}/>;
+            let alerts = this.getAlertList();
+            return (
                 <Fade in={this.state.selectedCabin ? true : false}>
                     <div>
                         {passengerListComponent}
                         {alerts}
                     </div>
                 </Fade>
-                <SuccessNotification close={this.closeDialog} show={this.state.showNotification}
-                    contactPerson={this.state.contactPerson}/>
-            </div>
-        );
+            );
+        }
+        return null;
+    },
+    getAlertList() {
+        return _.map(this.state.alerts, function(alert) {
+           return (
+               <Alert bsStyle="danger">
+                   {alert}
+               </Alert>
+           );
+        });
     }
 });
+
+const RegistrationNotOpenNotification = ({ event }) => (
+    <Panel header={<h2>Rekisteröinti ei käynnissä</h2>} bsStyle="danger">
+        <Well bsSize="small">
+            <p> Whoa there landlubber! Rekisteröinti tapahtumaan { event.name } ei juuri nyt ole käynnissä.</p>
+            <p> Rekisteröiminen tapahtumaan on avoinna {event.registrationStartDate} - {event.registrationEndDate } </p>
+        </Well>
+    </Panel>
+)
 
 var SelectCabinComponent = React.createClass({
     selectCabin: function(selectedCabin) {

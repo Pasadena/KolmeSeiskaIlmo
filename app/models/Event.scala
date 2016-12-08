@@ -6,6 +6,7 @@ import javax.inject.Inject
 
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.json._
 import slick.driver.JdbcProfile
@@ -27,8 +28,11 @@ case class EventCabinData(id: Long, eventId: Long, cabin: Cabin, cabinCount: Int
 
 object Event {
 
-  val pattern = "d.M.yyyy"
-  implicit val dateFormat = Format[DateTime](Reads.jodaDateReads(pattern), Writes.jodaDateWrites(pattern))
+  val writePattern = "dd.MM.yyyy HH:mm"
+  val writeFormatter = DateTimeFormat.forPattern(writePattern);
+
+  implicit val tsreads: Reads[DateTime] = Reads.of[String] map (new DateTime(_))
+  implicit val tswrites: Writes[DateTime] = Writes { (dt: DateTime) => JsString(writeFormatter.print(dt))}
 
   implicit val eventFormat = Json.format[Event]
 }
@@ -123,9 +127,10 @@ class EventDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
       (eventCabin, cabin) <- eventCabins join cabins on (_.cabinId === _.id) if eventCabin.eventId === event.id.get
     } yield (eventCabin.id.get, eventCabin.eventId.get, cabin, eventCabin.amount)
     db.run(action.result.map(list => list.map(parts => EventCabinData(parts._1, parts._2, parts._3, parts._4))) )
-  }
+}
 
   def updateEvent(event: Event, cabinsForEvent: List[EventCabin]) = {
+        System.out.println(event)
     val copiedElement = event.copy(event.id, event.name, event.description, event.dateOfEvent, event.registrationStartDate, event.registrationEndDate, event.diningOptional)
 
     val cabinsIds = cabinsForEvent.foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)

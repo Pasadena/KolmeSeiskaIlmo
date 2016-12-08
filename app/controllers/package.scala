@@ -40,7 +40,11 @@ package object controllers {
   def parsePost[T](controller: Controller, onSuccess: T => Future[Result])(implicit request:Request[JsValue], reads:Reads[T]) = {
     val parsedJson = request.body.validate[T]
     parsedJson.fold(
-      errors =>  Future.successful(controller.BadRequest(Json.obj("status" -> "KO", "message" -> "Unexpected error happened during request parsing!"))),
+      errors =>  {
+          System.out.println(errors)
+          Future.successful(controller.BadRequest(Json.obj("status" -> "KO",
+              "message" -> "Unexpected error happened during request parsing!")))
+    },
       cabin => onSuccess.apply(cabin).recover {
         case error => {
           error.printStackTrace()
