@@ -15,6 +15,7 @@ import play.api.libs.json.{JsValue, Json, _}
 import play.api.libs.mailer._
 import javax.inject._
 import play.api.libs.mailer._
+import play.api.i18n._
 
 import slick.driver.JdbcProfile
 import play.api.mvc._
@@ -27,7 +28,9 @@ import scala.concurrent.Future
 /**
  * Created by spokos on 8/4/15.
  */
-class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDAO: EventDAO)(mailerClient: MailerClient)(pdfGenerator: PdfGenerator)(dbConfigProvider: DatabaseConfigProvider) extends Controller {
+class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDAO: EventDAO)
+    (mailerClient: MailerClient)(pdfGenerator: PdfGenerator)(dbConfigProvider: DatabaseConfigProvider)
+    (val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
   val registrationLogger = Logger(this.getClass)
 
@@ -87,7 +90,7 @@ class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDA
     outputStream.write(attachment)
 
     val email = Email(
-      subject = "registration.email.title", from= configOptions.getString("play.mailer.user"),
+      subject = Messages("registration.email.title"), from= configOptions.getString("play.mailer.user"),
       to = Seq(getContactPersonFromList(allPersonsInCabin).email),
       attachments = Seq(
         AttachmentData("Yhtenveto_teekkariristeily.pdf", attachment, "application/pdf", Some("Simple data"), Some(EmailAttachment.INLINE))

@@ -242,7 +242,7 @@ var PassengerListComponent = React.createClass({
                 <h2>Täytä hytin {this.props.selectedCabin.name} henkilötiedot: </h2>
                 <MultiModelForm onSubmit={this.saveRegistration} uniqueFormFields={["contactPerson"]}>
                     {flattenedItems}
-                    <div style={{marginLeft: "15px"}}>
+                    <div style={{marginLeft: "15px", marginBottom: "1%"}}>
                         <Button type="submit" bsStyle="success">Ilmoittaudu!</Button>
                     </div>
                 </MultiModelForm>
