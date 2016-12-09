@@ -90,7 +90,7 @@ class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDA
     outputStream.write(attachment)
 
     val email = Email(
-      subject = Messages("registration.email.title"), from= configOptions.getString("play.mailer.user"),
+      subject = "Tervetuloa teekkariristeilylle", from= configOptions.getString("play.mailer.user"),
       to = Seq(getContactPersonFromList(allPersonsInCabin).email),
       attachments = Seq(
         AttachmentData("Yhtenveto_teekkariristeily.pdf", attachment, "application/pdf", Some("Simple data"), Some(EmailAttachment.INLINE))
