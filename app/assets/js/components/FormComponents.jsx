@@ -264,7 +264,6 @@ var MultiModelForm = React.createClass({
                 return React.cloneElement(child, { ref: this.addRef,
                   uniqueFormFields: this.props.uniqueFormFields, preserveFieldUniqueness: this.preserveFieldUniqueness,
                   registerUniqueField: this.registerUniqueAttributeField});
-                //(component) => { this.fragmentRefs[index] = component; }
             } else {
                 return child;
             }
@@ -316,11 +315,6 @@ var DateInputWrapper = React.createClass({
     getInitialState: function() {
         return {value: this.props.value || ''};
     },
-    /**componentDidMount: function() {
-        if(this.props.attachToForm) {
-            this.props.attachToForm(this);
-        }
-    },**/
     componentWillMount: function() {
         if(this.props.attachToForm) {
             this.props.attachToForm(this);
@@ -465,7 +459,7 @@ var CheckboxWrapper = React.createClass({
         if(this.props.preserveFieldUniqueness) {
             this.props.preserveFieldUniqueness(this);
         }
-        this.setState({value: event.target.value});
+        this.setState({value: !this.state.value});
         if(this.props.disableForm) {
             this.props.disableForm(this);
         }
@@ -474,9 +468,6 @@ var CheckboxWrapper = React.createClass({
         this.setState({disabled: disabled});
     },
     render: function() {
-        if(this.props.type == 'checkbox') {
-            $("#" +this.props.id).attr('checked', this.state.value == 1 ? true: false);
-        }
         return(
             <FormGroup >
               <Col componentClass={ControlLabel} sm={2}>

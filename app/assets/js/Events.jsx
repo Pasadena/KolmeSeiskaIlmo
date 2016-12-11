@@ -125,7 +125,6 @@ var EventForm = React.createClass({
         });
         var eventId = this.props.event ? this.props.event.id : null;
         model.id = eventId;
-        model.diningOptional = model.diningOptional == "on" ? true : false;
 
         model.dateOfEvent = this.getFormattedDate(model.dateOfEvent);
         model.registrationEndDate = this.getFormattedDate(model.registrationEndDate);

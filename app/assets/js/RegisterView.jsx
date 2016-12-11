@@ -183,7 +183,9 @@ var PassengerListComponent = React.createClass({
         }
         _.each(filledRegistrations, function(registration) {
             registration["selectedDining"] = registration["selectedDining"] ? parseInt(registration["selectedDining"]) : -1;
-            if(registration.contactPerson != '1') {
+            if(registration.contactPerson) {
+                registration["contactPerson"] = 1;
+            } else {
                 registration["contactPerson"] = 0;
             }
             registration["registrationId"] = -1;
@@ -230,8 +232,8 @@ var PassengerListComponent = React.createClass({
                             <option key={3} value="2">Meriaamiainen</option>
                             <option key={4} value="3">Buffet-lounas</option>
                         </SelectWrapper>
-                        <CheckboxWrapper label="Hytin vastuuhenkilö:" id={contactPersonId} name="contactPerson" ref="name" labelClassName="col-sm-6 control-label" wrapperClassName="col-xs-6"/>
-                        <CheckboxWrapper label="Jätä paikka tyhjäksi" id="emptyPerson" name="emptyPerson" labelClassName="col-sm-6 control-label" wrapperClassName="col-xs-6" disableForm="true"/>
+                        <CheckboxWrapper label="Hytin vastuuhenkilö:" id={contactPersonId} name="contactPerson"/>
+                        <CheckboxWrapper label="Jätä paikka tyhjäksi" id="emptyPerson" name="emptyPerson" disableForm="true"/>
                     </Panel>
                 </FormFragment>
             );
