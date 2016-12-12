@@ -1,6 +1,7 @@
 package models
 
 import java.sql.Date
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -35,6 +36,7 @@ object Event {
   implicit val tswrites: Writes[DateTime] = Writes { (dt: DateTime) => JsString(writeFormatter.print(dt))}
 
   implicit val eventFormat = Json.format[Event]
+
 }
 
 object EventCabinData {
@@ -47,10 +49,10 @@ object EventData {
 
 class Events(tag: Tag) extends Table[Event](tag, "EVENT") {
 
-  implicit val dateTimeFormat = DateTimeFormat.forPattern("dd-mm-yyyy")
-  implicit val dateMapper = MappedColumnType.base[DateTime, Date](
-    dateTime => new Date(dateTime.getMillis),
-    date => new DateTime(date)
+  //implicit val dateTimeFormat = DateTimeFormat.forPattern("dd-mm-yyyy")
+  implicit val dateMapper = MappedColumnType.base[DateTime, Timestamp](
+      dt => new java.sql.Timestamp(dt.getMillis),
+      ts => new DateTime(ts.getTime)
   )
 
   def id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
@@ -131,7 +133,8 @@ class EventDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
 
   def updateEvent(event: Event, cabinsForEvent: List[EventCabin]) = {
         System.out.println(event)
-    val copiedElement = event.copy(event.id, event.name, event.description, event.dateOfEvent, event.registrationStartDate, event.registrationEndDate, event.diningOptional)
+    val copiedElement = event.copy(event.id, event.name, event.description, event.dateOfEvent,
+        event.registrationStartDate, event.registrationEndDate, event.diningOptional)
 
     val cabinsIds = cabinsForEvent.foldLeft(List.empty[Long])((ids: List[Long], cabin:EventCabin) => cabin.cabinId :: ids)
 

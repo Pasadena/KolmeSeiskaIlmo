@@ -53,8 +53,7 @@ class EventController @Inject()(eventDAO: EventDAO)(registrationDAO: Registratio
   }
 
   def getSelectedEvent(id: Long) = Action.async  { implicit re =>
-    eventDAO.findEventDataById(id).map(eventData =>
-      Ok(Json.obj("event" -> Json.toJson(eventData))))
+     eventDAO.findEventDataById(id).map(eventData => Ok(Json.obj("event" -> Json.toJson(eventData))))
   }
 
 
