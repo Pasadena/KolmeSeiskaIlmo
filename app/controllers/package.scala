@@ -1,6 +1,7 @@
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.mvc._
+import play.api.Logger
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -9,6 +10,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * Created by spokos on 1/3/16.
   */
 package object controllers {
+
+  val controllerPackageLogger = Logger("controllers")
 
   implicit def tuple3Reads[A, B, C](implicit aFormat: Format[A], bFormat: Format[B], cFormat: Format[C]): Reads[Tuple3[A, B, C]] = Reads[Tuple3[A, B, C]] {
     case JsArray(arr) if arr.size == 3 => for {
@@ -41,14 +44,13 @@ package object controllers {
     val parsedJson = request.body.validate[T]
     parsedJson.fold(
       errors =>  {
-          System.out.println(errors)
+          controllerPackageLogger.error("Unexpected error happened while parsing POST request: " +errors);
           Future.successful(controller.BadRequest(Json.obj("status" -> "KO",
               "message" -> "Unexpected error happened during request parsing!")))
     },
       cabin => onSuccess.apply(cabin).recover {
         case error => {
-          error.printStackTrace()
-          System.out.println(error)
+          controllerPackageLogger.error("Applying success-function failed with unknown exception ", error)
           controller.BadRequest(Json.obj("status" -> "KO", "message" -> "Operation failed with unexpected error!"))
         }
       }

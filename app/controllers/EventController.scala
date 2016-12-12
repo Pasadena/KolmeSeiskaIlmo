@@ -6,6 +6,7 @@ import play.api.data.validation.ValidationError
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.db.slick._
+import play.api.Logger
 
 import javax.inject._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,6 +17,8 @@ import slick.driver.JdbcProfile
  * Created by spokos on 2/28/15.
  */
 class EventController @Inject()(eventDAO: EventDAO)(registrationDAO: RegistrationDAO)(dbConfigProvider: DatabaseConfigProvider) extends Controller with Secured {
+
+  val eventLogger = Logger("controllers")
 
   def index = isAuthenticated { implicit rs =>
     Ok(views.html.admin.events())

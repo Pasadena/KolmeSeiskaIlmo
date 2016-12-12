@@ -49,7 +49,6 @@ object EventData {
 
 class Events(tag: Tag) extends Table[Event](tag, "EVENT") {
 
-  //implicit val dateTimeFormat = DateTimeFormat.forPattern("dd-mm-yyyy")
   implicit val dateMapper = MappedColumnType.base[DateTime, Timestamp](
       dt => new java.sql.Timestamp(dt.getMillis),
       ts => new DateTime(ts.getTime)
@@ -132,7 +131,6 @@ class EventDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
 }
 
   def updateEvent(event: Event, cabinsForEvent: List[EventCabin]) = {
-        System.out.println(event)
     val copiedElement = event.copy(event.id, event.name, event.description, event.dateOfEvent,
         event.registrationStartDate, event.registrationEndDate, event.diningOptional)
 

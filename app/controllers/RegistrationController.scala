@@ -32,7 +32,7 @@ class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDA
     (mailerClient: MailerClient)(pdfGenerator: PdfGenerator)(dbConfigProvider: DatabaseConfigProvider)
     (val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
-  val registrationLogger = Logger(this.getClass)
+  val registrationLogger = Logger("controllers")
 
   def loadEventRegisteredPersons(eventId: Long): Action[AnyContent] = Action.async { implicit rs =>
     registrationDAO.loadRegistrationsWithPersons(eventId).map(data => Ok(Json.toJson(groupRegistrationData(data))))
@@ -50,6 +50,7 @@ class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDA
         eventDAO.isEventRegistrationInProgress(registrationData._2.eventId).flatMap {
           case false => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "Registration is not currently in progress")))
           case true => {
+            registrationLogger.debug("Registering data " + registrationData)
             registrationDAO.doesEventHaveRoomForSelectedRegistration(registrationData._2).flatMap {
               case false => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "The selected cabin type was sold out during registration. Please select different cabin")))
               case true => {
@@ -59,7 +60,12 @@ class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDA
                       sendConfirmationMail(registrationData._1, registrationDetails, rs.host)
                       Ok(Json.obj("status" -> "Ok", "message" -> "Registration succesfully saved"))
                     })
-                  )
+                ).recover {
+                    case e => {
+                        registrationLogger.error("Unknown error happened during registration save: " +e)
+                        BadRequest(Json.obj("status" -> "KO", "message" -> "Unknown error happened during registration' save!"))
+                    }
+                }
               }
             }
           }
