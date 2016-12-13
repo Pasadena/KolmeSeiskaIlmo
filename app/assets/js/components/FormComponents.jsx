@@ -253,9 +253,6 @@ var MultiModelForm = React.createClass({
             field.setState({value: 0});
         });
     },
-    addRef(ref) {
-      this.fragmentRefs = [...this.fragmentRefs, ref];
-    },
     render: function() {
         let children = React.Children.map(this.props.children, function (child, index) {
             if(child.type && (child.type.displayName == 'FormFragment')) {

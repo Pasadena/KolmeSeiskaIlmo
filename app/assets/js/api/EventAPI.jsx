@@ -15,8 +15,9 @@ const EventAPI = {
         });
     },
 
-    fetchEvents: function() {
-        CommonAPI.get("/admin/loadEvents")
+    fetchEvents: function(activeOnly) {
+        let onlyActiveEvents = activeOnly ? activeOnly : false;
+        CommonAPI.get("/admin/loadEvents/" +onlyActiveEvents)
         .then(function(data) {
             AppDispatcher.handleAction({
                 actionType: "LOAD_EVENTS_SUCCESS",

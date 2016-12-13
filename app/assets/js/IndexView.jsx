@@ -1,7 +1,6 @@
-//define(['react', 'react-router', 'store/EventStore', 'actions/EventActions'], function(React, Router, EventStore, EventActions) {
 import React from "react";
 import { Router } from "react-router";
-import $ from 'jquery-ui';
+import moment from 'moment';
 import EventStore from "./store/EventStore";
 import EventActions from "./actions/EventActions";
 
@@ -20,7 +19,7 @@ var IndexViewComponent = React.createClass({
 
   },
   componentDidMount: function() {
-      EventActions.loadEvents();
+      EventActions.loadEvents(true);
       EventStore.addChangeListener(this._onChange);
 
   },
@@ -55,10 +54,10 @@ var AvailableEventCard = React.createClass({
       window.location = "/register/" +this.props.event.id;
   },
   isEventInThePast: function() {
-      var now = new Date();
-      //var registrationEnd = $.datepicker.parseDate('dd.mm.yy', this.props.event.registrationEndDate);
-      //return (registrationEnd - now < 0);
-      return false;
+      let now = moment().toDate();
+      let registrationStart = moment(this.props.event.registrationStartDate, "DD.MM.YYYY HH:mm").toDate();
+      let registrationEnd = moment(this.props.event.registrationEndDate, "DD.MM.YYYY HH:mm").toDate();
+      return registrationStart > now || registrationEnd < now;
   },
   render: function() {
       var cardDisabled = this.isEventInThePast();

@@ -28,7 +28,7 @@ POST    /admin/cabins/:id               controllers.CabinController.updateCabin(
 
 #Events
 GET /admin/events                       controllers.EventController.index
-GET /admin/loadEvents                   controllers.EventController.events
+GET /admin/loadEvents/:activeOnly       controllers.EventController.events(activeOnly: Boolean)
 POST /admin/events/                     controllers.EventController.createEvent
 POST /admin/events/delete/:id           controllers.EventController.deleteEvent(id: Long)
 GET /admin/events/:id                   controllers.EventController.getSelectedEvent(id: Long)

@@ -7,6 +7,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.db.slick._
 import play.api.Logger
+import org.joda.time.DateTime
 
 import javax.inject._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,9 +29,13 @@ class EventController @Inject()(eventDAO: EventDAO)(registrationDAO: Registratio
     Ok(views.html.admin.admin())
   }
 
-  def events: Action[AnyContent] = Action.async{ implicit rs =>
+  def isBeforeNow(event:Event) = event.dateOfEvent.isAfter(DateTime.now())
+
+  def events(activeOnly: Boolean): Action[AnyContent] = Action.async{ implicit rs =>
     eventDAO.getAll().map(events => Ok(Json.obj("events" ->
-      Json.toJson(events.sortWith((first, second) => second.dateOfEvent.compareTo(first.dateOfEvent) < 0)))))
+      Json.toJson(
+          events.filter(event => !activeOnly || isBeforeNow(event))
+          .sortWith((first, second) => second.dateOfEvent.compareTo(first.dateOfEvent) < 0)))))
   }
 
 

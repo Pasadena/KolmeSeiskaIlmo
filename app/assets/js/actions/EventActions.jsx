@@ -2,8 +2,8 @@ import AppDispatcher from './../dispatcher/AppDispatcher';
 import EventAPI from './../api/EventAPI';
 
 const EventActions = {
-    loadEvents: function() {
-        EventAPI.fetchEvents();
+    loadEvents: function(activeOnly) {
+        EventAPI.fetchEvents(activeOnly);
     },
     loadEventData: function(eventId) {
         AppDispatcher.handleAction({
