@@ -367,16 +367,16 @@ var InputWrapper = React.createClass({
         this.setState({disabled: disabled});
     },
     render: function() {
-        return(
+        return (
             <FormGroup >
               <Col componentClass={ControlLabel} sm={2}>
                 {this.props.label}
               </Col>
               <Col sm={10}>
-                <FormControl type={this.props.type} name={this.props.name} value={this.state.value}
+                <FormControl type={this.props.type} value={this.state.value}
                         placeholder={this.props.placeholder} id={this.props.id} name={this.props.name}
                         required={this.props.required} onChange={this.handleChange} disabled={this.state.disabled}
-                        maxLength={this.props.maxlength} />
+                        maxLength={this.props.maxlength} componentClass={this.props.componentClass} rows={4}/>
               </Col>
             </FormGroup>
         );

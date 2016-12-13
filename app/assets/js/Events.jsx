@@ -156,19 +156,20 @@ var EventForm = React.createClass({
                         <Modal.Title>{modalTitle}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <InputWrapper type="text" name="name" placeholder="Insert event name" label="Event name:" id="nameField"
-                          errorMessage='Name is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                        <InputWrapper type="text" name="name" placeholder="Insert event name" label="Event name:"
+                            id="nameField" errorMessage='Name is mandatory' required='true' />
                         <InputWrapper type="textarea" name="description" placeholder="Insert event description"
-                          label="Event description:" id="descriptionField" labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
-                        <DateInputWrapper type="text" name="dateOfEvent" label="Event date:" id="eventDate"
-                          errorMessage='Event date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
-                        <DateInputWrapper type="text" name="registrationStartDate" label="Registration starts:" id="startField"
-                          errorMessage='Start date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
-                        <DateInputWrapper type="text" name="registrationEndDate" label="Registration ends:" id="endField"
-                          errorMessage='End date is mandatory' required='true' labelClassName="col-sm-3 control-label" wrapperClassName="col-xs-6"/>
+                          label="Event description:" id="descriptionField" componentClass="textarea"/>
+                        <DateInputWrapper name="dateOfEvent" label="Event date:" id="eventDate"
+                          errorMessage='Event date is mandatory' required='true' />
+                        <DateInputWrapper name="registrationStartDate" label="Registration starts:" id="startField"
+                          errorMessage='Start date is mandatory' required='true' />
+                        <DateInputWrapper name="registrationEndDate" label="Registration ends:" id="endField"
+                          errorMessage='End date is mandatory' required='true' />
                         <CheckboxWrapper label="Is dining optional:" name="diningOptional"/>
                         <h4>Event's cabins</h4>
-                        <EventCabinsView cabins={this.props.cabins} selectedCabins={this.state.selectedCabins} event={this.props.event} ref="cabinSelect"/>
+                        <EventCabinsView cabins={this.props.cabins} selectedCabins={this.state.selectedCabins}
+                            event={this.props.event} ref="cabinSelect"/>
                     </Modal.Body>
                     <Modal.Footer>
                         <ButtonToolbar>
