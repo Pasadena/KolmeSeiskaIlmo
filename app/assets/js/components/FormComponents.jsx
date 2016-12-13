@@ -135,7 +135,6 @@ var RegisteredComponentSection = React.createClass({
         this.setState({isSubmitting: false}, this.validateForm)
     },
     getInputComponentByName: function(name, domTree) {
-        console.log(this.refs);
         var matchingElement = React.Children.map(domTree, function(child) {
             if(child.props && child.props.children) {
                 var matchingChild = this.getInputComponentByName(name, child.props.children);
@@ -206,12 +205,10 @@ var MultiModelForm = React.createClass({
     },
     componentWillMount: function() {
         this.uniqueModelValues = [];
-        this.fragmentRefs = [];
         this.fragments = this.getFragments(this.props.children);
     },
     componentWillUpdate: function(nextProps, nextState) {
         this.uniqueModelValues = [];
-        this.fragmentRefs = [];
         this.fragments = this.getFragments(nextProps.children);
     },
     getFragments: function(children) {
@@ -220,10 +217,11 @@ var MultiModelForm = React.createClass({
     },
     updateModels: function() {
         var formModels = [];
-        this.fragmentRefs.forEach( ref => {
-            ref.updateModel();
-            formModels.push(ref.getModel());
-        });
+        for (var refIndex in this.refs) {
+          let ref = this.refs[refIndex];
+          ref.updateModel();
+          formModels.push(ref.getModel());
+        }
         return formModels;
     },
     submitForm: function(event) {
@@ -238,12 +236,13 @@ var MultiModelForm = React.createClass({
     },
     validateForm: function() {
         let fragmentValid = true;
-        this.fragmentRefs.forEach( ref => {
+        for (var refIndex in this.refs) {
+          let ref = this.refs[refIndex];
           let isFragmentValid = ref.validateFragment();
           if(!isFragmentValid) {
               fragmentValid = false;
           }
-        });
+        }
         return fragmentValid;
     },
     registerUniqueAttributeField: function(component) {
@@ -258,10 +257,9 @@ var MultiModelForm = React.createClass({
       this.fragmentRefs = [...this.fragmentRefs, ref];
     },
     render: function() {
-      let thisContext = this;
         let children = React.Children.map(this.props.children, function (child, index) {
             if(child.type && (child.type.displayName == 'FormFragment')) {
-                return React.cloneElement(child, { ref: this.addRef,
+                return React.cloneElement(child, { ref: index,
                   uniqueFormFields: this.props.uniqueFormFields, preserveFieldUniqueness: this.preserveFieldUniqueness,
                   registerUniqueField: this.registerUniqueAttributeField});
             } else {
@@ -270,7 +268,7 @@ var MultiModelForm = React.createClass({
         }, this);
         return (
             <form onSubmit={this.submitForm} className='form-horizontal'>
-                {children}
+                { children }
             </form>
         );
     }
