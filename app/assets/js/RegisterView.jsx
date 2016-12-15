@@ -150,7 +150,7 @@ var SelectCabinComponent = React.createClass({
                 return item.cabinId == cabin.cabin.id ? memo + 1 : memo;
             }, 0);
             var numberOfAvailableCabins = totalAmountOfCabins - totalAmountOfOccupiedCabins;
-            var label = cabin.cabin.name +" ( " + numberOfAvailableCabins + " vapaana ) ";
+            var label = cabin.cabin.name +", " + cabin.cabin.price +"€ ( " + numberOfAvailableCabins + " vapaana ) ";
             var selected = this.props.selectedCabin && this.props.selectedCabin.id == cabin.cabin.id ? true : false;
             var cabinSelectionDisabled =  numberOfAvailableCabins <= 0 ? true : false;
             var radioClass = cabinSelectionDisabled ? "radio disabled-cabin" : "radio";
