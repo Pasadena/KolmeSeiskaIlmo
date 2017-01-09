@@ -227,10 +227,10 @@ var PassengerListComponent = React.createClass({
                         <InputWrapper type="text" placeholder="Club One-numero" label="Club One-numero:" id="clubNumberField" name="clubNumber" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4" maxlength="254"/>
                         <SelectWrapper name="selectedDining" label="Ruokailu:" placeholder="Valitse ruokailu:" labelClassName="col-sm-2 control-label" wrapperClassName="col-xs-4">
                             <option key={-1} value="-1">Ei ruokailua</option>
-                            <option key={1} value="0">Buffet-illallinen, 1. kattaus</option>
-                            <option key={2} value="1">Buffet-illallinen, 2. kattaus</option>
-                            <option key={3} value="2">Meriaamiainen</option>
-                            <option key={4} value="3">Buffet-lounas</option>
+                            <option key={1} value="0">Buffet-illallinen, 1. kattaus (35€)</option>
+                            <option key={2} value="1">Buffet-illallinen, 2. kattaus (35€)</option>
+                            <option key={3} value="2">Meriaamiainen (10,50€)</option>
+                            <option key={4} value="3">Buffet-lounas (31€)</option>
                         </SelectWrapper>
                         <CheckboxWrapper label="Hytin vastuuhenkilö:" id={contactPersonId} name="contactPerson"/>
                         <CheckboxWrapper label="Jätä paikka tyhjäksi" id="emptyPerson" name="emptyPerson" disableForm="true"/>

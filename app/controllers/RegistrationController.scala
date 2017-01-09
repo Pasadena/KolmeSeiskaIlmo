@@ -113,8 +113,8 @@ class RegistrationController @Inject()(registrationDAO: RegistrationDAO)(eventDA
     }
   }
 
-  val diningsMap:Map[Int, (String, Double)] = Map(0 -> ("Päivällinen, 1. kattaus", 33.0),
-  1 -> ("Päivällinen, 2. kattaus", 33.0), 2 -> ("Meriaamiainen", 10.5), 3 -> ("Lounas", 25.0))
+  val diningsMap:Map[Int, (String, Double)] = Map(0 -> ("Buffet-illallinen, 2.kattaus", 35.00),
+  1 -> ("Buffet-illallinen, 2. kattaus", 35.00), 1 -> ("Meriaamiainen", 10.50), 2 -> ("Buffet-lounas", 31.00))
 
   def foo(): Action[AnyContent] = Action.async { implicit rs =>
     val dueDate = LocalDate.now.plusDays(14)
