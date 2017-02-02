@@ -82,7 +82,7 @@ class EventController @Inject()(eventDAO: EventDAO)(registrationDAO: Registratio
     } yield (registrations, event)
     eventData.map(data => {
       val registrationsWithPersons = data._1.groupBy(_._1).map { case (key, value) => RegistrationWithPersons(key, value.head._2, value.map(_._3)) }.toList
-      val registrationFile = ExcelUtils.generateExcelFronRegisteredPersons(registrationsWithPersons, data._2)
+      val registrationFile = ExcelUtils.generateExcelFronRegisteredPersons(registrationsWithPersons, data._2, eventLogger)
       Ok.sendFile(registrationFile, false, (_) => s"Yhteenveto ${data._2.name}.xlsx")
     })
   }

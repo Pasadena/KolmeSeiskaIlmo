@@ -6,6 +6,7 @@ import models.{Event, RegistrationWithPersons}
 import org.apache.poi.ss.usermodel.{BorderStyle, Font, CellStyle}
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.{XSSFCellStyle, XSSFRow, XSSFSheet, XSSFWorkbook}
+import play.api.Logger
 
 /**
   * Created by spokos on 1/29/16.
@@ -14,20 +15,27 @@ object ExcelUtils {
 
   val REGISTRATION_DATA_COLUMNS = 13
 
-  def generateExcelFronRegisteredPersons(registrations: Seq[RegistrationWithPersons], event: Event): File = {
-    val file = new File(s"Yhteenveto ${event.name}.xlsx")
-    val fileOut = new FileOutputStream(file);
-    val workbook = new XSSFWorkbook()
-    val summarySheet = workbook.createSheet("Yhteenveto")
+  def generateExcelFronRegisteredPersons(registrations: Seq[RegistrationWithPersons], event: Event, logger: Logger): File = {
+      try {
+        val file = new File(s"Henkilöyhteenveto ${event.name}.xlsx")
+        val fileOut = new FileOutputStream(file);
+        val workbook = new XSSFWorkbook()
+        val summarySheet = workbook.createSheet("Yhteenveto")
 
-    val nextAvailableRowAfterHeader = generateHeader(summarySheet, workbook, 1)
-    generatePersonRows(summarySheet, workbook, registrations, nextAvailableRowAfterHeader)
+        val nextAvailableRowAfterHeader = generateHeader(summarySheet, workbook, 1)
+        generatePersonRows(summarySheet, workbook, registrations, nextAvailableRowAfterHeader, logger)
 
-    resizeColumnsToContent(summarySheet)
+        resizeColumnsToContent(summarySheet)
 
-    workbook.write(fileOut)
-    fileOut.close()
-    file
+        workbook.write(fileOut)
+        fileOut.close()
+        file
+    } catch {
+        case e:Exception => {
+            logger.error("Unknown error happened excel generation: " +e)
+            null
+        }
+    }
   }
 
   private def resizeColumnsToContent(worksheet: XSSFSheet) = {
@@ -43,12 +51,19 @@ object ExcelUtils {
     nextAvailableRow +1
   }
 
-  private def generatePersonRows(sheet: XSSFSheet, workBook: XSSFWorkbook, registrations: Seq[RegistrationWithPersons], nextAvailableRow: Int): Unit = {
+  private def generatePersonRows(sheet: XSSFSheet, workBook: XSSFWorkbook, registrations: Seq[RegistrationWithPersons], nextAvailableRow: Int, logger: Logger): Unit = {
     var nextRow = generateTableHeader(sheet, workBook, nextAvailableRow +1)
     var cabinIndex = 1
     registrations foreach {registration =>
-      nextRow = createRegistrationRows(sheet, workBook, registration, nextRow, cabinIndex)
-      cabinIndex += 1
+        try {
+            nextRow = createRegistrationRows(sheet, workBook, registration, nextRow, cabinIndex)
+            cabinIndex += 1
+        } catch {
+            case e:Exception => {
+                logger.debug("Failing registration" +registration)
+                logger.error("Unknown error happened excel row generation: " +e)
+            }
+        }
     }
   }
 
