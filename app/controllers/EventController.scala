@@ -84,7 +84,7 @@ class EventController @Inject()(eventDAO: EventDAO)(registrationDAO: Registratio
         try {
           val registrationsWithPersons = data._1.groupBy(_._1).map { case (key, value) => RegistrationWithPersons(key, value.head._2, value.map(_._3)) }.toList
           val registrationFile = ExcelUtils.generateExcelFronRegisteredPersons(registrationsWithPersons, data._2, Logger("application"))
-          Ok.sendFile(registrationFile, false, (_) => s"Yhteenveto ${data._2.name}.xlsx")
+          Ok.sendFile(registrationFile, false, (_) => "Hyttiyhteenveto.xlsx")
          } catch {
              case e: Throwable => {
               eventLogger.error("Unknown error happened during excel parsing: " +e)
