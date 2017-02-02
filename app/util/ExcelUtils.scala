@@ -15,7 +15,7 @@ object ExcelUtils {
   val REGISTRATION_DATA_COLUMNS = 13
 
   def generateExcelFronRegisteredPersons(registrations: Seq[RegistrationWithPersons], event: Event): File = {
-    val file = new File(s"Henkilöyhteenveto ${event.name}.xlsx")
+    val file = new File(s"Yhteenveto ${event.name}.xlsx")
     val fileOut = new FileOutputStream(file);
     val workbook = new XSSFWorkbook()
     val summarySheet = workbook.createSheet("Yhteenveto")
