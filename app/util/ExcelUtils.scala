@@ -17,7 +17,8 @@ object ExcelUtils {
 
   def generateExcelFronRegisteredPersons(registrations: Seq[RegistrationWithPersons], event: Event, logger: Logger): File = {
       try {
-        val file = new File(s"Henkilöyhteenveto ${event.name}.xlsx")
+        val fileName = String.valueOf(s"Henkilöyhteenveto ${event.name}.xlsx");
+        val file = new File(fileName.replace(" ", "_"))
         val fileOut = new FileOutputStream(file);
         val workbook = new XSSFWorkbook()
         val summarySheet = workbook.createSheet("Yhteenveto")
