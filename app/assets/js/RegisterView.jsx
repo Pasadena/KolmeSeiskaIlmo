@@ -46,7 +46,7 @@ var RegisterView = React.createClass({
     },
     closeDialog: function() {
         this.setState({showNotification: false});
-        window.location = "http://teekkariristeily.net";
+        window.location = "http://www.teekkariristeily.net";
     },
     addAlert: function(alert) {
         this.state.alerts.push(alert);
