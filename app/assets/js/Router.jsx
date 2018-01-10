@@ -56,7 +56,9 @@ const NotFound = () => (
 )
 
 const Header = () => (
-  <div className="logo-block"></div>
+  <div className="header">
+      <img className="banner" src="/assets/images/teekkariristeily18_kansikuva.png" />
+  </div>
 )
 
 const ErrorNotification = ({ show, errorMessage }) => {
