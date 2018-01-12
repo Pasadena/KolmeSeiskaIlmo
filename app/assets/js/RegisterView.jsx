@@ -1,14 +1,13 @@
 import React from 'react';
 import { Router, withRouter } from 'react-router';
-import $ from 'jquery';
-import {FormFragment, MultiModelForm, InputWrapper, Form, SelectWrapper, CheckboxWrapper} from './components/FormComponents';
+import {FormFragment, MultiModelForm, InputWrapper, SelectWrapper, CheckboxWrapper} from './components/FormComponents';
 import _ from 'underscore';
-import moment from 'moment';
 import {Panel, RBInput, ListGroup, ListGroupItem, PageHeader, Modal, ButtonInput, Button, Alert, Well, Fade, Radio} from 'react-bootstrap';
 import EventStore from './store/EventStore';
 import RegistrationStore from './store/RegistrationStore';
 import EventActions from './actions/EventActions';
 import RegistrationActions from './actions/RegistrationActions';
+import { getShortDateTime } from './utils/dateTime';
 
 var RegisterView = React.createClass({
 
@@ -54,19 +53,24 @@ var RegisterView = React.createClass({
     },
     isRegistrationOpen(event) {
         if(event) {
-            let now = moment().toDate();
-            let registrationStart = moment(event.registrationStartDate, "DD.MM.YYYY HH:mm").toDate();
-            let registrationEnd = moment(event.registrationEndDate, "DD.MM.YYYY HH:mm").toDate();
+            const now = new Date();
+            const registrationStart = new Date(event.registrationStartDate);
+            const registrationEnd = new Date(event.registrationEndDate);
             return registrationStart <= now && registrationEnd >= now;
         }
         return false;
     },
+
+    getEventDateTime(dateTime) {
+        return dateTime ? getShortDateTime(dateTime) : "";
+    },
+
     render: function() {
-         var eventName = this.state.event != null ? this.state.event.name : "";
-         var description = this.state.event != null ? this.state.event.description : "";
-         var eventDate = this.state.event != null ? this.state.event.dateOfEvent : "";
-         var registrationStarts = this.state.event != null ? this.state.event.registrationStartDate : "";
-         var registrationEnds = this.state.event != null ? this.state.event.registrationEndDate : "";
+         const eventName = this.state.event != null ? this.state.event.name : "";
+         const description = this.state.event != null ? this.state.event.description : "";
+         const eventDate = this.state.event != null ? this.getEventDateTime(this.state.event.dateOfEvent) : "";
+         const registrationStarts = this.state.event != null ? this.getEventDateTime(this.state.event.registrationStartDate) : "";
+         const registrationEnds = this.state.event != null ? this.getEventDateTime(this.state.event.registrationEndDate)  : "";
 
          let isRegistrationOpen = this.isRegistrationOpen(this.state.event);
          let registrationNotOpenNotification = this.getRegistrationNotOpenNotification(this.state.event,
@@ -134,7 +138,8 @@ const RegistrationNotOpenNotification = ({ event }) => (
     <Panel header={<h2>Rekisteröinti ei käynnissä</h2>} bsStyle="danger">
         <Well bsSize="small">
             <p> Whoa there landlubber! Rekisteröinti tapahtumaan { event.name } ei juuri nyt ole käynnissä.</p>
-            <p> Rekisteröiminen tapahtumaan on avoinna {event.registrationStartDate} - {event.registrationEndDate } </p>
+            <p> Rekisteröiminen tapahtumaan on avoinna { getShortDateTime(event.registrationStartDate) }
+            - { getShortDateTime(event.registrationEndDate) } </p>
         </Well>
     </Panel>
 )

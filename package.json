@@ -2,7 +2,7 @@
   "name": "KolmeSeiskaIlmo",
   "version": "0.1.0",
   "scripts": {
-      "heroku-postbuild": "webpack --config ./webpack.production.config.js"
+    "heroku-postbuild": "webpack --config ./webpack.production.config.js"
   },
   "dependencies": {
     "css-loader": "^0.26.1",
@@ -26,6 +26,5 @@
     "babel-preset-react": "^6.16.0",
     "webpack": "^1.13.3"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }

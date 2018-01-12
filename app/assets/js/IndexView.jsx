@@ -3,6 +3,7 @@ import { Router } from "react-router";
 import moment from 'moment';
 import EventStore from "./store/EventStore";
 import EventActions from "./actions/EventActions";
+import { getShortDateTime } from './utils/dateTime';
 
 function getIndexPageState() {
   return {
@@ -71,10 +72,13 @@ var AvailableEventCard = React.createClass({
               <div className="card-body">
                   <ul>
                       <li>
-                          Päivä: {this.props.event.dateOfEvent}
+                          Päivä: { getShortDateTime(this.props.event.dateOfEvent) }
                       </li>
                       <li>
-                          Ilmoittautumisaika {this.props.event.registrationStartDate} - {this.props.event.registrationEndDate}
+                          Ilmoittautuminen alkaa: { getShortDateTime(this.props.event.registrationStartDate) }
+                      </li>
+                      <li>
+                          Ilmoittautuminen päättyy: { getShortDateTime(this.props.event.registrationEndDate) }
                       </li>
                   </ul>
               </div>

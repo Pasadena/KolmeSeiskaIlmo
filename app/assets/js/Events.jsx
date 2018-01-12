@@ -1,16 +1,15 @@
 import React from 'react';
 import { Router } from 'react-router';
 import { Button, PageHeader, Panel, Modal, ButtonToolbar, Table, Checkbox, FormControl } from 'react-bootstrap';
-import $ from 'jquery';
 import _ from 'underscore';
-import {ButtonComponent, InputComponent, TextAreaComponent, Form, DateInputWrapper, InputWrapper, CheckboxWrapper} from './components/FormComponents';
+import { InputComponent, TextAreaComponent, Form, DateInputWrapper, InputWrapper, CheckboxWrapper} from './components/FormComponents';
 import EventStore from './store/EventStore';
 import CabinStore from './store/CabinStore';
 import RegistrationStore from './store/RegistrationStore';
 import EventActions from './actions/EventActions';
 import CabinActions from './actions/CabinActions';
 import RegistrationActions from './actions/RegistrationActions'
-import moment from 'moment';
+import { getShortDateTime } from './utils/dateTime';
 
 function getEventPageState() {
     var messageData = EventStore.getMessageData();
@@ -126,20 +125,10 @@ var EventForm = React.createClass({
         var eventId = this.props.event ? this.props.event.id : null;
         model.id = eventId;
 
-        model.dateOfEvent = this.getFormattedDate(model.dateOfEvent);
-        model.registrationEndDate = this.getFormattedDate(model.registrationEndDate);
-        model.registrationStartDate = this.getFormattedDate(model.registrationStartDate);
-
         this.props.formSubmitHandler(model, eventCabins);
         this.setState({selectedEvent: {}, availableCabins: this.state.availableCabins, selectedCabins: []});
     },
-    getFormattedDate(dateToFormat) {
-        if(dateToFormat.toDate) {
-            return dateToFormat.toDate();
-        } else {
-            return moment(dateToFormat, "DD.MM.YYYY HH:mm").toDate();
-        }
-    },
+
     dismiss: function() {
         this.props.close();
     },
@@ -300,9 +289,9 @@ var EventTableRow = React.createClass({
         return (
             <tr>
                 <td>{this.props.event.name}</td>
-                <td>{this.props.event.dateOfEvent}</td>
-                <td>{this.props.event.registrationStartDate}</td>
-                <td>{this.props.event.registrationEndDate}</td>
+                <td>{getShortDateTime(this.props.event.dateOfEvent)}</td>
+                <td>{getShortDateTime(this.props.event.registrationStartDate)}</td>
+                <td>{getShortDateTime(this.props.event.registrationEndDate)}</td>
                 <td>
                     <ButtonToolbar>
                         <Button type="submit" bsStyle="danger" onClick={this.deleteEvent}>Delete</Button>

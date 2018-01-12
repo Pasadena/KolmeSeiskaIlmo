@@ -29,11 +29,11 @@ case class EventCabinData(id: Long, eventId: Long, cabin: Cabin, cabinCount: Int
 
 object Event {
 
-  val writePattern = "dd.MM.yyyy HH:mm"
-  val writeFormatter = DateTimeFormat.forPattern(writePattern);
+  val writePattern = "yyyy-MM-dd HH:mm:ss±hh"
+  val dateFormatter = DateTimeFormat.forPattern(writePattern);
 
-  implicit val tsreads: Reads[DateTime] = Reads.of[String] map (new DateTime(_))
-  implicit val tswrites: Writes[DateTime] = Writes { (dt: DateTime) => JsString(writeFormatter.print(dt))}
+  implicit val tsreads: Reads[DateTime] = Reads.of[String] map (DateTime.parse _)
+  implicit val tswrites: Writes[DateTime] = Writes { (dt: DateTime) => JsString(dt.toString)}
 
   implicit val eventFormat = Json.format[Event]
 
