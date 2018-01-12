@@ -12,7 +12,7 @@ import RegistrationActions from './actions/RegistrationActions'
 import { getShortDateTime } from './utils/dateTime';
 
 function getEventPageState() {
-    var messageData = EventStore.getMessageData();
+    const messageData = EventStore.getMessageData();
     return {
         events: EventStore.getEvents(),
         selectedEvent: EventStore.getSelectedEvent(),
@@ -25,7 +25,7 @@ function getEventPageState() {
     };
 }
 
-var EventSection = React.createClass({
+const EventSection = React.createClass({
     getInitialState: function() {
         return getEventPageState();
     },
@@ -107,7 +107,7 @@ var EventSection = React.createClass({
     }
 });
 
-var EventForm = React.createClass({
+const EventForm = React.createClass({
     getInitialState: function() {
         return { selectedEvent: {}, availableCabins: [], selectedCabins: []};
     },
@@ -119,10 +119,10 @@ var EventForm = React.createClass({
         }
     },
     submitForm: function(model) {
-        var eventCabins = _.map(this.refs.cabinSelect.state.selectedCabins, function(cabin) {
+        const eventCabins = _.map(this.refs.cabinSelect.state.selectedCabins, function(cabin) {
             return {id: cabin.id, eventId: cabin.eventId, cabinId: cabin.cabin.id, amount: cabin.cabinCount};
         });
-        var eventId = this.props.event ? this.props.event.id : null;
+        const eventId = this.props.event ? this.props.event.id : null;
         model.id = eventId;
 
         this.props.formSubmitHandler(model, eventCabins);
@@ -137,7 +137,7 @@ var EventForm = React.createClass({
         this.props.closeDialog();
     },
     render: function() {
-        var modalTitle = this.props.event ? "Edit event" : "Create event";
+        const modalTitle = this.props.event ? "Edit event" : "Create event";
         return (
             <Modal onHide={this.dismiss} show={this.props.show} bsStyle="primary" dialogClassName="modal-large">
                 <Form onSubmit={this.submitForm} model={this.props.event}>
@@ -172,7 +172,7 @@ var EventForm = React.createClass({
     }
 });
 
-var EventCabinsView = React.createClass({
+const EventCabinsView = React.createClass({
     getInitialState: function() {
         return {selectedCabins: []};
     },
@@ -183,7 +183,7 @@ var EventCabinsView = React.createClass({
         this.setState({selectedCabins: nextProps.selectedCabins});
     },
     selectCabin: function(cabin, event) {
-        var selectedCabins = this.state.selectedCabins;
+        const selectedCabins = this.state.selectedCabins;
         if(this._isCabinSelected(cabin)) {
             this.setState({selectedCabins: _.filter(selectedCabins, function(selectedCabin) { return selectedCabin.cabin.id != cabin.id })});
         } else {
@@ -192,7 +192,7 @@ var EventCabinsView = React.createClass({
         }
     },
     _isCabinSelected: function(cabin) {
-        var selectedCabinMatchingCabin = this._getSelectedCabin(cabin);
+        const selectedCabinMatchingCabin = this._getSelectedCabin(cabin);
         return selectedCabinMatchingCabin ? true : false;
     },
     _getSelectedCabin: function(cabin) {
@@ -201,14 +201,14 @@ var EventCabinsView = React.createClass({
         });
     },
     updateValue: function(cabin, event) {
-        var selectedCabin = this._getSelectedCabin(cabin);
+        const selectedCabin = this._getSelectedCabin(cabin);
         selectedCabin.cabinCount = parseInt(event.target.value, 10);
         this.setState({selectedCabins: this.state.selectedCabins});
     },
     render: function() {
-        var cabinElements = this.props.cabins.map(function(cabin) {
-            var selectedCabinMatchingCabin = this._getSelectedCabin(cabin);
-            var cabinSelected = selectedCabinMatchingCabin ? true : false;
+        const cabinElements = this.props.cabins.map(function(cabin) {
+            const selectedCabinMatchingCabin = this._getSelectedCabin(cabin);
+            const cabinSelected = selectedCabinMatchingCabin ? true : false;
             return (
                 <tr ref={cabin.id} key={cabin.id}>
                     <td><Checkbox value={cabin.id} checked={cabinSelected} onChange={this.selectCabin.bind(null, cabin)}/></td>
@@ -235,7 +235,7 @@ var EventCabinsView = React.createClass({
     }
 });
 
-var EventList = React.createClass({
+const EventList = React.createClass({
     render: function() {
         return (
             !this.props.data.length ? <EmptyTable /> :<EventTable data ={this.props.data} deleteHandler={this.props.deleteHandler} editHandler={this.props.editHandler}
@@ -244,11 +244,11 @@ var EventList = React.createClass({
     }
 });
 
-var EventTable = React.createClass({
+const EventTable = React.createClass({
     render: function() {
-        var deleteHandler = this.props.deleteHandler;
-        var editHandler = this.props.editHandler;
-        var tableRows = this.props.data.map(function(event) {
+        const deleteHandler = this.props.deleteHandler;
+        const editHandler = this.props.editHandler;
+        const tableRows = this.props.data.map(function(event) {
             return (
                 <EventTableRow event = {event} key={event.id} deleteHandler={deleteHandler} editHandler={editHandler} viewRegistrationDataHandler = {this.props.viewRegistrationDataHandler}/>
             );
@@ -272,7 +272,7 @@ var EventTable = React.createClass({
     }
 });
 
-var EventTableRow = React.createClass({
+const EventTableRow = React.createClass({
     deleteEvent: function(event) {
         event.preventDefault();
         this.props.deleteHandler(this.props.event);
@@ -308,7 +308,7 @@ var EventTableRow = React.createClass({
 });
 
 
-var EmptyTable = React.createClass({displayName: "EmptyTable",
+const EmptyTable = React.createClass({displayName: "EmptyTable",
     render: function() {
         return (
             <div>There are no events to display!</div>
@@ -316,7 +316,7 @@ var EmptyTable = React.createClass({displayName: "EmptyTable",
     }
 });
 
-var EventRegistrationList = React.createClass({
+const EventRegistrationList = React.createClass({
     closeDialog: function(event) {
         event.preventDefault();
         this.dismiss();
@@ -325,7 +325,7 @@ var EventRegistrationList = React.createClass({
         this.props.close();
     },
     render: function() {
-        var registrationItems = this.props.registrations.map(function(registration) {
+        const registrationItems = this.props.registrations.map(function(registration) {
             return (
                 <EventRegistrationRow key={'registration ' +registration.registration.id} registration={registration} />
             );
@@ -348,7 +348,7 @@ var EventRegistrationList = React.createClass({
     }
 });
 
-var EventRegistrationRow = React.createClass({
+const EventRegistrationRow = React.createClass({
     getInitialState: function() {
         return {expanded: false};
     },
@@ -361,15 +361,15 @@ var EventRegistrationRow = React.createClass({
         this.setState({expanded: !this.state.expanded});
     },
     render: function() {
-        var registrationData = this.props.registration;
-        var responsiblePerson = this.getResponsiblePerson(registrationData);
-        var timeStampDate = new Date(registrationData.registration.timestamp);
-        var personInfoRows = (!this.state.expanded ? [] :  registrationData.persons).map(function(person, order) {
+        const registrationData = this.props.registration;
+        const responsiblePerson = this.getResponsiblePerson(registrationData);
+        const timeStampDate = new Date(registrationData.registration.timestamp);
+        const personInfoRows = (!this.state.expanded ? [] :  registrationData.persons).map(function(person, order) {
             return (
                 <EventRegistrationPersonListRow key = {'person ' +person.id} person={person} order={(order +1)}/>
             );
         });
-        var arrowClass = this.state.expanded ? "glyphicon glyphicon-arrow-down" : "glyphicon glyphicon-arrow-right";
+        const arrowClass = this.state.expanded ? "glyphicon glyphicon-arrow-down" : "glyphicon glyphicon-arrow-right";
         return (
             <li key={registrationData.registration.id} style={{listStyle: 'none'}}>
                 <div style={{display: 'flex', flexDirection: 'row', borderBottom: '1px solid black'}}>
@@ -396,7 +396,7 @@ var EventRegistrationRow = React.createClass({
     }
 });
 
-var EventRegistrationPersonListRow = React.createClass({
+const EventRegistrationPersonListRow = React.createClass({
     getInitialState: function() {
         return {dinnerMap: {
                 0: 'Päivällinen, 1. kattaus',
