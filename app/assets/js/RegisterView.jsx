@@ -9,7 +9,7 @@ import EventActions from './actions/EventActions';
 import RegistrationActions from './actions/RegistrationActions';
 import { getShortDateTime } from './utils/dateTime';
 
-var RegisterView = React.createClass({
+const RegisterView = React.createClass({
 
     childContextTypes: {
         router: React.PropTypes.func
