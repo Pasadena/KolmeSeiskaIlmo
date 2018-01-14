@@ -2,7 +2,7 @@ const options = {
     shortDateTime: {
         year: 'numeric',
         month: '2-digit',
-        day: 'numeric',
+        day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
     },
