@@ -12,7 +12,7 @@ function getIndexPageState() {
   };
 }
 
-var IndexViewComponent = React.createClass({
+const IndexViewComponent = React.createClass({
   getInitialState: function() {
       return getIndexPageState();
   },
@@ -31,12 +31,12 @@ var IndexViewComponent = React.createClass({
       this.setState(this.getInitialState());
   },
   render: function() {
-      var eventComponents = this.state.events.map(function(event) {
+      const eventComponents = this.state.events.map(function(event) {
           return (
               <AvailableEventCard event={event} ref={event.id} key={event.id}/>
           );
       });
-      var eventList = !this.state.events.length ? <div>There are no events to display!</div> : eventComponents;
+      const eventList = !this.state.events.length ? <div>There are no events to display!</div> : eventComponents;
       return (
           <section>
               <hgroup>
@@ -50,7 +50,7 @@ var IndexViewComponent = React.createClass({
   }
 });
 
-var AvailableEventCard = React.createClass({
+const AvailableEventCard = React.createClass({
   registerToEvent: function() {
       window.location = "/register/" +this.props.event.id;
   },
@@ -61,9 +61,9 @@ var AvailableEventCard = React.createClass({
       return registrationStart > now || registrationEnd < now;
   },
   render: function() {
-      var cardDisabled = this.isEventInThePast();
-      var cardClasses = cardDisabled ? "card card-disabled" : "card";
-      var tooltip = cardDisabled ? "Registration period for this event has ended" : " ";
+      const cardDisabled = this.isEventInThePast();
+      const cardClasses = cardDisabled ? "card card-disabled" : "card";
+      const tooltip = cardDisabled ? "Registration period for this event has ended" : " ";
       return (
           <div className={cardClasses} ref={this.props.event.id} onClick={this.registerToEvent} title={tooltip}>
               <div className="card-header">
